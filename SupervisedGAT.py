@@ -142,7 +142,7 @@ with tf.Graph().as_default():
                                                     is_train: False,
                                                     attn_drop: 0.0,
                                                     ffd_drop: 0.0})
- 
+
                     val_loss_avg += loss_value_vl
                     vl_step += 1
 
