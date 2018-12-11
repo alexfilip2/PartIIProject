@@ -14,19 +14,9 @@ ptnMAT_d50_ses2 = os.path.join(ptnMAT_d50_dir, 'netmats2.txt')
 pers_scores = os.path.join(os.getcwd(), os.pardir, 'PartIIProject', 'TIVscores',
                            '1016_HCP_withTIV_acorrected_USETHIS.xlsx')
 PTN_MAT_DIM = 50
-"""
- Prepare adjacency matrix by expanding up to a given neighbourhood.
- This will insert loops on every node.
- Finally, the matrix is converted to bias vectors.
- Expected shape: [graph, nodes, nodes]
- 
- adj - array of all adjacency matrices for all example graphs
- sizes - array of number of nodes for each graph
- nhood - the number of hops for the aggregation step: selecting the 'neighbours' 
-"""
 
 
-# transform a adjancy matrix with edge weights into a binary adj matrix (used for MASKED ATTENTION)
+# transform an adjacency matrix with edge weights into a binary adj matrix (used for MASKED ATTENTION)
 def get_binary_adj(graph):
     bin_adj = np.empty(graph.shape)
     for i in range(graph.shape[0]):
@@ -54,6 +44,38 @@ def adj_to_bias(adj, sizes, nhood=1):
                     mt[g][i][j] = 1.0
     # conjugate the adj matrix of nhood neighbours
     return -1e9 * (1.0 - mt)
+
+
+def shuffle_tr_data(scores, node_feats, bias_mats, adj_mats, chunk_sz):
+    assert chunk_sz == len(scores)
+    shuffled_data = list(zip(scores,
+                             node_feats[:chunk_sz],
+                             bias_mats[:chunk_sz],
+                             adj_mats[:chunk_sz]))
+
+    random.shuffle(shuffled_data)
+
+    score_in_tr, ftr_in_tr, bias_in_tr, adj_in_tr = map(np.array, zip(*shuffled_data))
+
+    assert len(score_in_tr) == len(ftr_in_tr) == len(bias_in_tr) == len(adj_in_tr) == chunk_sz
+
+    return score_in_tr, ftr_in_tr, bias_in_tr, adj_in_tr
+
+
+def shuffle_tr_utest(scores, node_feats, bias_mats, adj_mats, chunk_sz):
+    for _ in range(50):
+        score_in_tr, ftr_in_tr, bias_in_tr, adj_in_tr = shuffle_tr_data(scores, node_feats, bias_mats,
+                                                                        adj_mats, chunk_sz)
+
+        if score_in_tr.shape != score_train.shape: print("error")
+        for row_s in score_in_tr:
+            check = False
+            for row in score_train:
+                if set(row_s.tolist()) == set(row.tolist()): check = True
+            if not check:
+                print("error")
+                break
+
 
 
 def get_adj_ses1(dim):
@@ -99,34 +121,6 @@ def load_data():
     return adj_matrices, graphs_features, score_train, score_val, score_test
 
 
-def shuffle_tr_data(scores, node_feats, bias_mats, adj_mats, chunk_sz):
-    assert len(node_feats[:chunk_sz]) == chunk_sz
-    shuffled_data = list(zip(scores,
-                             node_feats[:chunk_sz],
-                             bias_mats[:chunk_sz],
-                             adj_mats[:chunk_sz]))
-
-    random.shuffle(shuffled_data)
-    score_in_tr, ftr_in_tr, bias_in_tr, adj_in_tr = map(np.array, list(zip(*shuffled_data)))
-    assert len(score_in_tr) == len(ftr_in_tr) == len(bias_in_tr) == len(adj_in_tr) == chunk_sz
-
-    return score_in_tr, ftr_in_tr, bias_in_tr, adj_in_tr
-
-
-def shuffle_tr_utest(scores, node_feats, bias_mats, adj_mats, chunk_sz):
-    for _ in range(50):
-        score_in_tr, ftr_in_tr, bias_in_tr, adj_in_tr = shuffle_tr_data(scores, node_feats, bias_mats,
-                                                                        adj_mats, chunk_sz)
-
-        if score_in_tr.shape != score_train.shape: print("error")
-        for row_s in score_in_tr:
-            check = False
-            for row in score_train:
-                if set(row_s.tolist()) == set(row.tolist()): check = True
-            if not check:
-                print("error")
-                break
-
 
 if __name__ == "__main__":
     adj_matrices, graphs_features, score_train, score_test, score_val = load_struct_data()
@@ -137,4 +131,4 @@ if __name__ == "__main__":
     adj = adj_matrices[:tr_size]
     feat = graphs_features[:tr_size]
     bias = biases[:tr_size]
-    shuffle_tr_utest(score_train,feat,bias,adj,tr_size)
+    shuffle_tr_data(score_train,feat,bias,adj,tr_size)

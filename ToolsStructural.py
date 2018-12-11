@@ -81,7 +81,7 @@ def get_struct_node_feat():
                 curr_node_feat.append(rescale_feats(f_value_limits[f_name]['min'],
                                                     f_value_limits[f_name]['max'],
                                                     float(graph_data[feat_brainreg_name])))
-                current_graph_feats.append(curr_node_feat)
+            current_graph_feats.append(curr_node_feat)
 
         all_node_feats[str(int(graph_data['Subjects']))] = current_graph_feats
 
@@ -116,7 +116,10 @@ def get_filtered_struct_adjs():
             sym_adj = np.array(graph)
             sym_adj[i_lower] = sym_adj.T[i_lower]
             if not check_symmetric(sym_adj): print("Making this adjancency matrix symmetric failed", file=stderr)
+            # normalize the rows of the adjacency matrix
+
             adj[subj_id.split('_')[0]] = sym_adj.tolist()
+
 
     return adj
 
@@ -172,4 +175,4 @@ def load_regress_data(trait_choice):
 
 if __name__ == "__main__":
     adjs = get_filtered_struct_adjs()
-    print(np.array(adjs['100206']).shape)
+    print(np.abs(np.array(adjs['100206'])).sum(axis=1))

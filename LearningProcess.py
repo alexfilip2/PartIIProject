@@ -2,6 +2,7 @@ import os
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
+from ToolsStructural import get_filtered_struct_adjs
 import seaborn as sns
 
 gat_model_stats =  os.path.join(os.getcwd(), os.pardir, 'PartIIProject', 'stats')
@@ -34,5 +35,19 @@ def plt_learn_proc():
     plt.savefig('loss2.png')
     plt.show()
 
+def plot_edge_weights():
+
+    if os.path.exists('temp_file'):
+        edge_weights= np.load('temp_file')
+    else:
+        edge_weights = np.array(list(get_filtered_struct_adjs().values()))[:100].flatten()
+        np.save('temp_file',edge_weights)
+
+    hist, bin_edges = np.histogram(edge_weights, bins='auto')
+    plt.hist(hist,bin_edges)
+    plt.show()
+    return edge_weights
+
 if __name__ == "__main__":
-    plt_learn_proc()
+    #edge_weights =  plot_edge_weights()
+    plot_edge_weights()

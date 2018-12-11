@@ -102,11 +102,10 @@ with tf.Graph().as_default():
             for epoch in range(nb_epochs):
 
                 # shuffle the training dataset
-
                 score_in_tr, ftr_in_tr, bias_in_tr, adj_in_tr = shuffle_tr_data(score_train,
-                                                                                graphs_features[:tr_size],
-                                                                                biases[:tr_size],
-                                                                                adj_matrices[:tr_size],
+                                                                                graphs_features,
+                                                                                biases,
+                                                                                adj_matrices,
                                                                                 tr_size)
 
                 # training step
