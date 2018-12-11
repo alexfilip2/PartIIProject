@@ -32,7 +32,7 @@ def plt_learn_proc():
     plt.plot('x', 'y1', data=df, color='red', label ='validation loss')
     plt.xlabel('epoch')
     plt.legend(loc='upper right')
-    plt.savefig('loss2.png')
+    plt.savefig('loss_woWeights.png')
     plt.show()
 
 def plot_edge_weights():
@@ -50,4 +50,4 @@ def plot_edge_weights():
 
 if __name__ == "__main__":
     #edge_weights =  plot_edge_weights()
-    plot_edge_weights()
+    plt_learn_proc()

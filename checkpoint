@@ -1,2 +1,2 @@
-model_checkpoint_path: "model_base_GAT_NEO_A.ckpt"
-all_model_checkpoint_paths: "model_base_GAT_NEO_A.ckpt"
+model_checkpoint_path: "model_base_GAT_NEO_Ax.ckpt"
+all_model_checkpoint_paths: "model_base_GAT_NEO_Ax.ckpt"
