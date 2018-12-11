@@ -107,7 +107,7 @@ def get_filter_strcut_adjs():
 all_pers_traits = ['NEO.NEOFAC_A', 'NEO.NEOFAC_O', 'NEO.NEOFAC_C', 'NEO.NEOFAC_N', 'NEO.NEOFAC_E']
 
 
-def get_NEO5_scores(trait_names=all_pers_traits):
+def get_NEO5_scores(trait_names):
     df = pd.ExcelFile(pers_scores).parse('Raw_data')  # you could add index_col=0 if there's an index
     tiv_scores = []
     for trait in trait_names:
@@ -118,7 +118,7 @@ def get_NEO5_scores(trait_names=all_pers_traits):
     return tiv_score_dict
 
 
-def load_struct_data(trait_choice):
+def load_struct_data(trait_choice = all_pers_traits):
     dict_adj = get_filter_strcut_adjs()
     dict_node_feat = get_graphs_feat()
     dict_tiv_score = get_NEO5_scores(trait_choice)

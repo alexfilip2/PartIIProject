@@ -4,6 +4,7 @@ np.set_printoptions(threshold=np.nan)
 import os
 import pandas as pd
 import random
+from ToolsStructural import load_struct_data
 
 ptnMAT_colab = os.path.join(os.getcwd(), os.pardir, 'PartIIProject', 'netmats')
 ptnMAT_d50_dir = os.path.join(ptnMAT_colab, '3T_HCP1200_MSMAll_d50_ts2')
@@ -98,8 +99,42 @@ def load_data():
     return adj_matrices, graphs_features, score_train, score_val, score_test
 
 
+def shuffle_tr_data(scores, node_feats, bias_mats, adj_mats, chunk_sz):
+    assert len(node_feats[:chunk_sz]) == chunk_sz
+    shuffled_data = list(zip(scores,
+                             node_feats[:chunk_sz],
+                             bias_mats[:chunk_sz],
+                             adj_mats[:chunk_sz]))
+
+    random.shuffle(shuffled_data)
+    score_in_tr, ftr_in_tr, bias_in_tr, adj_in_tr = map(np.array, list(zip(*shuffled_data)))
+    assert len(score_in_tr) == len(ftr_in_tr) == len(bias_in_tr) == len(adj_in_tr) == chunk_sz
+
+    return score_in_tr, ftr_in_tr, bias_in_tr, adj_in_tr
+
+
+def shuffle_tr_utest(scores, node_feats, bias_mats, adj_mats, chunk_sz):
+    for _ in range(50):
+        score_in_tr, ftr_in_tr, bias_in_tr, adj_in_tr = shuffle_tr_data(scores, node_feats, bias_mats,
+                                                                        adj_mats, chunk_sz)
+
+        if score_in_tr.shape != score_train.shape: print("error")
+        for row_s in score_in_tr:
+            check = False
+            for row in score_train:
+                if set(row_s.tolist()) == set(row.tolist()): check = True
+            if not check:
+                print("error")
+                break
+
+
 if __name__ == "__main__":
-    adj_matrices = get_adj_ses1(PTN_MAT_DIM)
-    bias = adj_to_bias(adj_matrices, [g.shape[0] for g in adj_matrices], nhood=1)
-    print(bias[0])
-    print()
+    adj_matrices, graphs_features, score_train, score_test, score_val = load_struct_data()
+    # used in order to implement MASKED ATTENTION by discardining non-neighbours out of nhood hops
+    biases = adj_to_bias(adj_matrices, [graph.shape[0] for graph in adj_matrices], nhood=1)
+
+    tr_size = len(score_train)
+    adj = adj_matrices[:tr_size]
+    feat = graphs_features[:tr_size]
+    bias = biases[:tr_size]
+    shuffle_tr_utest(score_train,feat,bias,adj,tr_size)

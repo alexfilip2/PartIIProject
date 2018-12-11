@@ -6,7 +6,7 @@ from MainGAT import MainGAT
 from Tools import *
 from ToolsStructural import *
 
-checkpt_file = '../PartIIProject/model_base_GAT_NEO_A.ckpt'
+checkpt_file = '../PartIIProject/model_base_GAT_NEO_Ax.ckpt'
 
 dataset = 'HCP'
 
@@ -33,21 +33,20 @@ print('nb. attention heads: ' + str(n_heads))
 print('residual: ' + str(residual))
 print('nonlinearity: ' + str(nonlinearity))
 print('model: ' + str(model))
-#['NEO.NEOFAC_A', 'NEO.NEOFAC_O', 'NEO.NEOFAC_C', 'NEO.NEOFAC_N', 'NEO.NEOFAC_E']
-trait_choice = ['NEO.NEOFAC_A']
+
+# personality traits scores: 'NEO.NEOFAC_A', 'NEO.NEOFAC_O', 'NEO.NEOFAC_C', 'NEO.NEOFAC_N', 'NEO.NEOFAC_E'
+trait_choice = ['NEO.NEOFAC_A', 'NEO.NEOFAC_O', 'NEO.NEOFAC_C', 'NEO.NEOFAC_N', 'NEO.NEOFAC_E']
+# data for adjancency matrices, node feature vectors and personality scores for each study patient
 adj_matrices, graphs_features, score_train, score_test, score_val = load_struct_data(trait_choice)
-
-biases = adj_to_bias(adj_matrices, [g.shape[0] for g in adj_matrices], nhood=1)
-
-# nr of nodes for the training graph (transductive learning)nb_nodes = features.shape[0]
+# used in order to implement MASKED ATTENTION by discardining non-neighbours out of nhood hops
+biases = adj_to_bias(adj_matrices, [graph.shape[0] for graph in adj_matrices], nhood=1)
+# nr of nodes for each graph: it is shared among all examples due to the dataset
 nb_nodes = adj_matrices[0].shape[0]
-# the F length of each node feature vector specified also in the paper
-ft_size = graphs_features.shape[-1]  # for each graph in the dataset the node feat.vecs. have the same length: F
+# the initial lenagth F of each node feature vector: for every graph, node feat.vecs. have the same length
+ft_size = graphs_features.shape[-1]
+# batch training size; currently ONLY ONE example per training step: TO BE EXTENDED!!
 batch_sz = 1
-# adjancy matrix for the graph of shape nb_nodes X nb_nodes
-# np.newaxis adds a new dimension to the given array (used in order to make compatible with the inductive learning input format
-# is a nr_of_graphs X number_of_nodes X feature_vector_size array, the array of all node feat. vec.
-
+# how many of the big-five personality traits the model is targeting at once
 outGAT_sz_target = len(trait_choice)
 
 with tf.Graph().as_default():
@@ -61,16 +60,16 @@ with tf.Graph().as_default():
         is_train = tf.placeholder(dtype=tf.bool, shape=())
 
     prediction = model.inference(in_feat_vects=ftr_in,
-                                 train_flag=is_train,
-                                 attn_drop=attn_drop,
-                                 ffd_drop=ffd_drop,
-                                 bias_mat=bias_in,
                                  adj_mat=adj_in,
+                                 bias_mat=bias_in,
                                  hid_units=hid_units,
                                  n_heads=n_heads,
+                                 target_score_type=outGAT_sz_target,
+                                 train_flag=is_train,
                                  residual=residual,
                                  activation=nonlinearity,
-                                 target_score_type=outGAT_sz_target)
+                                 attn_drop=attn_drop,
+                                 ffd_drop=ffd_drop)
 
     loss = tf.losses.mean_squared_error(labels=score_in, predictions=prediction)
     train_op = model.training(loss, lr, l2_coef)
@@ -85,8 +84,11 @@ with tf.Graph().as_default():
         vl_size = len(score_val)
         # number of test graph examples
         ts_size = len(score_test)
-        # run the initializer for the Variable objects to be optimized
+        print('The training size is: %d, the validation: %d and the test: %d' % (tr_size, vl_size, ts_size))
+
         if not tf.train.checkpoint_exists(checkpt_file):
+            print('The GAT model is not pre-trained, training it now...')
+            # run the initializer for the Variable objects to be optimized
             sess.run(init_op)
             vars = tf.all_variables()
             print('The learnable parametres of the GAT model are:')
@@ -100,14 +102,12 @@ with tf.Graph().as_default():
             for epoch in range(nb_epochs):
 
                 # shuffle the training dataset
-                shuffled_data = list(zip(score_train,
-                                         graphs_features[:tr_size],
-                                         biases[:tr_size],
-                                         adj_matrices[:tr_size]))
-                random.shuffle(shuffled_data)
-                score_in_tr, ftr_in_tr, bias_in_tr, adj_in_tr = zip(*shuffled_data)
 
-                assert len(score_in_tr) == len(ftr_in_tr) == len(bias_in_tr) == len(adj_in_tr) == tr_size
+                score_in_tr, ftr_in_tr, bias_in_tr, adj_in_tr = shuffle_tr_data(score_train,
+                                                                                graphs_features[:tr_size],
+                                                                                biases[:tr_size],
+                                                                                adj_matrices[:tr_size],
+                                                                                tr_size)
 
                 # training step
                 tr_step = 0
@@ -142,6 +142,7 @@ with tf.Graph().as_default():
                                                     is_train: False,
                                                     attn_drop: 0.0,
                                                     ffd_drop: 0.0})
+ 
                     val_loss_avg += loss_value_vl
                     vl_step += 1
 
