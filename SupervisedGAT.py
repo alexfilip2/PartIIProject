@@ -6,7 +6,7 @@ from MainGAT import MainGAT
 from Tools import *
 from ToolsStructural import *
 
-checkpt_file = '../PartIIProject/model_base_GAT_noEdgeWeights.ckpt'
+checkpt_file = '../PartIIProject/model_base_GAT_EdgeWeightslimit200000.ckpt'
 
 dataset = 'HCP'
 

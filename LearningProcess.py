@@ -35,19 +35,28 @@ def plt_learn_proc():
     plt.savefig('loss_woWeights.png')
     plt.show()
 
-def plot_edge_weights():
+def edge_weight_distrib(limit):
 
-    if os.path.exists('temp_file'):
-        edge_weights= np.load('temp_file')
+    if os.path.exists('temp_file.npy'):
+        edge_weights= np.load('temp_file.npy')
+        print('load file')
     else:
-        edge_weights = np.array(list(get_filtered_struct_adjs().values()))[:100].flatten()
+        edge_weights = np.array(list(get_filtered_struct_adjs().values())).flatten()
         np.save('temp_file',edge_weights)
 
-    hist, bin_edges = np.histogram(edge_weights, bins='auto')
-    plt.hist(hist,bin_edges)
-    plt.show()
-    return edge_weights
+    edge_weights = list(map(int, edge_weights))
+
+
+    filter_weights = [ew for ew in edge_weights if ew <limit]
+
+
+    print('The ratio of elements under the limit %d is %f'%(limit,len(filter_weights)/len(edge_weights)))
 
 if __name__ == "__main__":
-    #edge_weights =  plot_edge_weights()
+
+    limits = list(range(0,2500000,10000))
+    for limit in limits:
+        pass
+       # edge_weight_distrib(limit)
+
     plt_learn_proc()
