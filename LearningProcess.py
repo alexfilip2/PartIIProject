@@ -3,14 +3,12 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 from ToolsStructural import get_filtered_struct_adjs
-import seaborn as sns
+from SupervisedGAT import GAT_hyperparam_config, gat_model_stats
 
-gat_model_stats =  os.path.join(os.getcwd(), os.pardir, 'PartIIProject', 'stats')
-if not os.path.exists(gat_model_stats):
-    os.makedirs(gat_model_stats)
 
-def plt_learn_proc():
-    train_losses_file = os.path.join(gat_model_stats,'train_losses.txt')
+
+def plt_learn_proc(model_GAT_config):
+    train_losses_file = os.path.join(gat_model_stats,'train_losses'+str(model_GAT_config))
     tr_loss, vl_loss = [],[]
 
 
@@ -53,10 +51,10 @@ def edge_weight_distrib(limit):
     print('The ratio of elements under the limit %d is %f'%(limit,len(filter_weights)/len(edge_weights)))
 
 if __name__ == "__main__":
+    hid_units = [10, 10, 15]
+    n_heads = [4, 4, 6]
+    model_GAT_config = GAT_hyperparam_config(hid_units=hid_units,
+                                             n_heads=n_heads,
+                                             nb_epochs=1000)
 
-    limits = list(range(0,2500000,10000))
-    for limit in limits:
-        pass
-       # edge_weight_distrib(limit)
-
-    plt_learn_proc()
+    plt_learn_proc(model_GAT_config)

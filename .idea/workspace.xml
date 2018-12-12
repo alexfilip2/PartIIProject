@@ -6,10 +6,548 @@
       <change beforePath="$PROJECT_DIR$/AttentionHead.py" beforeDir="false" afterPath="$PROJECT_DIR$/AttentionHead.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/LearningProcess.py" beforeDir="false" afterPath="$PROJECT_DIR$/LearningProcess.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/SupervisedGAT.py" beforeDir="false" afterPath="$PROJECT_DIR$/SupervisedGAT.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Tools.py" beforeDir="false" afterPath="$PROJECT_DIR$/Tools.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ToolsStructural.py" beforeDir="false" afterPath="$PROJECT_DIR$/ToolsStructural.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/checkpoint" beforeDir="false" afterPath="$PROJECT_DIR$/checkpoint" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/checkpoint" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/loss.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/loss2.png" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/loss_woWeights.png" beforeDir="false" afterPath="$PROJECT_DIR$/loss_woWeights.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/stats/train_losses.txt" beforeDir="false" afterPath="$PROJECT_DIR$/stats/train_losses.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/model_base_GAT.ckpt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/model_base_GAT.ckpt.data-00000-of-00001" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/model_base_GAT.ckpt.index" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/model_base_GAT.ckpt.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/model_base_GAT_EdgeWeightslimit200000.ckpt.data-00000-of-00001" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/model_base_GAT_EdgeWeightslimit200000.ckpt.index" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/model_base_GAT_EdgeWeightslimit200000.ckpt.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/model_base_GAT_NEO_A.ckpt.data-00000-of-00001" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/model_base_GAT_NEO_A.ckpt.index" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/model_base_GAT_NEO_A.ckpt.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/model_base_GAT_NEO_Ax.ckpt.data-00000-of-00001" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/model_base_GAT_NEO_Ax.ckpt.index" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/model_base_GAT_NEO_Ax.ckpt.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/netmats/3T_HCP1200_MSMAll_d50_ts2/Mnet1.pconn.nii" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/netmats/3T_HCP1200_MSMAll_d50_ts2/Mnet2.pconn.nii" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/netmats/3T_HCP1200_MSMAll_d50_ts2/netmats1.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/netmats/3T_HCP1200_MSMAll_d50_ts2/netmats2.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/stats/train_losses.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/Features_all.xlsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/100206/100206_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/100307/100307_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/100408/100408_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/100610/100610_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/101107/101107_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/101309/101309_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/101410/101410_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/101915/101915_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/102008/102008_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/102311/102311_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/102513/102513_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/102614/102614_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/102715/102715_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/102816/102816_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/103010/103010_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/103111/103111_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/103212/103212_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/103414/103414_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/103515/103515_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/103818/103818_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/104012/104012_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/104416/104416_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/104820/104820_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/105014/105014_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/105115/105115_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/105216/105216_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/105620/105620_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/105923/105923_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/106016/106016_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/106319/106319_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/106521/106521_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/106824/106824_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/107018/107018_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/107321/107321_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/107422/107422_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/107725/107725_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/108020/108020_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/108121/108121_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/108222/108222_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/108323/108323_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/108525/108525_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/108828/108828_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/109123/109123_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/109830/109830_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/110007/110007_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/110411/110411_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/110613/110613_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/111009/111009_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/111211/111211_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/111312/111312_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/111413/111413_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/111514/111514_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/111716/111716_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/112112/112112_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/112314/112314_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/112516/112516_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/112819/112819_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/112920/112920_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/113215/113215_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/113316/113316_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/113619/113619_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/113821/113821_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/113922/113922_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/114116/114116_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/114217/114217_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/114318/114318_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/114419/114419_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/114621/114621_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/114823/114823_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/115017/115017_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/115219/115219_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/115320/115320_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/115724/115724_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/115825/115825_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/116221/116221_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/116423/116423_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/116524/116524_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/116726/116726_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/117021/117021_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/117122/117122_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/117324/117324_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/117930/117930_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/118023/118023_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/118124/118124_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/118225/118225_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/118528/118528_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/118730/118730_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/118831/118831_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/118932/118932_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/119025/119025_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/119126/119126_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/119732/119732_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/119833/119833_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/120010/120010_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/120111/120111_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/120212/120212_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/120414/120414_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/120515/120515_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/120717/120717_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/121416/121416_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/121618/121618_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/121719/121719_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/121921/121921_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/122317/122317_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/122418/122418_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/122620/122620_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/122822/122822_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/123117/123117_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/123420/123420_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/123521/123521_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/123723/123723_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/123824/123824_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/123925/123925_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/124220/124220_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/124422/124422_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/124624/124624_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/124826/124826_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/125222/125222_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/125424/125424_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/125525/125525_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/126325/126325_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/126426/126426_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/126628/126628_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/127226/127226_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/127327/127327_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/127630/127630_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/127731/127731_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/127832/127832_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/127933/127933_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/128026/128026_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/128127/128127_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/128632/128632_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/128935/128935_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/129028/129028_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/129129/129129_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/129331/129331_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/129634/129634_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/129937/129937_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/130013/130013_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/130114/130114_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/130316/130316_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/130417/130417_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/130518/130518_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/130619/130619_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/130720/130720_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/130821/130821_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/130922/130922_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/131217/131217_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/131419/131419_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/131722/131722_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/131823/131823_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/131924/131924_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/132017/132017_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/132118/132118_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/133019/133019_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/133625/133625_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/133827/133827_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/133928/133928_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/134021/134021_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/134223/134223_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/134324/134324_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/134425/134425_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/134627/134627_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/134728/134728_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/134829/134829_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/135124/135124_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/135225/135225_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/135528/135528_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/135629/135629_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/135730/135730_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/135932/135932_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/136126/136126_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/136227/136227_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/136631/136631_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/136732/136732_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/136833/136833_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/137027/137027_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/137128/137128_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/137229/137229_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/137431/137431_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/137532/137532_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/137633/137633_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/137936/137936_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/138130/138130_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/138231/138231_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/138332/138332_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/138534/138534_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/138837/138837_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/139233/139233_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/139435/139435_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/139637/139637_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/139839/139839_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/140117/140117_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/140319/140319_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/140420/140420_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/140824/140824_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/140925/140925_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/141119/141119_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/141422/141422_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/141826/141826_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/142828/142828_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/143224/143224_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/143325/143325_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/143426/143426_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/143830/143830_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/144125/144125_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/144226/144226_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/144428/144428_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/144731/144731_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/144832/144832_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/144933/144933_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/145127/145127_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/145632/145632_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/145834/145834_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/146129/146129_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/146331/146331_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/146432/146432_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/146533/146533_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/146634/146634_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/146735/146735_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/146836/146836_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/146937/146937_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/147030/147030_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/147636/147636_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/147737/147737_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/148032/148032_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/148133/148133_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/148335/148335_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/148436/148436_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/148840/148840_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/148941/148941_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/149236/149236_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/149337/149337_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/149539/149539_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/149741/149741_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/149842/149842_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/150019/150019_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/150524/150524_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/150625/150625_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/150726/150726_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/150928/150928_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/151021/151021_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/151223/151223_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/151324/151324_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/151425/151425_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/151526/151526_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/151627/151627_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/151728/151728_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/151829/151829_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/151930/151930_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/152225/152225_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/152427/152427_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/152831/152831_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/153025/153025_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/153126/153126_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/153227/153227_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/153429/153429_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/153631/153631_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/153732/153732_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/153833/153833_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/153934/153934_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/154229/154229_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/154330/154330_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/154431/154431_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/154532/154532_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/154734/154734_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/154835/154835_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/154936/154936_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/155231/155231_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/155635/155635_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/155938/155938_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/156031/156031_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/156233/156233_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/156334/156334_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/156435/156435_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/156536/156536_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/156637/156637_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/157336/157336_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/157437/157437_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/157942/157942_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/158035/158035_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/158136/158136_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/158338/158338_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/158540/158540_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/158843/158843_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/159138/159138_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/159239/159239_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/159340/159340_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/159744/159744_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/159946/159946_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/160123/160123_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/160729/160729_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/160830/160830_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/160931/160931_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/161327/161327_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/161630/161630_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/161731/161731_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/161832/161832_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/162026/162026_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/162228/162228_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/162329/162329_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/162733/162733_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/162935/162935_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/163129/163129_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/163331/163331_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/163432/163432_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/163836/163836_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/164030/164030_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/164131/164131_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/164636/164636_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/164939/164939_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/165032/165032_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/165436/165436_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/165638/165638_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/165840/165840_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/165941/165941_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/166438/166438_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/166640/166640_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/167036/167036_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/167238/167238_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/167440/167440_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/167743/167743_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/168139/168139_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/168240/168240_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/168341/168341_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/168745/168745_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/168947/168947_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/169040/169040_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/169343/169343_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/169444/169444_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/169545/169545_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/169747/169747_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/169949/169949_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/170631/170631_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/170934/170934_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/171330/171330_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/171431/171431_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/171532/171532_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/171633/171633_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/172029/172029_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/172130/172130_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/172332/172332_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/172433/172433_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/172534/172534_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/172635/172635_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/172938/172938_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/173132/173132_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/173233/173233_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/173334/173334_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/173435/173435_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/173536/173536_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/173637/173637_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/173738/173738_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/173839/173839_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/173940/173940_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/174437/174437_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/174841/174841_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/175035/175035_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/175136/175136_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/175237/175237_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/175338/175338_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/175439/175439_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/175540/175540_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/175742/175742_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/176037/176037_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/176239/176239_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/176441/176441_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/176542/176542_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/176744/176744_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/176845/176845_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/177140/177140_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/177241/177241_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/177342/177342_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/177645/177645_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/177746/177746_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/178142/178142_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/178243/178243_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/178647/178647_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/178748/178748_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/178849/178849_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/178950/178950_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/179245/179245_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/179346/179346_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/179952/179952_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/180129/180129_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/180230/180230_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/180432/180432_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/180533/180533_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/180735/180735_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/180836/180836_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/180937/180937_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/181131/181131_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/181232/181232_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/181636/181636_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/182032/182032_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/182436/182436_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/182739/182739_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/182840/182840_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/183034/183034_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/183337/183337_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/183741/183741_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/185038/185038_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/185139/185139_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/185341/185341_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/185442/185442_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/185846/185846_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/185947/185947_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/186040/186040_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/186141/186141_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/186444/186444_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/186545/186545_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/186848/186848_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/187143/187143_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/187345/187345_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/187547/187547_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/187850/187850_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/188145/188145_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/188347/188347_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/188448/188448_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/188549/188549_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/188751/188751_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/189349/189349_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/189450/189450_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/189652/189652_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/190031/190031_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/191033/191033_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/191235/191235_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/191336/191336_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/191437/191437_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/191841/191841_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/191942/191942_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/192035/192035_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/192136/192136_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/192237/192237_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/192439/192439_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/192540/192540_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/192641/192641_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/192843/192843_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/193239/193239_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/193441/193441_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/193845/193845_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/194140/194140_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/194443/194443_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/194645/194645_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/194746/194746_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/194847/194847_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/195041/195041_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/195445/195445_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/195647/195647_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/195849/195849_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/195950/195950_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/196144/196144_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/196346/196346_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/196750/196750_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/196851/196851_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/196952/196952_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/197348/197348_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/197550/197550_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/197651/197651_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/198047/198047_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/198249/198249_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/198350/198350_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/198451/198451_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/198653/198653_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/198855/198855_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/199150/199150_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/199251/199251_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/199352/199352_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/199453/199453_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/199655/199655_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/199958/199958_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/200008/200008_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/200109/200109_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/200210/200210_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/200311/200311_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/200513/200513_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/200614/200614_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/200917/200917_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/201111/201111_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/201414/201414_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/201515/201515_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/201818/201818_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/202113/202113_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/202719/202719_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/202820/202820_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/203418/203418_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/203923/203923_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/204016/204016_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/204218/204218_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/204319/204319_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/204420/204420_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/204521/204521_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/204622/204622_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/205119/205119_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/205220/205220_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/205725/205725_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/205826/205826_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/206222/206222_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/206323/206323_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/206525/206525_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/206828/206828_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/206929/206929_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/207123/207123_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/207426/207426_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/208024/208024_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/208125/208125_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/208226/208226_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/208327/208327_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/208428/208428_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/208630/208630_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/209127/209127_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/209228/209228_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/209329/209329_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/209834/209834_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/209935/209935_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/210011/210011_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/structural_mat/PTN matrices HCP/210112/210112_conn_aparc+aseg_RS_sl.txt" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/temp_file.npy" beforeDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -20,28 +558,32 @@
   </component>
   <component name="CoverageDataManager">
     <SUITE FILE_PATH="coverage/PartIIProject$ToolsStructural.coverage" NAME="ToolsStructural Coverage Results" MODIFIED="1544544043826" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/PartIIProject$LearningProcess.coverage" NAME="LearningProcess Coverage Results" MODIFIED="1544568570021" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/PartIIProject$SupervisedGAT.coverage" NAME="SupervisedGAT Coverage Results" MODIFIED="1544561406107" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/PartIIProject$LearningProcess.coverage" NAME="LearningProcess Coverage Results" MODIFIED="1544638305612" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/PartIIProject$SupervisedGAT.coverage" NAME="SupervisedGAT Coverage Results" MODIFIED="1544638313042" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/PartIIProject$Tools.coverage" NAME="Tools Coverage Results" MODIFIED="1544536500080" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
   <component name="FUSProjectUsageTrigger">
     <session id="-518088592">
       <usages-collector id="statistics.lifecycle.project">
         <counts>
-          <entry key="project.closed" value="20" />
+          <entry key="project.closed" value="24" />
           <entry key="project.open.time.0" value="7" />
           <entry key="project.open.time.1" value="4" />
           <entry key="project.open.time.24" value="1" />
+          <entry key="project.open.time.26" value="1" />
           <entry key="project.open.time.28" value="1" />
           <entry key="project.open.time.3" value="2" />
           <entry key="project.open.time.32" value="1" />
           <entry key="project.open.time.34" value="1" />
           <entry key="project.open.time.36" value="1" />
+          <entry key="project.open.time.37" value="1" />
           <entry key="project.open.time.41" value="1" />
           <entry key="project.open.time.43" value="1" />
           <entry key="project.open.time.52" value="1" />
+          <entry key="project.open.time.6" value="1" />
           <entry key="project.open.time.7" value="1" />
-          <entry key="project.opened" value="22" />
+          <entry key="project.open.time.9" value="1" />
+          <entry key="project.opened" value="26" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
@@ -58,12 +600,12 @@
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
-          <entry key="py" value="15113" />
+          <entry key="py" value="17129" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
-          <entry key="Python" value="15113" />
+          <entry key="Python" value="17129" />
         </counts>
       </usages-collector>
     </session>
@@ -73,8 +615,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/AttentionHead.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="646">
-              <caret line="38" column="8" selection-start-line="38" selection-start-column="8" selection-end-line="38" selection-end-column="8" />
+            <state relative-caret-position="7">
+              <caret line="38" column="9" selection-start-line="38" selection-start-column="9" selection-end-line="38" selection-end-column="9" />
             </state>
           </provider>
         </entry>
@@ -82,7 +624,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/MainGAT.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="816">
+            <state relative-caret-position="867">
               <caret line="51" column="16" selection-start-line="51" selection-start-column="16" selection-end-line="51" selection-end-column="16" />
               <folding>
                 <element signature="e#0#18#0" expanded="true" />
@@ -94,35 +636,37 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Tools.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="323">
-              <caret line="19" column="18" selection-start-line="19" selection-start-column="4" selection-end-line="19" selection-end-column="18" />
+            <state relative-caret-position="209">
+              <caret line="114" column="19" selection-start-line="114" selection-start-column="19" selection-end-line="114" selection-end-column="19" />
               <folding>
-                <marker date="1544540614607" expanded="true" signature="4517:4518" ph="..." />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/SupervisedGAT.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="136">
-              <caret line="8" column="70" selection-start-line="8" selection-start-column="70" selection-end-line="8" selection-end-column="70" />
-              <folding>
-                <element signature="e#0#11#0" expanded="true" />
+                <marker date="1544625134387" expanded="true" signature="4523:4524" ph="..." />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/SupervisedGAT.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="426">
+              <caret line="237" column="22" selection-start-line="237" selection-start-column="22" selection-end-line="237" selection-end-column="22" />
+              <folding>
+                <element signature="e#0#23#0" expanded="true" />
+                <marker date="1544638305490" expanded="true" signature="1817:12301" ph="..." />
+                <marker date="1544638305490" expanded="true" signature="12300:12301" ph="..." />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/LearningProcess.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="502">
-              <caret line="59" column="8" selection-start-line="59" selection-start-column="8" selection-end-line="59" selection-end-column="8" />
+            <state relative-caret-position="670">
+              <caret line="57" column="59" selection-start-line="57" selection-start-column="59" selection-end-line="57" selection-end-column="59" />
               <folding>
                 <element signature="e#0#9#0" expanded="true" />
-                <marker date="1544568569878" expanded="true" signature="438:443" ph="..." />
+                <marker date="1544635033307" expanded="true" signature="361:366" ph="..." />
               </folding>
             </state>
           </provider>
@@ -136,8 +680,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/ToolsStructural.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="191">
-              <caret line="111" column="95" selection-start-line="111" selection-start-column="95" selection-end-line="111" selection-end-column="95" />
+            <state relative-caret-position="-1275">
+              <caret line="18" column="25" selection-start-line="18" selection-start-column="25" selection-end-line="18" selection-end-column="25" />
             </state>
           </provider>
         </entry>
@@ -169,6 +713,10 @@
       <find>4111</find>
       <find>get_binary_adj</find>
       <find>print</find>
+      <find>gpu</find>
+      <find>patience</find>
+      <find>batch_size</find>
+      <find>model_GAT_con</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -182,9 +730,9 @@
         <option value="$PROJECT_DIR$/stats/train_losses.txt" />
         <option value="$PROJECT_DIR$/Tools.py" />
         <option value="$PROJECT_DIR$/ToolsStructural.py" />
+        <option value="$PROJECT_DIR$/LearningProcess.py" />
         <option value="$PROJECT_DIR$/AttentionHead.py" />
         <option value="$PROJECT_DIR$/SupervisedGAT.py" />
-        <option value="$PROJECT_DIR$/LearningProcess.py" />
       </list>
     </option>
   </component>
@@ -253,16 +801,6 @@
             <path>
               <item name="PartIIProject" type="3d21c010:ScopeViewTreeModel$ProjectNode" />
               <item name="" type="442cc68d:ScopeViewTreeModel$RootNode" />
-              <item name="netmats" type="9f88c78c:ScopeViewTreeModel$FileNode" />
-            </path>
-            <path>
-              <item name="PartIIProject" type="3d21c010:ScopeViewTreeModel$ProjectNode" />
-              <item name="" type="442cc68d:ScopeViewTreeModel$RootNode" />
-              <item name="structural_mat" type="9f88c78c:ScopeViewTreeModel$FileNode" />
-            </path>
-            <path>
-              <item name="PartIIProject" type="3d21c010:ScopeViewTreeModel$ProjectNode" />
-              <item name="" type="442cc68d:ScopeViewTreeModel$RootNode" />
               <item name="TIVscores" type="9f88c78c:ScopeViewTreeModel$FileNode" />
             </path>
           </expand>
@@ -289,7 +827,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python.LearningProcess">
+  <component name="RunManager" selected="Python.SupervisedGAT">
     <configuration name="LearningProcess" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="PartIIProject" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -386,8 +924,8 @@
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.LearningProcess" />
         <item itemvalue="Python.SupervisedGAT" />
+        <item itemvalue="Python.LearningProcess" />
         <item itemvalue="Python.ToolsStructural" />
         <item itemvalue="Python.Tools" />
       </list>
@@ -410,12 +948,12 @@
     <frame x="-7" y="-7" width="1550" height="838" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.16174497" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.16979866" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
-      <window_info anchor="bottom" id="Run" order="2" weight="0.36827195" />
+      <window_info anchor="bottom" id="Run" order="2" weight="0.24362606" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.39943343" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -461,9 +999,12 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/LinearRegression.py">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
     <entry file="file://$PROJECT_DIR$/MainGAT.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="816">
+        <state relative-caret-position="867">
           <caret line="51" column="16" selection-start-line="51" selection-start-column="16" selection-end-line="51" selection-end-column="16" />
           <folding>
             <element signature="e#0#18#0" expanded="true" />
@@ -471,50 +1012,49 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Tools.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="323">
-          <caret line="19" column="18" selection-start-line="19" selection-start-column="4" selection-end-line="19" selection-end-column="18" />
-          <folding>
-            <marker date="1544540614607" expanded="true" signature="4517:4518" ph="..." />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/LinearRegression.py">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
     <entry file="file://$PROJECT_DIR$/ToolsStructural.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="191">
-          <caret line="111" column="95" selection-start-line="111" selection-start-column="95" selection-end-line="111" selection-end-column="95" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/AttentionHead.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="646">
-          <caret line="38" column="8" selection-start-line="38" selection-start-column="8" selection-end-line="38" selection-end-column="8" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/SupervisedGAT.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="136">
-          <caret line="8" column="70" selection-start-line="8" selection-start-column="70" selection-end-line="8" selection-end-column="70" />
-          <folding>
-            <element signature="e#0#11#0" expanded="true" />
-          </folding>
+        <state relative-caret-position="-1275">
+          <caret line="18" column="25" selection-start-line="18" selection-start-column="25" selection-end-line="18" selection-end-column="25" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/LearningProcess.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="502">
-          <caret line="59" column="8" selection-start-line="59" selection-start-column="8" selection-end-line="59" selection-end-column="8" />
+        <state relative-caret-position="670">
+          <caret line="57" column="59" selection-start-line="57" selection-start-column="59" selection-end-line="57" selection-end-column="59" />
           <folding>
             <element signature="e#0#9#0" expanded="true" />
-            <marker date="1544568569878" expanded="true" signature="438:443" ph="..." />
+            <marker date="1544635033307" expanded="true" signature="361:366" ph="..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/AttentionHead.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="7">
+          <caret line="38" column="9" selection-start-line="38" selection-start-column="9" selection-end-line="38" selection-end-column="9" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Tools.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="209">
+          <caret line="114" column="19" selection-start-line="114" selection-start-column="19" selection-end-line="114" selection-end-column="19" />
+          <folding>
+            <marker date="1544625134387" expanded="true" signature="4523:4524" ph="..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/SupervisedGAT.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="426">
+          <caret line="237" column="22" selection-start-line="237" selection-start-column="22" selection-end-line="237" selection-end-column="22" />
+          <folding>
+            <element signature="e#0#23#0" expanded="true" />
+            <marker date="1544638305490" expanded="true" signature="1817:12301" ph="..." />
+            <marker date="1544638305490" expanded="true" signature="12300:12301" ph="..." />
           </folding>
         </state>
       </provider>

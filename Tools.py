@@ -112,7 +112,7 @@ def gen_random_features(nb_nodes_graphs):
     return np.array(features)
 
 
-def load_data():
+def load_funct_data():
     adj_matrices = get_adj_ses1(PTN_MAT_DIM)
     graphs_features = gen_random_features([adj.shape[0] for adj in adj_matrices])
     data_scores = get_NEO5_scores()[:adj_matrices.shape[0]]

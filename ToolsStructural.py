@@ -7,7 +7,7 @@ import pandas as pd
 import random
 from sys import stderr
 
-dir_root_structural_data = os.path.join(os.getcwd(), os.pardir, 'PartIIProject', 'structural_mat')
+dir_root_structural_data = os.path.join(os.getcwd(), os.pardir, 'PartIIProject', 'structural_data')
 dir_struct_mat_HCP = os.path.join(dir_root_structural_data, 'PTN matrices HCP')
 structural_feats_excel = os.path.join(dir_root_structural_data, 'Features_all.xlsx')
 
@@ -109,7 +109,7 @@ def get_filtered_struct_adjs():
                     adj_row = []
                     for col_index, edge_weight in enumerate(line.split(), start=1):
                         if col_index not in filtered_nodes: continue
-                        adj_row.append(float(edge_weight) if float(edge_weight)<200000 else 0.0)
+                        adj_row.append(float(edge_weight) if float(edge_weight)<50000 else 0.0)
                     graph.append(adj_row)
             # the adjancency matrices are upper diagonal, we make them symmetric
             i_lower = np.tril_indices(len(graph), -1)

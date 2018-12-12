@@ -1,0 +1,6 @@
+model_checkpoint_path: "C:\\Users\\user\\PycharmProjects\\PartIIProject\\..\\PartIIProject\\GAT_checkpoints\\GAT_structural_attHeads2,2,3_hidUnits10,10,15_traits_AOCNE_ew50-350"
+all_model_checkpoint_paths: "C:\\Users\\user\\PycharmProjects\\PartIIProject\\..\\PartIIProject\\GAT_checkpoints\\GAT_structural_attHeads2,2,3_hidUnits10,10,15_traits_AOCNE_ew50-250"
+all_model_checkpoint_paths: "C:\\Users\\user\\PycharmProjects\\PartIIProject\\..\\PartIIProject\\GAT_checkpoints\\GAT_structural_attHeads2,2,3_hidUnits10,10,15_traits_AOCNE_ew50-275"
+all_model_checkpoint_paths: "C:\\Users\\user\\PycharmProjects\\PartIIProject\\..\\PartIIProject\\GAT_checkpoints\\GAT_structural_attHeads2,2,3_hidUnits10,10,15_traits_AOCNE_ew50-300"
+all_model_checkpoint_paths: "C:\\Users\\user\\PycharmProjects\\PartIIProject\\..\\PartIIProject\\GAT_checkpoints\\GAT_structural_attHeads2,2,3_hidUnits10,10,15_traits_AOCNE_ew50-325"
+all_model_checkpoint_paths: "C:\\Users\\user\\PycharmProjects\\PartIIProject\\..\\PartIIProject\\GAT_checkpoints\\GAT_structural_attHeads2,2,3_hidUnits10,10,15_traits_AOCNE_ew50-350"

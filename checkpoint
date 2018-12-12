@@ -1,2 +1,0 @@
-model_checkpoint_path: "model_base_GAT_EdgeWeightslimit200000.ckpt"
-all_model_checkpoint_paths: "model_base_GAT_EdgeWeightslimit200000.ckpt"
