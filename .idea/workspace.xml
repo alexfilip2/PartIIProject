@@ -2,23 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="e6c655ac-ac83-4960-96cd-bd108dfa904a" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/AttentionHead.py" beforeDir="false" afterPath="$PROJECT_DIR$/AttentionHead.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/LearningProcess.py" beforeDir="false" afterPath="$PROJECT_DIR$/LearningProcess.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/LinearRegression.py" beforeDir="false" afterPath="$PROJECT_DIR$/LinearRegression.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SupervisedGAT.py" beforeDir="false" afterPath="$PROJECT_DIR$/SupervisedGAT.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Tools.py" beforeDir="false" afterPath="$PROJECT_DIR$/Tools.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ToolsFunctional.py" beforeDir="false" afterPath="$PROJECT_DIR$/ToolsFunctional.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ToolsStructural.py" beforeDir="false" afterPath="$PROJECT_DIR$/ToolsStructural.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/learning_process/train_lossesGAT_structural_attHeads2,2,3_hidUnits10,10,15_traits_AOCNE_ew200" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/learning_process/train_lossesGAT_structural_attHeads2,2,3_hidUnits10,10,15_traits_AOCNE_ew50" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/learning_process/train_lossesGAT_structural_attHeads4,4,6_hidUnits10,10,15_traits_AOCNE" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/learning_process/train_lossesGAT_structural_attHeads4,4,6_hidUnits10,10,15_traits_AOCNE_ew50" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/learning_process/train_lossesGAT_structural_epochs1k_attHeads4,4,6_hidUnits10,10,15_traits_AOCNE" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/learning_process/train_losses_GAT_structural_attHeads2,2,3_hidUnits10,10,15_traits_AOCNE_ew200" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/learning_process/train_losses_GAT_structural_attHeads2,2,3_hidUnits10,10,15_traits_AOCNE_ew50" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/learning_process/train_losses_GAT_structural_attHeads4,4,6_hidUnits10,10,15_traits_AOCNE_ew50" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/loss_woWeights.png" beforeDir="false" afterPath="$PROJECT_DIR$/loss_woWeights.png" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -31,12 +16,13 @@
     <SUITE FILE_PATH="coverage/PartIIProject$LearningProcess.coverage" NAME="LearningProcess Coverage Results" MODIFIED="1544720582411" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/PartIIProject$SupervisedGAT.coverage" NAME="SupervisedGAT Coverage Results" MODIFIED="1544720724118" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/PartIIProject$Tools.coverage" NAME="Tools Coverage Results" MODIFIED="1544692448974" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/PartIIProject$LinearRegression.coverage" NAME="LinearRegression Coverage Results" MODIFIED="1544730991886" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
   <component name="FUSProjectUsageTrigger">
     <session id="-518088592">
       <usages-collector id="statistics.lifecycle.project">
         <counts>
-          <entry key="project.closed" value="26" />
+          <entry key="project.closed" value="27" />
           <entry key="project.open.time.0" value="7" />
           <entry key="project.open.time.1" value="4" />
           <entry key="project.open.time.17" value="1" />
@@ -46,7 +32,7 @@
           <entry key="project.open.time.3" value="2" />
           <entry key="project.open.time.31" value="1" />
           <entry key="project.open.time.32" value="1" />
-          <entry key="project.open.time.34" value="1" />
+          <entry key="project.open.time.34" value="2" />
           <entry key="project.open.time.36" value="1" />
           <entry key="project.open.time.37" value="1" />
           <entry key="project.open.time.41" value="1" />
@@ -55,29 +41,29 @@
           <entry key="project.open.time.6" value="1" />
           <entry key="project.open.time.7" value="1" />
           <entry key="project.open.time.9" value="1" />
-          <entry key="project.opened" value="28" />
+          <entry key="project.opened" value="29" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
         <counts>
-          <entry key="py" value="18" />
+          <entry key="py" value="19" />
           <entry key="txt" value="1" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.open">
         <counts>
           <entry key="PLAIN_TEXT" value="1" />
-          <entry key="Python" value="18" />
+          <entry key="Python" value="19" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
-          <entry key="py" value="17841" />
+          <entry key="py" value="18142" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
-          <entry key="Python" value="17841" />
+          <entry key="Python" value="18142" />
         </counts>
       </usages-collector>
     </session>
@@ -87,7 +73,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/AttentionHead.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-95">
+            <state relative-caret-position="-32">
               <caret line="38" column="9" selection-start-line="38" selection-start-column="9" selection-end-line="38" selection-end-column="9" />
             </state>
           </provider>
@@ -96,7 +82,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/MainGAT.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1173">
+            <state relative-caret-position="257">
               <caret line="69" column="103" selection-start-line="69" selection-start-column="103" selection-end-line="69" selection-end-column="103" />
               <folding>
                 <element signature="e#0#18#0" expanded="true" />
@@ -106,9 +92,18 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/BaseGAT.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="306">
+              <caret line="18" selection-start-line="18" selection-end-line="18" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Tools.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-1616">
+            <state relative-caret-position="-1528">
               <caret line="8" selection-start-line="8" selection-end-line="8" />
             </state>
           </provider>
@@ -117,8 +112,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/SupervisedGAT.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="3485">
-              <caret line="205" lean-forward="true" selection-start-line="205" selection-end-line="205" />
+            <state relative-caret-position="155">
+              <caret line="205" selection-start-line="205" selection-end-line="205" />
               <folding>
                 <element signature="e#0#23#0" expanded="true" />
                 <marker date="1544719379207" expanded="true" signature="11135:11136" ph="..." />
@@ -130,8 +125,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/ToolsFunctional.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="68">
-              <caret line="36" column="17" selection-start-line="36" selection-start-column="17" selection-end-line="36" selection-end-column="17" />
+            <state relative-caret-position="2">
+              <caret line="31" lean-forward="true" selection-start-line="31" selection-end-line="31" />
             </state>
           </provider>
         </entry>
@@ -139,7 +134,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/LearningProcess.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="891">
+            <state relative-caret-position="291">
               <caret line="55" column="65" selection-start-line="55" selection-start-column="65" selection-end-line="55" selection-end-column="65" />
               <folding>
                 <element signature="e#0#9#0" expanded="true" />
@@ -149,20 +144,23 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/LinearRegression.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="238">
-              <caret line="19" column="41" selection-start-line="19" selection-start-column="41" selection-end-line="19" selection-end-column="41" />
+            <state relative-caret-position="-8">
+              <caret line="62" column="32" selection-start-line="62" selection-start-column="32" selection-end-line="62" selection-end-column="32" />
+              <folding>
+                <element signature="e#0#29#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/ToolsStructural.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="204">
-              <caret line="88" column="51" selection-start-line="88" selection-start-column="41" selection-end-line="88" selection-end-column="51" />
+            <state relative-caret-position="-780">
+              <caret line="90" column="79" selection-start-line="90" selection-start-column="79" selection-end-line="90" selection-end-column="79" />
             </state>
           </provider>
         </entry>
@@ -210,12 +208,12 @@
         <option value="$PROJECT_DIR$/BaseGAT.py" />
         <option value="$PROJECT_DIR$/stats/train_losses.txt" />
         <option value="$PROJECT_DIR$/Tools.py" />
-        <option value="$PROJECT_DIR$/ToolsStructural.py" />
         <option value="$PROJECT_DIR$/MainGAT.py" />
         <option value="$PROJECT_DIR$/SupervisedGAT.py" />
         <option value="$PROJECT_DIR$/AttentionHead.py" />
         <option value="$PROJECT_DIR$/ToolsFunctional.py" />
         <option value="$PROJECT_DIR$/LearningProcess.py" />
+        <option value="$PROJECT_DIR$/ToolsStructural.py" />
         <option value="$PROJECT_DIR$/LinearRegression.py" />
       </list>
     </option>
@@ -311,7 +309,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python.SupervisedGAT">
+  <component name="RunManager" selected="Python.LinearRegression">
     <configuration name="LearningProcess" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="PartIIProject" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -326,6 +324,28 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/LearningProcess.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="LinearRegression" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="PartIIProject" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/LinearRegression.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -405,9 +425,11 @@
       <item itemvalue="Python.SupervisedGAT" />
       <item itemvalue="Python.LearningProcess" />
       <item itemvalue="Python.ToolsStructural" />
+      <item itemvalue="Python.LinearRegression" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.LinearRegression" />
         <item itemvalue="Python.SupervisedGAT" />
         <item itemvalue="Python.LearningProcess" />
         <item itemvalue="Python.Tools" />
@@ -432,12 +454,12 @@
     <frame x="-7" y="-7" width="1550" height="838" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.1738255" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.17583893" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
-      <window_info anchor="bottom" id="Run" order="2" weight="0.388102" />
+      <window_info anchor="bottom" id="Run" order="2" weight="0.29886687" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.39943343" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -470,58 +492,16 @@
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/stats/train_losses.txt" />
-    <entry file="file://$PROJECT_DIR$/BaseGAT.py">
+    <entry file="file://$PROJECT_DIR$/ToolsStructural.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="306">
-          <caret line="18" selection-start-line="18" selection-end-line="18" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/AttentionHead.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-95">
-          <caret line="38" column="9" selection-start-line="38" selection-start-column="9" selection-end-line="38" selection-end-column="9" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/MainGAT.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1173">
-          <caret line="69" column="103" selection-start-line="69" selection-start-column="103" selection-end-line="69" selection-end-column="103" />
-          <folding>
-            <element signature="e#0#18#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Tools.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-1616">
-          <caret line="8" selection-start-line="8" selection-end-line="8" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/SupervisedGAT.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="3485">
-          <caret line="205" lean-forward="true" selection-start-line="205" selection-end-line="205" />
-          <folding>
-            <element signature="e#0#23#0" expanded="true" />
-            <marker date="1544719379207" expanded="true" signature="11135:11136" ph="..." />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/ToolsFunctional.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="68">
-          <caret line="36" column="17" selection-start-line="36" selection-start-column="17" selection-end-line="36" selection-end-column="17" />
+        <state relative-caret-position="-780">
+          <caret line="90" column="79" selection-start-line="90" selection-start-column="79" selection-end-line="90" selection-end-column="79" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/LearningProcess.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="891">
+        <state relative-caret-position="291">
           <caret line="55" column="65" selection-start-line="55" selection-start-column="65" selection-end-line="55" selection-end-column="65" />
           <folding>
             <element signature="e#0#9#0" expanded="true" />
@@ -530,17 +510,62 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/LinearRegression.py">
+    <entry file="file://$PROJECT_DIR$/ToolsFunctional.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="238">
-          <caret line="19" column="41" selection-start-line="19" selection-start-column="41" selection-end-line="19" selection-end-column="41" />
+        <state relative-caret-position="2">
+          <caret line="31" lean-forward="true" selection-start-line="31" selection-end-line="31" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/ToolsStructural.py">
+    <entry file="file://$PROJECT_DIR$/SupervisedGAT.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="204">
-          <caret line="88" column="51" selection-start-line="88" selection-start-column="41" selection-end-line="88" selection-end-column="51" />
+        <state relative-caret-position="155">
+          <caret line="205" selection-start-line="205" selection-end-line="205" />
+          <folding>
+            <element signature="e#0#23#0" expanded="true" />
+            <marker date="1544719379207" expanded="true" signature="11135:11136" ph="..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Tools.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-1528">
+          <caret line="8" selection-start-line="8" selection-end-line="8" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/AttentionHead.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-32">
+          <caret line="38" column="9" selection-start-line="38" selection-start-column="9" selection-end-line="38" selection-end-column="9" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/MainGAT.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="257">
+          <caret line="69" column="103" selection-start-line="69" selection-start-column="103" selection-end-line="69" selection-end-column="103" />
+          <folding>
+            <element signature="e#0#18#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/BaseGAT.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="306">
+          <caret line="18" selection-start-line="18" selection-end-line="18" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/LinearRegression.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-8">
+          <caret line="62" column="32" selection-start-line="62" selection-start-column="32" selection-end-line="62" selection-end-column="32" />
+          <folding>
+            <element signature="e#0#29#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
