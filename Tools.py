@@ -4,19 +4,56 @@ np.set_printoptions(threshold=np.nan)
 import os
 import pandas as pd
 import random
-from ToolsStructural import load_struct_data
+import operator
 
-ptnMAT_colab = os.path.join(os.getcwd(), os.pardir, 'PartIIProject', 'netmats')
-ptnMAT_d50_dir = os.path.join(ptnMAT_colab, '3T_HCP1200_MSMAll_d50_ts2')
 
-ptnMAT_d50_ses1 = os.path.join(ptnMAT_d50_dir, 'netmats1.txt')
-ptnMAT_d50_ses2 = os.path.join(ptnMAT_d50_dir, 'netmats2.txt')
+class GAT_hyperparam_config(object):
+    def __init__(self,
+                 hid_units,
+                 n_heads,
+                 nb_epochs=1000,
+                 pers_traits=None,
+                 dataset_type='structural',
+                 edge_w_limit=50000,
+                 lr=0.0001,
+                 l2_coef=0.0005):
+        self.nb_epochs = nb_epochs
+        self.n_heads = n_heads
+        self.hid_units = hid_units
+        self.pers_traits = pers_traits if pers_traits is not None else ['A', 'O', 'C', 'N', 'E']
+        self.dataset_type = dataset_type
+        self.edge_w_limit = edge_w_limit
+        self.lr = lr
+        self.l2_coef = l2_coef
+
+    def __str__(self):
+        name = 'GAT_%s_attHeads%s_hidUnits%s_traits_%s_ew%d' % (self.dataset_type,
+                                                                ",".join(map(str, self.n_heads)),
+                                                                ",".join(map(str, self.hid_units)),
+                                                                "".join(map(str, self.pers_traits)),
+                                                                int(self.edge_w_limit / 1000))
+        return name
+
+
 pers_scores = os.path.join(os.getcwd(), os.pardir, 'PartIIProject', 'TIVscores',
                            '1016_HCP_withTIV_acorrected_USETHIS.xlsx')
-PTN_MAT_DIM = 50
 
 
-# transform an adjacency matrix with edge weights into a binary adj matrix (used for MASKED ATTENTION)
+def get_NEO5_scores(trait_choice=None):
+    df = pd.ExcelFile(pers_scores).parse('Raw_data')
+    tiv_scores = []
+    if trait_choice is None:
+        trait_names = ['NEO.NEOFAC_A', 'NEO.NEOFAC_O', 'NEO.NEOFAC_C', 'NEO.NEOFAC_N', 'NEO.NEOFAC_E']
+    else:
+        trait_names = trait_choice
+    for trait in sorted(trait_names):
+        tiv_scores.append(df[trait])
+    subjects = map(str, list(df['Subject']))
+    tiv_score_dict = dict(zip(subjects, np.array(tiv_scores).transpose().tolist()))
+    return tiv_score_dict
+
+
+# transform an adjacency matrix with edge weights into a binary adj matrix
 def get_binary_adj(graph):
     bin_adj = np.empty(graph.shape)
     for i in range(graph.shape[0]):
@@ -26,18 +63,19 @@ def get_binary_adj(graph):
     return bin_adj
 
 
-def adj_to_bias(adj, sizes, nhood=1):
+# get the bias matrices (used for MASKED ATTENTION) of all the adjacency graphs
+def adj_to_bias(adjs, sizes, nhood=1):
     # nr of graphs
-    nb_graphs = adj.shape[0]
+    nb_graphs = adjs.shape[0]
     # an empty matrix of the same shape as adj
-    mt = np.empty(adj.shape)
+    mt = np.empty(adjs.shape)
     # iterate all the graphs
     for g in range(nb_graphs):
         # crate an identity matrix of the same shape as the adj for current graph (it includes only self-loops)
-        mt[g] = np.eye(adj.shape[1])
+        mt[g] = np.eye(adjs.shape[1])
         # create a adj matrix  to include nhood-hop neighbours
         for _ in range(nhood):
-            mt[g] = np.matmul(mt[g], (get_binary_adj(adj[g]) + np.eye(adj.shape[1])))
+            mt[g] = np.matmul(mt[g], (get_binary_adj(adjs[g]) + np.eye(adjs[g].shape[0])))
         for i in range(sizes[g]):
             for j in range(sizes[g]):
                 if mt[g][i][j] > 0.0:
@@ -46,89 +84,34 @@ def adj_to_bias(adj, sizes, nhood=1):
     return -1e9 * (1.0 - mt)
 
 
-def shuffle_tr_data(scores, node_feats, bias_mats, adj_mats, chunk_sz):
-    assert chunk_sz == len(scores)
-    shuffled_data = list(zip(scores,
-                             node_feats[:chunk_sz],
-                             bias_mats[:chunk_sz],
-                             adj_mats[:chunk_sz]))
+def shuffle_tr_data(unshuf_scores, unshuf_feats, unshuf_biases, unshuf_adjs, chunk_sz):
+    assert chunk_sz == len(unshuf_scores)
 
+    shuffled_data = list(zip(unshuf_scores,
+                             unshuf_feats[:chunk_sz],
+                             unshuf_biases[:chunk_sz],
+                             unshuf_adjs[:chunk_sz]))
     random.shuffle(shuffled_data)
+    shuf_score, shuf_feats, shuf_bises, shuf_adjs = map(np.array, zip(*shuffled_data))
 
-    score_in_tr, ftr_in_tr, bias_in_tr, adj_in_tr = map(np.array, zip(*shuffled_data))
+    assert len(shuf_score) == len(shuf_feats) == len(shuf_bises) == len(shuf_adjs) == chunk_sz
 
-    assert len(score_in_tr) == len(ftr_in_tr) == len(bias_in_tr) == len(adj_in_tr) == chunk_sz
-
-    return score_in_tr, ftr_in_tr, bias_in_tr, adj_in_tr
+    return shuf_score, shuf_feats, shuf_bises, shuf_adjs
 
 
-def shuffle_tr_utest(scores, node_feats, bias_mats, adj_mats, chunk_sz):
+def shuffle_tr_utest(unshuf_scores, unshuf_feats, unshuf_biases, unshuf_adjs, chunk_sz):
     for _ in range(50):
-        score_in_tr, ftr_in_tr, bias_in_tr, adj_in_tr = shuffle_tr_data(scores, node_feats, bias_mats,
-                                                                        adj_mats, chunk_sz)
+        shuf_score, shuf_feats, shuf_bises, shuf_adjs = shuffle_tr_data(unshuf_scores,
+                                                                        unshuf_feats,
+                                                                        unshuf_biases,
+                                                                        unshuf_adjs,
+                                                                        chunk_sz)
 
-        if score_in_tr.shape != score_train.shape: print("error")
-        for row_s in score_in_tr:
+        if unshuf_scores.shape != shuf_score.shape: print("error in shuffling")
+        for row_s in shuf_score:
             check = False
-            for row in score_train:
+            for row in unshuf_scores:
                 if set(row_s.tolist()) == set(row.tolist()): check = True
             if not check:
-                print("error")
+                print("error in shuffling")
                 break
-
-
-
-def get_adj_ses1(dim):
-    adj = []
-    with open(ptnMAT_d50_ses1, 'r', encoding='UTF-8') as data:
-        for line in data:
-            graph = [[0 for x in range(dim)] for y in range(dim)]
-            for index, edge_weight in enumerate(line.split()):
-                graph[int(index / dim)][int(index % dim)] = float(edge_weight)
-            adj.append(graph)
-
-    return np.array(adj)
-
-
-# get the NEO5 TIV scores as an array of length 5 vectors, one for each patient in the study
-def get_NEO5_scores():
-    df = pd.ExcelFile(pers_scores).parse('Raw_data')  # you could add index_col=0 if there's an index
-    tiv_scores = []
-    tiv_scores.append(df['NEO.NEOFAC_A'])
-    tiv_scores.append(df['NEO.NEOFAC_O'])
-    tiv_scores.append(df['NEO.NEOFAC_C'])
-    tiv_scores.append(df['NEO.NEOFAC_N'])
-    tiv_scores.append(df['NEO.NEOFAC_E'])
-
-    return np.array(tiv_scores).transpose()
-
-
-def gen_random_features(nb_nodes_graphs):
-    features = []
-    feat_vect = random.sample(range(1, 100), 10)
-    for nb_nodes in nb_nodes_graphs:
-        graph_feats = [feat_vect for node in range(nb_nodes)]
-        features.append(graph_feats)
-    return np.array(features)
-
-
-def load_funct_data():
-    adj_matrices = get_adj_ses1(PTN_MAT_DIM)
-    graphs_features = gen_random_features([adj.shape[0] for adj in adj_matrices])
-    data_scores = get_NEO5_scores()[:adj_matrices.shape[0]]
-    score_train, score_val, score_test = np.split(data_scores,
-                                                  [int(len(data_scores) * 0.8), int(len(data_scores) * 0.9)])
-    return adj_matrices, graphs_features, score_train, score_val, score_test
-
-
-
-if __name__ == "__main__":
-    adj_matrices, graphs_features, score_train, score_test, score_val = load_struct_data()
-    # used in order to implement MASKED ATTENTION by discardining non-neighbours out of nhood hops
-    biases = adj_to_bias(adj_matrices, [graph.shape[0] for graph in adj_matrices], nhood=1)
-
-    tr_size = len(score_train)
-    adj = adj_matrices[:tr_size]
-    feat = graphs_features[:tr_size]
-    bias = biases[:tr_size]
-    shuffle_tr_data(score_train,feat,bias,adj,tr_size)

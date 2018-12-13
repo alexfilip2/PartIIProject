@@ -1,18 +1,11 @@
-import numpy as np
-import operator
+from Tools import *
 
 np.set_printoptions(threshold=np.nan)
-import os
-import pandas as pd
-import random
 from sys import stderr
 
 dir_root_structural_data = os.path.join(os.getcwd(), os.pardir, 'PartIIProject', 'structural_data')
 dir_struct_mat_HCP = os.path.join(dir_root_structural_data, 'PTN matrices HCP')
 structural_feats_excel = os.path.join(dir_root_structural_data, 'Features_all.xlsx')
-
-pers_scores = os.path.join(os.getcwd(), os.pardir, 'PartIIProject', 'TIVscores',
-                           '1016_HCP_withTIV_acorrected_USETHIS.xlsx')
 
 
 # dictionary of node names-brain regions (with features attached) of structural graphs and their ID's among all nodes
@@ -93,7 +86,7 @@ def check_symmetric(a, tol=1e-8):
     return np.allclose(a, a.T, atol=tol)
 
 
-def get_filtered_struct_adjs():
+def get_filtered_struct_adjs(limit):
     # os.walk includes as the first item the parent directory itself then the rest of sub-directories
     subjects_subdirs = [os.path.join(dir_struct_mat_HCP, subdir) for subdir in next(os.walk(dir_struct_mat_HCP))[1]]
     # the brain region ID's of all nodes that have node features
@@ -109,7 +102,7 @@ def get_filtered_struct_adjs():
                     adj_row = []
                     for col_index, edge_weight in enumerate(line.split(), start=1):
                         if col_index not in filtered_nodes: continue
-                        adj_row.append(float(edge_weight) if float(edge_weight)<50000 else 0.0)
+                        adj_row.append(float(edge_weight) if float(edge_weight) < limit else 0.0)
                     graph.append(adj_row)
             # the adjancency matrices are upper diagonal, we make them symmetric
             i_lower = np.tril_indices(len(graph), -1)
@@ -120,26 +113,11 @@ def get_filtered_struct_adjs():
 
             adj[subj_id.split('_')[0]] = sym_adj.tolist()
 
-
     return adj
 
 
-def get_NEO5_scores(trait_choice=None):
-    df = pd.ExcelFile(pers_scores).parse('Raw_data')
-    tiv_scores = []
-    if trait_choice is None:
-        trait_names = ['NEO.NEOFAC_A', 'NEO.NEOFAC_O', 'NEO.NEOFAC_C', 'NEO.NEOFAC_N', 'NEO.NEOFAC_E']
-    else:
-        trait_names = trait_choice
-    for trait in sorted(trait_names):
-        tiv_scores.append(df[trait])
-    subjects = map(str, list(df['Subject']))
-    tiv_score_dict = dict(zip(subjects, np.array(tiv_scores).transpose().tolist()))
-    return tiv_score_dict
-
-
-def load_struct_data(trait_choice=None):
-    dict_adj = get_filtered_struct_adjs()
+def load_struct_data(trait_choice=None, ew_limit = 500000):
+    dict_adj = get_filtered_struct_adjs(ew_limit)
     dict_node_feat = get_struct_node_feat()
     dict_tiv_score = get_NEO5_scores(trait_choice)
 

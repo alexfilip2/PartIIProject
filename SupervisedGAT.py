@@ -1,7 +1,7 @@
 import tensorflow as tf
 
 from MainGAT import MainGAT
-from Tools import *
+from ToolsFunctional import *
 from ToolsStructural import *
 
 CHECKPT_PERIOD = 25
@@ -13,40 +13,11 @@ if not os.path.exists(gat_model_stats):
     os.makedirs(gat_model_stats)
 
 
-class GAT_hyperparam_config(object):
-    def __init__(self,
-                 hid_units,
-                 n_heads,
-                 nb_epochs=1000,
-                 pers_traits=None,
-                 dataset_type='structural',
-                 edge_w_limit = 50000,
-                 lr=0.0001,
-                 l2_coef=0.0005):
-        self.nb_epochs = nb_epochs
-        self.n_heads = n_heads
-        self.hid_units = hid_units
-        self.pers_traits = pers_traits if pers_traits is not None else ['A', 'O', 'C', 'N', 'E']
-        self.dataset_type = dataset_type
-        self.edge_w_limit = edge_w_limit
-        self.lr = lr
-        self.l2_coef = l2_coef
-
-    def __str__(self):
-        name = 'GAT_%s_attHeads%s_hidUnits%s_traits_%s_ew%d' % (self.dataset_type,
-                                                           ",".join(map(str, self.n_heads)),
-                                                           ",".join(map(str, self.hid_units)),
-                                                           "".join(map(str, self.pers_traits)),
-                                                                int(self.edge_w_limit/1000))
-        return name
-
-
-def train_GAT_model(model_GAT_choice):
+def create_GAT_model(model_GAT_choice):
     # GAT model
     model = MainGAT
     # Checkpoint file for the training of the GAT model
     checkpt_file = os.path.join(checkpts_dir, str(model_GAT_choice))
-
 
     # training hyper-parameters
     batch_sz = 1  # batch training size; currently ONLY ONE example per training step: TO BE EXTENDED!!
@@ -76,7 +47,8 @@ def train_GAT_model(model_GAT_choice):
 
     # data for adjancency matrices, node feature vectors and personality scores for each study patient
     load_data = load_struct_data if model_GAT_choice.dataset_type == 'structural' else load_funct_data
-    adj_matrices, graphs_features, score_train, score_test, score_val = load_data(pers_traits)
+    adj_matrices, graphs_features, score_train, score_test, score_val = load_data(pers_traits,
+                                                                                  model_GAT_choice.edge_w_limit)
 
     # used in order to implement MASKED ATTENTION by discardining non-neighbours out of nhood hops
     biases = adj_to_bias(adj_matrices, [graph.shape[0] for graph in adj_matrices], nhood=1)
@@ -238,6 +210,7 @@ if __name__ == "__main__":
     n_heads = [2, 2, 3]
     model_GAT_config = GAT_hyperparam_config(hid_units=hid_units,
                                              n_heads=n_heads,
-                                             nb_epochs=1500)
+                                             nb_epochs=1500,
+                                             edge_w_limit=200000)
 
-    train_GAT_model(model_GAT_config)
+    create_GAT_model(model_GAT_config)
