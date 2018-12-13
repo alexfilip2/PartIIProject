@@ -1,7 +1,7 @@
 from Tools import *
 
 PTN_MAT_DIM = 50
-ptnMAT_colab = os.path.join(os.getcwd(), os.pardir, 'PartIIProject', 'netmats')
+ptnMAT_colab = os.path.join(os.getcwd(), os.pardir, 'PartIIProject', 'functional_data')
 ptnMAT_d50_dir = os.path.join(ptnMAT_colab, '3T_HCP1200_MSMAll_d50_ts2')
 
 ptnMAT_d50_ses1 = os.path.join(ptnMAT_d50_dir, 'netmats1.txt')
@@ -35,9 +35,9 @@ def get_NEO5_scores():
 
 def gen_random_features(nb_nodes_graphs):
     features = []
-    feat_vect = random.sample(range(1, 100), 10)
+    feat_vect = [random.uniform(0, 1) for _ in range(10)]
     for nb_nodes in nb_nodes_graphs:
-        graph_feats = [feat_vect for node in range(nb_nodes)]
+        graph_feats = [feat_vect for _ in range(nb_nodes)]
         features.append(graph_feats)
     return np.array(features)
 

@@ -5,6 +5,7 @@ import os
 import pandas as pd
 import random
 import operator
+import sys
 
 
 class GAT_hyperparam_config(object):
@@ -55,7 +56,7 @@ def get_NEO5_scores(trait_choice=None):
 
 # transform an adjacency matrix with edge weights into a binary adj matrix
 def get_binary_adj(graph):
-    bin_adj = np.empty(graph.shape)
+    bin_adj = np.zeros(graph.shape)
     for i in range(graph.shape[0]):
         for j in range(graph.shape[0]):
             if graph[i][j] > 0:
@@ -68,7 +69,7 @@ def adj_to_bias(adjs, sizes, nhood=1):
     # nr of graphs
     nb_graphs = adjs.shape[0]
     # an empty matrix of the same shape as adj
-    mt = np.empty(adjs.shape)
+    mt = np.zeros(adjs.shape)
     # iterate all the graphs
     for g in range(nb_graphs):
         # crate an identity matrix of the same shape as the adj for current graph (it includes only self-loops)

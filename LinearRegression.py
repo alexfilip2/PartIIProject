@@ -17,4 +17,4 @@ print(model.score(X_test, y_test))
 
 y_pred = model.predict(X_test)
 print(y_pred)
-print(mean_squared_error(y_pred,y_test))
+print(mean_squared_error(y_pred, y_test))
