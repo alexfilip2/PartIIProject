@@ -17,7 +17,9 @@ def create_GAT_model(model_GAT_choice):
     # GAT model
     model = MainGAT
     # Checkpoint file for the training of the GAT model
-    checkpt_file = os.path.join(checkpts_dir, str(model_GAT_choice))
+    current_chkpt_dir = os.path.join(checkpts_dir, str(model_GAT_choice))
+    if not os.path.exists(current_chkpt_dir):
+        os.makedirs(current_chkpt_dir)
 
     # training hyper-parameters
     batch_sz = 1  # batch training size; currently ONLY ONE example per training step: TO BE EXTENDED!!
@@ -94,91 +96,86 @@ def create_GAT_model(model_GAT_choice):
             vl_size = len(score_val)
             # number of test graph examples
             ts_size = len(score_test)
-            # restart training from where it was left
-            epoch_start = 1
+            sess.run(init_op)
 
             print('The training size is: %d, the validation: %d and the test: %d' % (tr_size, vl_size, ts_size))
 
-            if not tf.train.checkpoint_exists(checkpt_file):
-                print('The GAT model is not pre-trained, training it now...')
-                partially_trained = False
-                for epoch_step in reversed(range(nb_epochs)):
-                    possible_last_checkpt = '%s-%d' % (checkpt_file, epoch_step)
-                    if tf.train.checkpoint_exists(possible_last_checkpt):
-                        # restoring a pre-trained model
-                        epoch_start = epoch_step + 1
-                        saver.restore(sess, possible_last_checkpt)
-                        print("Model restored from epoch number %d" % epoch_step)
-                        partially_trained = True
-                        break
+            checkpt_file = os.path.join(current_chkpt_dir, 'checkpoint')
+            ckpt = tf.train.get_checkpoint_state(current_chkpt_dir)
+            if ckpt is None:
+                epoch_start = 1
+            else:
+                saver.restore(sess, ckpt.model_checkpoint_path)
+                saver.recover_last_checkpoints(ckpt.all_model_checkpoint_paths)
+                last_epoch_training = max([int(ck_file.split('-')[-1]) for ck_file in ckpt.all_model_checkpoint_paths])
+                print('Re-loading training from epoch %d' % last_epoch_training)
+                # restart training from where it was left
+                epoch_start = last_epoch_training + 1
 
-                if not partially_trained:
-                    # run the initializer for the Variable objects to be optimized
-                    open(os.path.join(gat_model_stats, 'train_losses_%s' % model_GAT_choice), 'w')
-                    sess.run(init_op)
+            # nb_epochs - number of epochs for training: the number of iteration of gradient descent to optimize
+            for epoch in range(epoch_start, nb_epochs + 1):
 
-                # nb_epochs - number of epochs for training: the number of iteration of gradient descent to optimize
-                for epoch in range(epoch_start, nb_epochs + 1):
+                # shuffle the training dataset
+                score_in_tr, ftr_in_tr, bias_in_tr, adj_in_tr = shuffle_tr_data(score_train,
+                                                                                graphs_features,
+                                                                                biases,
+                                                                                adj_matrices,
+                                                                                tr_size)
+                # training step
+                tr_step = 0
+                #  training loss of this epoch
+                train_loss_avg = 0
 
-                    # shuffle the training dataset
-                    score_in_tr, ftr_in_tr, bias_in_tr, adj_in_tr = shuffle_tr_data(score_train,
-                                                                                    graphs_features,
-                                                                                    biases,
-                                                                                    adj_matrices,
-                                                                                    tr_size)
-                    # training step
-                    tr_step = 0
-                    #  training loss of this epoch
-                    train_loss_avg = 0
-                    while tr_step < tr_size:
-                        (_, loss_value_tr) = sess.run([train_op, loss],
-                                                      feed_dict={
-                                                          ftr_in: ftr_in_tr[tr_step:tr_step + 1],
-                                                          bias_in: bias_in_tr[tr_step:tr_step + 1],
-                                                          score_in: score_in_tr[tr_step:tr_step + 1],
-                                                          adj_in: adj_in_tr[tr_step:tr_step + 1],
-                                                          is_train: True,
-                                                          attn_drop: 0.6,
-                                                          ffd_drop: 0.6})
-                        train_loss_avg += loss_value_tr
-                        tr_step += 1
+                while tr_step < tr_size:
+                    (_, loss_value_tr) = sess.run([train_op, loss],
+                                                  feed_dict={
+                                                      ftr_in: ftr_in_tr[tr_step:tr_step + 1],
+                                                      bias_in: bias_in_tr[tr_step:tr_step + 1],
+                                                      score_in: score_in_tr[tr_step:tr_step + 1],
+                                                      adj_in: adj_in_tr[tr_step:tr_step + 1],
+                                                      is_train: True,
+                                                      attn_drop: 0.6,
+                                                      ffd_drop: 0.6})
+                    train_loss_avg += loss_value_tr
+                    tr_step += 1
 
-                    # validation step
-                    vl_step = tr_size
-                    # validation loss of this epoch
-                    val_loss_avg = 0
+                # validation step
+                vl_step = tr_size
+                # validation loss of this epoch
+                val_loss_avg = 0
 
-                    while vl_step < vl_size + tr_size:
-                        (loss_value_vl,) = sess.run([loss],
-                                                    feed_dict={
-                                                        ftr_in: graphs_features[vl_step:vl_step + 1],
-                                                        bias_in: biases[vl_step:vl_step + 1],
-                                                        score_in: score_val[vl_step - tr_size:vl_step + 1 - tr_size],
-                                                        adj_in: adj_matrices[vl_step:vl_step + 1],
-                                                        is_train: False,
-                                                        attn_drop: 0.0,
-                                                        ffd_drop: 0.0})
+                while vl_step < vl_size + tr_size:
+                    (loss_value_vl,) = sess.run([loss],
+                                                feed_dict={
+                                                    ftr_in: graphs_features[vl_step:vl_step + 1],
+                                                    bias_in: biases[vl_step:vl_step + 1],
+                                                    score_in: score_val[vl_step - tr_size:vl_step + 1 - tr_size],
+                                                    adj_in: adj_matrices[vl_step:vl_step + 1],
+                                                    is_train: False,
+                                                    attn_drop: 0.0,
+                                                    ffd_drop: 0.0})
 
-                        val_loss_avg += loss_value_vl
-                        vl_step += 1
-                    train_losses_file = open(os.path.join(gat_model_stats, 'train_losses' + str(model_GAT_choice)), 'a')
-                    print(
-                        'Training: loss = %.5f | Val: loss = %.5f' % (train_loss_avg / tr_size,
-                                                                      val_loss_avg / vl_size))
-                    print(
-                        'Training: loss = %.5f | Val: loss = %.5f' % (train_loss_avg / tr_size,
-                                                                      val_loss_avg / vl_size),
-                        file=train_losses_file)
+                    val_loss_avg += loss_value_vl
+                    vl_step += 1
 
-                    if epoch % CHECKPT_PERIOD == 0:
-                        save_path = saver.save(sess, checkpt_file, global_step=epoch)
-                        print("Training progress after %d epochs saved in path: %s" % (epoch, save_path))
+                train_losses_file = open(os.path.join(gat_model_stats, 'train_losses' + str(model_GAT_choice)), 'a')
+                print(
+                    'Training: loss = %.5f | Val: loss = %.5f' % (train_loss_avg / tr_size,
+                                                                  val_loss_avg / vl_size))
+                print(
+                    'Training: loss = %.5f | Val: loss = %.5f' % (train_loss_avg / tr_size,
+                                                                  val_loss_avg / vl_size), file=train_losses_file)
 
-            save_path = saver.save(sess, checkpt_file)
+                if epoch % CHECKPT_PERIOD == 0:
+                    save_path = saver.save(sess, checkpt_file, global_step=epoch)
+                    print("Training progress after %d epochs saved in path: %s" % (epoch, save_path))
+
+            model_file = os.path.join(current_chkpt_dir, 'GAT_%s' % model_GAT_choice)
+            save_path = saver.save(sess, model_file)
             print("Fully trained model saved in path: %s" % save_path)
 
             # restoring a pre-trained model
-            saver.restore(sess, checkpt_file)
+            saver.restore(sess, model_file)
             print("Model restored.")
 
             ts_step = tr_size + vl_size
@@ -205,12 +202,12 @@ def create_GAT_model(model_GAT_choice):
 
 
 if __name__ == "__main__":
-    hid_units = [20, 20, 10]
+    hid_units = [64, 32, 16]
     n_heads = [4, 4, 6]
     model_GAT_config = GAT_hyperparam_config(hid_units=hid_units,
                                              n_heads=n_heads,
-                                             dataset_type='functional',
+                                             dataset_type='structural',
                                              nb_epochs=1500,
-                                             edge_w_limit=5000000)
+                                             edge_w_limit=80000)
 
     create_GAT_model(model_GAT_config)

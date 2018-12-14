@@ -47,12 +47,12 @@ def edge_weight_distrib(limit):
 
 
 if __name__ == "__main__":
-    hid_units = [20, 20, 10]
+    hid_units = [64, 32, 16]
     n_heads = [4, 4, 6]
     model_GAT_config = GAT_hyperparam_config(hid_units=hid_units,
                                              n_heads=n_heads,
-                                             dataset_type='functional',
+                                             dataset_type='structural',
                                              nb_epochs=1500,
-                                             edge_w_limit=5000000)
+                                             edge_w_limit=80000)
 
     plt_learn_proc(model_GAT_config)

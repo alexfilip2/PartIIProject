@@ -102,7 +102,8 @@ def get_filtered_struct_adjs(limit=sys.float_info.max):
                     adj_row = []
                     for col_index, edge_weight in enumerate(line.split(), start=1):
                         if col_index not in filtered_nodes: continue
-                        adj_row.append(float(edge_weight) if float(edge_weight) < limit else 0.0)
+                        adj_row.append(
+                            float(edge_weight) if float(edge_weight) < limit else 0.0)
                     graph.append(adj_row)
             # the adjancency matrices are upper diagonal, we make them symmetric
             i_lower = np.tril_indices(len(graph), -1)

@@ -8,13 +8,14 @@ import operator
 import sys
 
 
+# class embodying the hyperparameter choice of a GAT model
 class GAT_hyperparam_config(object):
     def __init__(self,
                  hid_units,
                  n_heads,
                  nb_epochs=1000,
                  pers_traits=None,
-                 dataset_type='structural',
+                 dataset_type='struct',
                  edge_w_limit=50000,
                  lr=0.0001,
                  l2_coef=0.0005):
@@ -28,18 +29,19 @@ class GAT_hyperparam_config(object):
         self.l2_coef = l2_coef
 
     def __str__(self):
-        name = 'GAT_%s_attHeads%s_hidUnits%s_traits_%s_ew%d' % (self.dataset_type,
-                                                                ",".join(map(str, self.n_heads)),
-                                                                ",".join(map(str, self.hid_units)),
-                                                                "".join(map(str, self.pers_traits)),
-                                                                int(self.edge_w_limit / 1000))
+        name = 'GAT_%s_attH%s_hidU%s_persT_%s_ew%d' % (self.dataset_type,
+                                                       ",".join(map(str, self.n_heads)),
+                                                       ",".join(map(str, self.hid_units)),
+                                                       "".join(map(str, self.pers_traits)),
+                                                       int(self.edge_w_limit / 1000))
         return name
 
 
-pers_scores = os.path.join(os.getcwd(), os.pardir, 'PartIIProject', 'TIVscores',
-                           '1016_HCP_withTIV_acorrected_USETHIS.xlsx')
+# Excel file containing per-subject personality scores
+pers_scores = os.path.join(os.getcwd(), os.pardir, 'PartIIProject', 'TIVscores', '1016_HCP_TIVscores.xlsx')
 
 
+# dictionary of string subject ID: array of real-valued scores for each trait
 def get_NEO5_scores(trait_choice=None):
     df = pd.ExcelFile(pers_scores).parse('Raw_data')
     tiv_scores = []
@@ -54,7 +56,7 @@ def get_NEO5_scores(trait_choice=None):
     return tiv_score_dict
 
 
-# transform an adjacency matrix with edge weights into a binary adj matrix
+# transform an adjacency matrix with edge weights into a binary adj matrix, filtering negative weights
 def get_binary_adj(graph):
     bin_adj = np.zeros(graph.shape)
     for i in range(graph.shape[0]):
@@ -72,9 +74,9 @@ def adj_to_bias(adjs, sizes, nhood=1):
     mt = np.zeros(adjs.shape)
     # iterate all the graphs
     for g in range(nb_graphs):
-        # crate an identity matrix of the same shape as the adj for current graph (it includes only self-loops)
+        # crate an identity matrix of the same shape as the adj for current graph (it includes self-loops)
         mt[g] = np.eye(adjs.shape[1])
-        # create a adj matrix  to include nhood-hop neighbours
+        # create a adj matrix to include nhood-hop neighbours
         for _ in range(nhood):
             mt[g] = np.matmul(mt[g], (get_binary_adj(adjs[g]) + np.eye(adjs[g].shape[0])))
         for i in range(sizes[g]):
@@ -85,6 +87,7 @@ def adj_to_bias(adjs, sizes, nhood=1):
     return -1e9 * (1.0 - mt)
 
 
+# shuffle the trainign data arrays, but keeping the mappings
 def shuffle_tr_data(unshuf_scores, unshuf_feats, unshuf_biases, unshuf_adjs, chunk_sz):
     assert chunk_sz == len(unshuf_scores)
 
