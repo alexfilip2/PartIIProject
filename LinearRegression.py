@@ -92,4 +92,4 @@ def plot_history(hist):
 
 loss, mae, mse = model.evaluate(X_test, np.squeeze(y_test), verbose=0)
 
-print("Testing set Mean Abs Error: {:5.2f} MPG".format(mae))
+print("Testing set Mean Abs Error: {:5.2f} MPG".format(mse))

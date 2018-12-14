@@ -13,6 +13,40 @@ if not os.path.exists(gat_model_stats):
     os.makedirs(gat_model_stats)
 
 
+def reload_GAT_model(model_GAT_choice, sess, saver):
+    # Checkpoint file for the training of the GAT model
+    current_chkpt_dir = os.path.join(checkpts_dir, str(model_GAT_choice))
+    model_file = os.path.join(current_chkpt_dir, 'GAT_%s' % model_GAT_choice)
+    if not os.path.exists(current_chkpt_dir):
+        os.makedirs(current_chkpt_dir)
+
+    ckpt = tf.train.get_checkpoint_state(current_chkpt_dir)
+    if ckpt is None:
+        epoch_start = 1
+    else:
+        saver.restore(sess, ckpt.model_checkpoint_path)
+        saver.recover_last_checkpoints(ckpt.all_model_checkpoint_paths)
+        if tf.train.checkpoint_exists(model_file):
+            last_epoch_training = model_GAT_choice.nb_epochs
+            print('Re-loading full model %s' % model_GAT_choice)
+        else:
+            last_epoch_training = max(
+                [int(ck_file.split('-')[-1]) for ck_file in ckpt.all_model_checkpoint_paths])
+            print('Re-loading training from epoch %d' % last_epoch_training)
+        # restart training from where it was left
+        epoch_start = last_epoch_training + 1
+
+    return epoch_start
+
+
+def print_GAT_learn_loss(model_GAT_choice, tr_avg_loss, vl_avg_loss):
+    train_losses_file = open(os.path.join(gat_model_stats, 'train_losses' + str(model_GAT_choice)), 'a')
+    print(
+        'Training: loss = %.5f | Val: loss = %.5f' % (tr_avg_loss, vl_avg_loss))
+    print(
+        'Training: loss = %.5f | Val: loss = %.5f' % (tr_avg_loss, vl_avg_loss), file=train_losses_file)
+
+
 def create_GAT_model(model_GAT_choice):
     # GAT model
     model = MainGAT
@@ -20,6 +54,7 @@ def create_GAT_model(model_GAT_choice):
     current_chkpt_dir = os.path.join(checkpts_dir, str(model_GAT_choice))
     if not os.path.exists(current_chkpt_dir):
         os.makedirs(current_chkpt_dir)
+    model_file = os.path.join(current_chkpt_dir, 'GAT_%s' % model_GAT_choice)
 
     # training hyper-parameters
     batch_sz = 1  # batch training size; currently ONLY ONE example per training step: TO BE EXTENDED!!
@@ -100,17 +135,7 @@ def create_GAT_model(model_GAT_choice):
 
             print('The training size is: %d, the validation: %d and the test: %d' % (tr_size, vl_size, ts_size))
 
-            checkpt_file = os.path.join(current_chkpt_dir, 'checkpoint')
-            ckpt = tf.train.get_checkpoint_state(current_chkpt_dir)
-            if ckpt is None:
-                epoch_start = 1
-            else:
-                saver.restore(sess, ckpt.model_checkpoint_path)
-                saver.recover_last_checkpoints(ckpt.all_model_checkpoint_paths)
-                last_epoch_training = max([int(ck_file.split('-')[-1]) for ck_file in ckpt.all_model_checkpoint_paths])
-                print('Re-loading training from epoch %d' % last_epoch_training)
-                # restart training from where it was left
-                epoch_start = last_epoch_training + 1
+            epoch_start = reload_GAT_model(model_GAT_choice=model_GAT_choice, sess=sess, saver=saver)
 
             # nb_epochs - number of epochs for training: the number of iteration of gradient descent to optimize
             for epoch in range(epoch_start, nb_epochs + 1):
@@ -158,21 +183,18 @@ def create_GAT_model(model_GAT_choice):
                     val_loss_avg += loss_value_vl
                     vl_step += 1
 
-                train_losses_file = open(os.path.join(gat_model_stats, 'train_losses' + str(model_GAT_choice)), 'a')
-                print(
-                    'Training: loss = %.5f | Val: loss = %.5f' % (train_loss_avg / tr_size,
-                                                                  val_loss_avg / vl_size))
-                print(
-                    'Training: loss = %.5f | Val: loss = %.5f' % (train_loss_avg / tr_size,
-                                                                  val_loss_avg / vl_size), file=train_losses_file)
+                print_GAT_learn_loss(model_GAT_choice=model_GAT_choice,
+                                     tr_avg_loss=train_loss_avg / tr_size,
+                                     vl_avg_loss=val_loss_avg / vl_size)
 
+                checkpt_file = os.path.join(current_chkpt_dir, 'checkpoint')
                 if epoch % CHECKPT_PERIOD == 0:
                     save_path = saver.save(sess, checkpt_file, global_step=epoch)
                     print("Training progress after %d epochs saved in path: %s" % (epoch, save_path))
 
-            model_file = os.path.join(current_chkpt_dir, 'GAT_%s' % model_GAT_choice)
-            save_path = saver.save(sess, model_file)
-            print("Fully trained model saved in path: %s" % save_path)
+            if not tf.train.checkpoint_exists(model_file):
+                save_path = saver.save(sess, model_file)
+                print("Fully trained model saved in path: %s" % save_path)
 
             # restoring a pre-trained model
             saver.restore(sess, model_file)
@@ -208,6 +230,6 @@ if __name__ == "__main__":
                                              n_heads=n_heads,
                                              dataset_type='structural',
                                              nb_epochs=1500,
-                                             edge_w_limit=80000)
+                                             edge_w_limit=200000)
 
     create_GAT_model(model_GAT_config)

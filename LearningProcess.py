@@ -53,6 +53,6 @@ if __name__ == "__main__":
                                              n_heads=n_heads,
                                              dataset_type='structural',
                                              nb_epochs=1500,
-                                             edge_w_limit=80000)
+                                             edge_w_limit=200000)
 
     plt_learn_proc(model_GAT_config)
