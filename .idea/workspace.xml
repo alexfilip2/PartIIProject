@@ -3,10 +3,49 @@
   <component name="ChangeListManager">
     <list default="true" id="e6c655ac-ac83-4960-96cd-bd108dfa904a" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_structural_attH4,4,6_hidU64,32,16_persT_AOCNE_ew80/GAT_GAT_structural_attH4,4,6_hidU64,32,16_persT_AOCNE_ew80.meta" beforeDir="false" afterPath="$PROJECT_DIR$/GAT_checkpoints/GAT_structural_attH4,4,6_hidU64,32,16_persT_AOCNE_ew80/GAT_GAT_structural_attH4,4,6_hidU64,32,16_persT_AOCNE_ew80.meta" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/AttentionHead.py" beforeDir="false" afterPath="$PROJECT_DIR$/AttentionHead.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_structural_attH4,4,6_hidU64,32,16_persT_AOCNE_ew200/GAT_GAT_structural_attH4,4,6_hidU64,32,16_persT_AOCNE_ew200.data-00000-of-00001" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_structural_attH4,4,6_hidU64,32,16_persT_AOCNE_ew200/GAT_GAT_structural_attH4,4,6_hidU64,32,16_persT_AOCNE_ew200.index" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_structural_attH4,4,6_hidU64,32,16_persT_AOCNE_ew200/GAT_GAT_structural_attH4,4,6_hidU64,32,16_persT_AOCNE_ew200.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_structural_attH4,4,6_hidU64,32,16_persT_AOCNE_ew200/checkpoint" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_structural_attH4,4,6_hidU64,32,16_persT_AOCNE_ew200/checkpoint-1425.data-00000-of-00001" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_structural_attH4,4,6_hidU64,32,16_persT_AOCNE_ew200/checkpoint-1425.index" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_structural_attH4,4,6_hidU64,32,16_persT_AOCNE_ew200/checkpoint-1425.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_structural_attH4,4,6_hidU64,32,16_persT_AOCNE_ew200/checkpoint-1450.data-00000-of-00001" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_structural_attH4,4,6_hidU64,32,16_persT_AOCNE_ew200/checkpoint-1450.index" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_structural_attH4,4,6_hidU64,32,16_persT_AOCNE_ew200/checkpoint-1450.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_structural_attH4,4,6_hidU64,32,16_persT_AOCNE_ew200/checkpoint-1475.data-00000-of-00001" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_structural_attH4,4,6_hidU64,32,16_persT_AOCNE_ew200/checkpoint-1475.index" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_structural_attH4,4,6_hidU64,32,16_persT_AOCNE_ew200/checkpoint-1475.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_structural_attH4,4,6_hidU64,32,16_persT_AOCNE_ew200/checkpoint-1500.data-00000-of-00001" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_structural_attH4,4,6_hidU64,32,16_persT_AOCNE_ew200/checkpoint-1500.index" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_structural_attH4,4,6_hidU64,32,16_persT_AOCNE_ew200/checkpoint-1500.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_structural_attH4,4,6_hidU64,32,16_persT_AOCNE_ew80/GAT_GAT_structural_attH4,4,6_hidU64,32,16_persT_AOCNE_ew80.data-00000-of-00001" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_structural_attH4,4,6_hidU64,32,16_persT_AOCNE_ew80/GAT_GAT_structural_attH4,4,6_hidU64,32,16_persT_AOCNE_ew80.index" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_structural_attH4,4,6_hidU64,32,16_persT_AOCNE_ew80/GAT_GAT_structural_attH4,4,6_hidU64,32,16_persT_AOCNE_ew80.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_structural_attH4,4,6_hidU64,32,16_persT_AOCNE_ew80/checkpoint" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_structural_attH4,4,6_hidU64,32,16_persT_AOCNE_ew80/checkpoint-1425.data-00000-of-00001" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_structural_attH4,4,6_hidU64,32,16_persT_AOCNE_ew80/checkpoint-1425.index" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_structural_attH4,4,6_hidU64,32,16_persT_AOCNE_ew80/checkpoint-1425.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_structural_attH4,4,6_hidU64,32,16_persT_AOCNE_ew80/checkpoint-1450.data-00000-of-00001" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_structural_attH4,4,6_hidU64,32,16_persT_AOCNE_ew80/checkpoint-1450.index" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_structural_attH4,4,6_hidU64,32,16_persT_AOCNE_ew80/checkpoint-1450.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_structural_attH4,4,6_hidU64,32,16_persT_AOCNE_ew80/checkpoint-1475.data-00000-of-00001" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_structural_attH4,4,6_hidU64,32,16_persT_AOCNE_ew80/checkpoint-1475.index" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_structural_attH4,4,6_hidU64,32,16_persT_AOCNE_ew80/checkpoint-1475.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_structural_attH4,4,6_hidU64,32,16_persT_AOCNE_ew80/checkpoint-1500.data-00000-of-00001" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_structural_attH4,4,6_hidU64,32,16_persT_AOCNE_ew80/checkpoint-1500.index" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_structural_attH4,4,6_hidU64,32,16_persT_AOCNE_ew80/checkpoint-1500.meta" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/LearningProcess.py" beforeDir="false" afterPath="$PROJECT_DIR$/LearningProcess.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/LinearRegression.py" beforeDir="false" afterPath="$PROJECT_DIR$/LinearRegression.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MainGAT.py" beforeDir="false" afterPath="$PROJECT_DIR$/MainGAT.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/SupervisedGAT.py" beforeDir="false" afterPath="$PROJECT_DIR$/SupervisedGAT.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Tools.py" beforeDir="false" afterPath="$PROJECT_DIR$/Tools.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ToolsStructural.py" beforeDir="false" afterPath="$PROJECT_DIR$/ToolsStructural.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/learning_process/train_lossesGAT_functional_attHeads4,4,6_hidUnits20,20,10_traits_AOCNE_ew5000" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/learning_process/train_lossesGAT_structural_attH2,1_hidU20,10_persT_AOCNE_ew5000" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/learning_process/train_lossesGAT_structural_attH4,4,6_hidU64,32,16_persT_AOCNE_ew200" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/learning_process/train_lossesGAT_structural_attH4,4,6_hidU64,32,16_persT_AOCNE_ew80" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/learning_process/train_losses_GAT_functional_attHeads4,4,6_hidUnits20,20,10_traits_AOCNE_ew5000" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/loss_woWeights.png" beforeDir="false" afterPath="$PROJECT_DIR$/loss_woWeights.png" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -16,9 +55,9 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="CoverageDataManager">
-    <SUITE FILE_PATH="coverage/PartIIProject$ToolsStructural.coverage" NAME="ToolsStructural Coverage Results" MODIFIED="1544544043826" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/PartIIProject$LearningProcess.coverage" NAME="LearningProcess Coverage Results" MODIFIED="1544810787205" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/PartIIProject$SupervisedGAT.coverage" NAME="SupervisedGAT Coverage Results" MODIFIED="1544807563033" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/PartIIProject$ToolsStructural.coverage" NAME="ToolsStructural Coverage Results" MODIFIED="1544874755396" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/PartIIProject$LearningProcess.coverage" NAME="LearningProcess Coverage Results" MODIFIED="1544884791152" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/PartIIProject$SupervisedGAT.coverage" NAME="SupervisedGAT Coverage Results" MODIFIED="1544893910396" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/PartIIProject$Tools.coverage" NAME="Tools Coverage Results" MODIFIED="1544692448974" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/PartIIProject$LinearRegression.coverage" NAME="LinearRegression Coverage Results" MODIFIED="1544809611926" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
@@ -37,7 +76,7 @@
           <entry key="project.open.time.31" value="1" />
           <entry key="project.open.time.32" value="1" />
           <entry key="project.open.time.34" value="3" />
-          <entry key="project.open.time.36" value="1" />
+          <entry key="project.open.time.36" value="2" />
           <entry key="project.open.time.37" value="1" />
           <entry key="project.open.time.41" value="1" />
           <entry key="project.open.time.43" value="1" />
@@ -46,7 +85,7 @@
           <entry key="project.open.time.7" value="2" />
           <entry key="project.open.time.8" value="1" />
           <entry key="project.open.time.9" value="1" />
-          <entry key="project.opened" value="32" />
+          <entry key="project.opened" value="33" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
@@ -63,12 +102,12 @@
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
-          <entry key="py" value="19469" />
+          <entry key="py" value="21012" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
-          <entry key="Python" value="19469" />
+          <entry key="Python" value="21012" />
         </counts>
       </usages-collector>
     </session>
@@ -78,8 +117,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/AttentionHead.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="553">
-              <caret line="38" column="8" selection-start-line="38" selection-start-column="8" selection-end-line="38" selection-end-column="8" />
+            <state relative-caret-position="657">
+              <caret line="41" selection-start-line="41" selection-end-line="41" />
             </state>
           </provider>
         </entry>
@@ -87,8 +126,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/MainGAT.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="176">
-              <caret line="69" column="103" selection-start-line="69" selection-start-column="103" selection-end-line="69" selection-end-column="103" />
+            <state relative-caret-position="1360">
+              <caret line="86" column="48" selection-start-line="86" selection-start-column="48" selection-end-line="86" selection-end-column="48" />
               <folding>
                 <element signature="e#0#18#0" expanded="true" />
               </folding>
@@ -108,23 +147,27 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Tools.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="621">
-              <caret line="85" column="50" selection-start-line="85" selection-start-column="50" selection-end-line="85" selection-end-column="50" />
+            <state relative-caret-position="17">
+              <caret line="44" column="8" selection-start-line="44" selection-start-column="8" selection-end-line="44" selection-end-column="8" />
+              <folding>
+                <marker date="1544890691261" expanded="true" signature="637:641" ph="..." />
+                <marker date="1544890691261" expanded="true" signature="1076:1081" ph="..." />
+              </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/SupervisedGAT.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="236">
-              <caret line="232" column="64" selection-start-line="232" selection-start-column="58" selection-end-line="232" selection-end-column="64" />
+            <state relative-caret-position="3621">
+              <caret line="239" column="61" selection-start-line="239" selection-start-column="61" selection-end-line="239" selection-end-column="61" />
               <folding>
                 <element signature="e#0#23#0" expanded="true" />
-                <marker date="1544807562904" expanded="true" signature="1638:1954" ph="..." />
-                <marker date="1544807562904" expanded="true" signature="1993:1998" ph="..." />
-                <marker date="1544807562904" expanded="true" signature="11437:11439" ph="..." />
-                <marker date="1544807562904" expanded="true" signature="11438:11439" ph="..." />
+                <marker date="1544892915192" expanded="true" signature="1620:1936" ph="..." />
+                <marker date="1544892915192" expanded="true" signature="1975:1980" ph="..." />
+                <marker date="1544892915192" expanded="true" signature="11671:11673" ph="..." />
+                <marker date="1544892915192" expanded="true" signature="11672:11673" ph="..." />
               </folding>
             </state>
           </provider>
@@ -133,17 +176,11 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/ToolsStructural.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="74">
-              <caret line="143" column="41" selection-start-line="143" selection-start-column="41" selection-end-line="143" selection-end-column="41" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/LinearRegression.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="519">
-              <caret line="93" selection-start-line="93" selection-end-line="93" />
+            <state relative-caret-position="317">
+              <caret line="111" column="70" selection-start-line="111" selection-start-column="70" selection-end-line="111" selection-end-column="70" />
+              <folding>
+                <marker date="1544885488303" expanded="true" signature="5697:5698" ph="..." />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -151,11 +188,11 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/LearningProcess.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="261">
-              <caret line="55" column="64" selection-start-line="55" selection-start-column="64" selection-end-line="55" selection-end-column="64" />
+            <state relative-caret-position="274">
+              <caret line="58" column="65" selection-start-line="58" selection-start-column="65" selection-end-line="58" selection-end-column="65" />
               <folding>
                 <element signature="e#0#9#0" expanded="true" />
-                <marker date="1544808917135" expanded="true" signature="364:368" ph="..." />
+                <marker date="1544877649988" expanded="true" signature="364:368" ph="..." />
               </folding>
             </state>
           </provider>
@@ -194,6 +231,10 @@
       <find>empty</find>
       <find>checkpt_file</find>
       <find>nb_epochs</find>
+      <find>aggreg</find>
+      <find>gat</find>
+      <find>curr</find>
+      <find>test</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -204,14 +245,14 @@
       <list>
         <option value="$PROJECT_DIR$/BaseGAT.py" />
         <option value="$PROJECT_DIR$/stats/train_losses.txt" />
-        <option value="$PROJECT_DIR$/MainGAT.py" />
         <option value="$PROJECT_DIR$/ToolsFunctional.py" />
-        <option value="$PROJECT_DIR$/Tools.py" />
-        <option value="$PROJECT_DIR$/AttentionHead.py" />
-        <option value="$PROJECT_DIR$/ToolsStructural.py" />
-        <option value="$PROJECT_DIR$/SupervisedGAT.py" />
-        <option value="$PROJECT_DIR$/LearningProcess.py" />
         <option value="$PROJECT_DIR$/LinearRegression.py" />
+        <option value="$PROJECT_DIR$/LearningProcess.py" />
+        <option value="$PROJECT_DIR$/ToolsStructural.py" />
+        <option value="$PROJECT_DIR$/MainGAT.py" />
+        <option value="$PROJECT_DIR$/AttentionHead.py" />
+        <option value="$PROJECT_DIR$/Tools.py" />
+        <option value="$PROJECT_DIR$/SupervisedGAT.py" />
       </list>
     </option>
   </component>
@@ -221,7 +262,7 @@
     <detection-done>true</detection-done>
     <sorting>DEFINITION_ORDER</sorting>
   </component>
-  <component name="ProjectFrameBounds" extendedState="6">
+  <component name="ProjectFrameBounds" extendedState="7">
     <option name="x" value="85" />
     <option name="y" value="25" />
     <option name="width" value="1750" />
@@ -306,7 +347,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python.LearningProcess">
+  <component name="RunManager" selected="Python.SupervisedGAT">
     <configuration name="LearningProcess" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="PartIIProject" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -426,11 +467,11 @@
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.LearningProcess" />
-        <item itemvalue="Python.LinearRegression" />
         <item itemvalue="Python.SupervisedGAT" />
-        <item itemvalue="Python.Tools" />
+        <item itemvalue="Python.LearningProcess" />
         <item itemvalue="Python.ToolsStructural" />
+        <item itemvalue="Python.LinearRegression" />
+        <item itemvalue="Python.Tools" />
       </list>
     </recent_temporary>
   </component>
@@ -449,13 +490,14 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="-7" y="-7" width="1550" height="838" extended-state="6" />
+    <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.18389262" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.18657719" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
-      <window_info anchor="bottom" id="Run" order="2" weight="0.34135976" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.30311614" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.39943343" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -502,24 +544,24 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/AttentionHead.py">
+    <entry file="file://$PROJECT_DIR$/LinearRegression.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="553">
-          <caret line="38" column="8" selection-start-line="38" selection-start-column="8" selection-end-line="38" selection-end-column="8" />
+        <state relative-caret-position="375">
+          <caret line="93" selection-start-line="93" selection-end-line="93" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Tools.py">
+    <entry file="file://$PROJECT_DIR$/AttentionHead.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="621">
-          <caret line="85" column="50" selection-start-line="85" selection-start-column="50" selection-end-line="85" selection-end-column="50" />
+        <state relative-caret-position="657">
+          <caret line="41" selection-start-line="41" selection-end-line="41" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/MainGAT.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="176">
-          <caret line="69" column="103" selection-start-line="69" selection-start-column="103" selection-end-line="69" selection-end-column="103" />
+        <state relative-caret-position="1360">
+          <caret line="86" column="48" selection-start-line="86" selection-start-column="48" selection-end-line="86" selection-end-column="48" />
           <folding>
             <element signature="e#0#18#0" expanded="true" />
           </folding>
@@ -533,42 +575,49 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/SupervisedGAT.py">
+    <entry file="file://$PROJECT_DIR$/ToolsStructural.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="236">
-          <caret line="232" column="64" selection-start-line="232" selection-start-column="58" selection-end-line="232" selection-end-column="64" />
+        <state relative-caret-position="317">
+          <caret line="111" column="70" selection-start-line="111" selection-start-column="70" selection-end-line="111" selection-end-column="70" />
           <folding>
-            <element signature="e#0#23#0" expanded="true" />
-            <marker date="1544807562904" expanded="true" signature="1638:1954" ph="..." />
-            <marker date="1544807562904" expanded="true" signature="1993:1998" ph="..." />
-            <marker date="1544807562904" expanded="true" signature="11437:11439" ph="..." />
-            <marker date="1544807562904" expanded="true" signature="11438:11439" ph="..." />
+            <marker date="1544885488303" expanded="true" signature="5697:5698" ph="..." />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/LearningProcess.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="261">
-          <caret line="55" column="64" selection-start-line="55" selection-start-column="64" selection-end-line="55" selection-end-column="64" />
+        <state relative-caret-position="274">
+          <caret line="58" column="65" selection-start-line="58" selection-start-column="65" selection-end-line="58" selection-end-column="65" />
           <folding>
             <element signature="e#0#9#0" expanded="true" />
-            <marker date="1544808917135" expanded="true" signature="364:368" ph="..." />
+            <marker date="1544877649988" expanded="true" signature="364:368" ph="..." />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/ToolsStructural.py">
+    <entry file="file://$PROJECT_DIR$/Tools.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="74">
-          <caret line="143" column="41" selection-start-line="143" selection-start-column="41" selection-end-line="143" selection-end-column="41" />
+        <state relative-caret-position="17">
+          <caret line="44" column="8" selection-start-line="44" selection-start-column="8" selection-end-line="44" selection-end-column="8" />
+          <folding>
+            <marker date="1544890691261" expanded="true" signature="637:641" ph="..." />
+            <marker date="1544890691261" expanded="true" signature="1076:1081" ph="..." />
+          </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/LinearRegression.py">
+    <entry file="file://$PROJECT_DIR$/SupervisedGAT.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="519">
-          <caret line="93" selection-start-line="93" selection-end-line="93" />
+        <state relative-caret-position="3621">
+          <caret line="239" column="61" selection-start-line="239" selection-start-column="61" selection-end-line="239" selection-end-column="61" />
+          <folding>
+            <element signature="e#0#23#0" expanded="true" />
+            <marker date="1544892915192" expanded="true" signature="1620:1936" ph="..." />
+            <marker date="1544892915192" expanded="true" signature="1975:1980" ph="..." />
+            <marker date="1544892915192" expanded="true" signature="11671:11673" ph="..." />
+            <marker date="1544892915192" expanded="true" signature="11672:11673" ph="..." />
+          </folding>
         </state>
       </provider>
     </entry>

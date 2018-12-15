@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-from MainGAT import MainGAT
+from MainGAT import *
 from ToolsFunctional import *
 from ToolsStructural import *
 
@@ -16,7 +16,7 @@ if not os.path.exists(gat_model_stats):
 def reload_GAT_model(model_GAT_choice, sess, saver):
     # Checkpoint file for the training of the GAT model
     current_chkpt_dir = os.path.join(checkpts_dir, str(model_GAT_choice))
-    model_file = os.path.join(current_chkpt_dir, 'GAT_%s' % model_GAT_choice)
+    model_file = os.path.join(current_chkpt_dir, 'trained_model')
     if not os.path.exists(current_chkpt_dir):
         os.makedirs(current_chkpt_dir)
 
@@ -54,7 +54,6 @@ def create_GAT_model(model_GAT_choice):
     current_chkpt_dir = os.path.join(checkpts_dir, str(model_GAT_choice))
     if not os.path.exists(current_chkpt_dir):
         os.makedirs(current_chkpt_dir)
-    model_file = os.path.join(current_chkpt_dir, 'GAT_%s' % model_GAT_choice)
 
     # training hyper-parameters
     batch_sz = 1  # batch training size; currently ONLY ONE example per training step: TO BE EXTENDED!!
@@ -65,6 +64,8 @@ def create_GAT_model(model_GAT_choice):
     n_heads = model_GAT_choice.n_heads  # number of attention heads on each layer
     residual = False
     nonlinearity = tf.nn.elu
+    aggregator = model_GAT_choice.aggregator
+    include_weights = model_GAT_choice.include_weights
 
     print('Name of the current GAT model is %s' % model_GAT_choice)
     print('Dataset: ' + model_GAT_choice.dataset_type + ' HCP graphs')
@@ -83,8 +84,8 @@ def create_GAT_model(model_GAT_choice):
     pers_traits = ['NEO.NEOFAC_' + trait for trait in model_GAT_choice.pers_traits]
 
     # data for adjancency matrices, node feature vectors and personality scores for each study patient
-    load_data = load_struct_data if model_GAT_choice.dataset_type == 'structural' else load_funct_data
-    adj_matrices, graphs_features, score_train, score_test, score_val = load_data()
+    load_data = load_struct_data if model_GAT_choice.dataset_type == 'struct' else load_funct_data
+    adj_matrices, graphs_features, score_train, score_test, score_val = load_data(model_GAT_choice.edge_w_limit)
 
     # used in order to implement MASKED ATTENTION by discardining non-neighbours out of nhood hops
     biases = adj_to_bias(adj_matrices, [graph.shape[0] for graph in adj_matrices], nhood=1)
@@ -113,6 +114,8 @@ def create_GAT_model(model_GAT_choice):
                                      n_heads=n_heads,
                                      target_score_type=outGAT_sz_target,
                                      train_flag=is_train,
+                                     aggregator=aggregator,
+                                     include_weights=include_weights,
                                      residual=residual,
                                      activation=nonlinearity,
                                      attn_drop=attn_drop,
@@ -191,7 +194,9 @@ def create_GAT_model(model_GAT_choice):
                 if epoch % CHECKPT_PERIOD == 0:
                     save_path = saver.save(sess, checkpt_file, global_step=epoch)
                     print("Training progress after %d epochs saved in path: %s" % (epoch, save_path))
+                if abs(train_loss_avg / tr_size - val_loss_avg / vl_size) < 1.0: break
 
+            model_file = os.path.join(current_chkpt_dir, 'trained_model')
             if not tf.train.checkpoint_exists(model_file):
                 save_path = saver.save(sess, model_file)
                 print("Fully trained model saved in path: %s" % save_path)
@@ -216,6 +221,7 @@ def create_GAT_model(model_GAT_choice):
                                                 attn_drop: 0.0,
                                                 ffd_drop: 0.0})
                 ts_loss += loss_value_ts
+
                 ts_step += 1
 
             print('Test loss:', ts_loss / ts_size)
@@ -224,12 +230,21 @@ def create_GAT_model(model_GAT_choice):
 
 
 if __name__ == "__main__":
-    hid_units = [64, 32, 16]
-    n_heads = [4, 4, 6]
-    model_GAT_config = GAT_hyperparam_config(hid_units=hid_units,
-                                             n_heads=n_heads,
-                                             dataset_type='structural',
-                                             nb_epochs=1500,
-                                             edge_w_limit=200000)
+    hid_units = [64, 32]
+    n_heads = [2, 2]
+    edge_w_limits = [80000, 200000, 4000000]
+    aggregators = [concat_feature_aggregator, average_feature_aggregator]
+    include_weights = [False, True]
+    for ew_limit, aggr, iw in product(edge_w_limits, aggregators, include_weights):
+        model_GAT_config = GAT_hyperparam_config(hid_units=hid_units,
+                                                 n_heads=n_heads,
+                                                 nb_epochs=1500,
+                                                 edge_w_limit=ew_limit,
+                                                 aggregator=aggr,
+                                                 include_weights=iw,
+                                                 pers_traits=None,
+                                                 dataset_type='struct',
+                                                 lr=0.0001,
+                                                 l2_coef=0.0005)
 
-    create_GAT_model(model_GAT_config)
+        create_GAT_model(model_GAT_config)

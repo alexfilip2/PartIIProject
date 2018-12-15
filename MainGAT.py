@@ -14,9 +14,26 @@ dense = tf.layers.dense
 # adj_mat - adjacency matrix with EDGE WEIGHTS
 # bias_mat - adjacency matrix with bias edge weights for MASKED ATTENTION (discard non-neighbour feat.vecs.)
 # target_score_type - choose the output space of the GAT model to be all the NEO scores or just a particular one
+
+def average_feature_aggregator(model_GAT_output, target_score_type):
+    # sum all the node features
+    logits = tf.reduce_mean(model_GAT_output, axis=-1)  # shape of this is [[x_1,x_2,x_3,...,x_hid_units[-1]]]
+    # fed them into a MLP with separate weights for each personality score
+    output = tf.layers.dense(logits, units=target_score_type, use_bias=True)
+    return output
+
+
+def concat_feature_aggregator(model_GAT_output, target_score_type):
+    # concatenate all the node features
+    logits = tf.reshape(model_GAT_output, [1, -1])  # shape of this is [[x_1,x_2,...,x_(n_nodes*hid_units[-1])]
+    output = tf.layers.dense(logits, units=target_score_type, use_bias=True)
+    return output
+
+
 class MainGAT(BaseGAT):
-    def inference(in_feat_vects, train_flag, attn_drop, ffd_drop, adj_mat,
-                  bias_mat, hid_units, n_heads, activation=tf.nn.elu, residual=False, target_score_type=5):
+    def inference(in_feat_vects, adj_mat, bias_mat, hid_units, n_heads,
+                  train_flag, attn_drop, ffd_drop, activation=tf.nn.elu, residual=False,
+                  include_weights=False, aggregator=concat_feature_aggregator, target_score_type=5):
         attns = []
         # for the first layer we provide the inputs directly
         for _ in range(n_heads[0]):
@@ -25,6 +42,7 @@ class MainGAT(BaseGAT):
                                               adj_mat=adj_mat,
                                               bias_mat=bias_mat,
                                               activation=activation,
+                                              include_weights=include_weights,
                                               input_drop=ffd_drop,
                                               coefficient_drop=attn_drop,
                                               residual=False))
@@ -42,6 +60,7 @@ class MainGAT(BaseGAT):
                                                   adj_mat=adj_mat,
                                                   bias_mat=bias_mat,
                                                   activation=activation,
+                                                  include_weights=include_weights,
                                                   input_drop=ffd_drop,
                                                   coefficient_drop=attn_drop,
                                                   residual=residual))
@@ -58,17 +77,14 @@ class MainGAT(BaseGAT):
                                             adj_mat=adj_mat,
                                             bias_mat=bias_mat,
                                             activation=lambda x: x,
+                                            include_weights=include_weights,
                                             input_drop=ffd_drop,
                                             coefficient_drop=attn_drop,
                                             residual=False))
 
         # average the outputs of the output attention heads for the final prediction (concatenation is not possible)
-        logits = tf.add_n(out) / n_heads[-1]
-        # feed the output into a MLP in order to separate the weights for individual paeronality traits
-        # aggregate the node features by averaging them
-        # output = tf.reduce_mean(logits, axis=1)
-        output = tf.layers.dense(tf.reduce_mean(logits, axis=1), units=target_score_type, use_bias=True)
-        # print(tf.reduce_mean(logits, axis=1).shape) is in the format [[x_1,x_2,x_3,...,x_hid_units[-1]]]
-
+        model_GAT_output = tf.add_n(out) / n_heads[-1]
+        # aggregate all the output node features
+        output = aggregator(model_GAT_output=model_GAT_output, target_score_type=target_score_type)
         print('Shape of the embedding output of the neural network for an inpiut graph is ' + str(output.shape))
         return output

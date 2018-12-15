@@ -86,6 +86,12 @@ def check_symmetric(a, tol=1e-8):
     return np.allclose(a, a.T, atol=tol)
 
 
+def norm_matrix(mat):
+    row_sums = np.array(mat).sum(axis=1)
+    new_matrix = np.array(mat) / row_sums[:, np.newaxis]
+    return[[round(a,2) for a in row] for row in new_matrix.tolist()]
+
+
 def get_filtered_struct_adjs(limit=sys.float_info.max):
     # os.walk includes as the first item the parent directory itself then the rest of sub-directories
     subjects_subdirs = [os.path.join(dir_struct_mat_HCP, subdir) for subdir in next(os.walk(dir_struct_mat_HCP))[1]]
@@ -112,12 +118,12 @@ def get_filtered_struct_adjs(limit=sys.float_info.max):
             if not check_symmetric(sym_adj): print("Making this adjancency matrix symmetric failed", file=stderr)
             # normalize the rows of the adjacency matrix
 
-            adj[subj_id.split('_')[0]] = sym_adj.tolist()
+            adj[subj_id.split('_')[0]] =  sym_adj.tolist()
 
     return adj
 
 
-def load_struct_data(trait_choice=None, ew_limit=500000):
+def load_struct_data(ew_limit,trait_choice=None):
     dict_adj = get_filtered_struct_adjs(ew_limit)
     dict_node_feat = get_struct_node_feat()
     dict_tiv_score = get_NEO5_scores(trait_choice)
@@ -154,4 +160,6 @@ def load_regress_data(trait_choice):
 
 if __name__ == "__main__":
     adjs = get_filtered_struct_adjs()
-    print(np.abs(np.array(adjs['100206'])).sum(axis=1))
+    norm_mat = norm_matrix(adjs['100206'])
+    # print(norm_mat)
+    print(np.array(norm_mat))

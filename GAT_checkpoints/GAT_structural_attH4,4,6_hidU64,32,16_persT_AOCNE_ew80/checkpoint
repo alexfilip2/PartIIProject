@@ -1,6 +1,0 @@
-model_checkpoint_path: "C:\\Users\\user\\PycharmProjects\\PartIIProject\\..\\PartIIProject\\GAT_checkpoints\\GAT_structural_attH4,4,6_hidU64,32,16_persT_AOCNE_ew80\\GAT_GAT_structural_attH4,4,6_hidU64,32,16_persT_AOCNE_ew80"
-all_model_checkpoint_paths: "C:\\Users\\user\\PycharmProjects\\PartIIProject\\..\\PartIIProject\\GAT_checkpoints\\GAT_structural_attH4,4,6_hidU64,32,16_persT_AOCNE_ew80\\checkpoint-1425"
-all_model_checkpoint_paths: "C:\\Users\\user\\PycharmProjects\\PartIIProject\\..\\PartIIProject\\GAT_checkpoints\\GAT_structural_attH4,4,6_hidU64,32,16_persT_AOCNE_ew80\\checkpoint-1450"
-all_model_checkpoint_paths: "C:\\Users\\user\\PycharmProjects\\PartIIProject\\..\\PartIIProject\\GAT_checkpoints\\GAT_structural_attH4,4,6_hidU64,32,16_persT_AOCNE_ew80\\checkpoint-1475"
-all_model_checkpoint_paths: "C:\\Users\\user\\PycharmProjects\\PartIIProject\\..\\PartIIProject\\GAT_checkpoints\\GAT_structural_attH4,4,6_hidU64,32,16_persT_AOCNE_ew80\\checkpoint-1500"
-all_model_checkpoint_paths: "C:\\Users\\user\\PycharmProjects\\PartIIProject\\..\\PartIIProject\\GAT_checkpoints\\GAT_structural_attH4,4,6_hidU64,32,16_persT_AOCNE_ew80\\GAT_GAT_structural_attH4,4,6_hidU64,32,16_persT_AOCNE_ew80"

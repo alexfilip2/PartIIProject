@@ -13,8 +13,8 @@ with the edge weight
 '''
 
 
-def attn_head(input_feat_seq, out_size, adj_mat, bias_mat, activation, input_drop=0.0, coefficient_drop=0.0,
-              residual=False):
+def attn_head(input_feat_seq, out_size, adj_mat, bias_mat,
+              activation, include_weights=False, input_drop=0.0, coefficient_drop=0.0, residual=False):
     # name_scope is a context manager which adds the operations to the computation graph
     with tf.name_scope('my_attn'):
         # apply dropout to the input units of the layer
@@ -35,8 +35,11 @@ def attn_head(input_feat_seq, out_size, adj_mat, bias_mat, activation, input_dro
 
         # logits - the matrix of the e_ij attention coefficients e_ij is different from e_ji between all the nodes
         logits = f_1 + tf.transpose(f_2, [0, 2, 1])
+
         # include the edge weights w_ij of the graph to the e_ij coefficients
-        logits = tf.multiply(logits, adj_mat)
+        if include_weights:
+            logits = tf.multiply(logits, adj_mat)
+
         # compute the final coefficients alpha_ij (in the paper) by applying ReLu
         alpha_coefs = tf.nn.softmax(tf.nn.leaky_relu(logits) + bias_mat)
 

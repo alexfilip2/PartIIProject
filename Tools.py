@@ -6,6 +6,8 @@ import pandas as pd
 import random
 import operator
 import sys
+from sklearn.preprocessing import normalize
+from itertools import product
 
 
 # class embodying the hyperparameter choice of a GAT model
@@ -13,15 +15,19 @@ class GAT_hyperparam_config(object):
     def __init__(self,
                  hid_units,
                  n_heads,
-                 nb_epochs=1000,
+                 nb_epochs,
+                 edge_w_limit,
+                 aggregator,
+                 include_weights,
                  pers_traits=None,
                  dataset_type='struct',
-                 edge_w_limit=50000,
                  lr=0.0001,
                  l2_coef=0.0005):
         self.nb_epochs = nb_epochs
         self.n_heads = n_heads
         self.hid_units = hid_units
+        self.aggregator = aggregator
+        self.include_weights = include_weights
         self.pers_traits = pers_traits if pers_traits is not None else ['A', 'O', 'C', 'N', 'E']
         self.dataset_type = dataset_type
         self.edge_w_limit = edge_w_limit
@@ -29,11 +35,13 @@ class GAT_hyperparam_config(object):
         self.l2_coef = l2_coef
 
     def __str__(self):
-        name = 'GAT_%s_attH%s_hidU%s_persT_%s_ew%d' % (self.dataset_type,
-                                                       ",".join(map(str, self.n_heads)),
-                                                       ",".join(map(str, self.hid_units)),
-                                                       "".join(map(str, self.pers_traits)),
-                                                       int(self.edge_w_limit / 1000))
+        name = 'GAT_%s_AH%s_HU%s_PT_%s_AGR_%s_IW_%r_EW%d' % (self.dataset_type,
+                                                             ",".join(map(str, self.n_heads)),
+                                                             ",".join(map(str, self.hid_units)),
+                                                             "".join(map(str, self.pers_traits)),
+                                                             self.aggregator.__name__.split('_')[0],
+                                                             self.include_weights,
+                                                             int(self.edge_w_limit / 1000))
         return name
 
 

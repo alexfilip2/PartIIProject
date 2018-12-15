@@ -39,7 +39,10 @@ def edge_weight_distrib(limit):
         edge_weights = np.array(list(get_filtered_struct_adjs().values())).flatten()
         np.save('temp_file', edge_weights)
 
+
+
     edge_weights = list(map(int, edge_weights))
+    print(max(edge_weights))
 
     filter_weights = [ew for ew in edge_weights if ew < limit]
 
@@ -53,6 +56,7 @@ if __name__ == "__main__":
                                              n_heads=n_heads,
                                              dataset_type='structural',
                                              nb_epochs=1500,
-                                             edge_w_limit=200000)
+                                             edge_w_limit=3999999)
 
     plt_learn_proc(model_GAT_config)
+
