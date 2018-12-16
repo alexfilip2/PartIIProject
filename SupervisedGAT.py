@@ -230,8 +230,8 @@ def create_GAT_model(model_GAT_choice):
 
 
 if __name__ == "__main__":
-    hid_units = [64, 32]
-    n_heads = [2, 2]
+    hid_units = [64, 32, 16]
+    n_heads = [4, 4, 6]
     edge_w_limits = [80000, 200000, 4000000]
     aggregators = [concat_feature_aggregator, average_feature_aggregator]
     include_weights = [False, True]

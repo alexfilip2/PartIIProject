@@ -2,8 +2,10 @@ import os
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
-from ToolsStructural import get_filtered_struct_adjs
+from ToolsStructural import *
 from SupervisedGAT import GAT_hyperparam_config, gat_model_stats
+from MainGAT import *
+
 
 
 def plt_learn_proc(model_GAT_config):
@@ -52,11 +54,19 @@ def edge_weight_distrib(limit):
 if __name__ == "__main__":
     hid_units = [64, 32, 16]
     n_heads = [4, 4, 6]
-    model_GAT_config = GAT_hyperparam_config(hid_units=hid_units,
-                                             n_heads=n_heads,
-                                             dataset_type='structural',
-                                             nb_epochs=1500,
-                                             edge_w_limit=3999999)
-
-    plt_learn_proc(model_GAT_config)
+    edge_w_limits = [80000, 200000, 4000000]
+    aggregators = [concat_feature_aggregator, average_feature_aggregator]
+    include_weights = [False, True]
+    for ew_limit, aggr, iw in product(edge_w_limits, aggregators, include_weights):
+        model_GAT_config = GAT_hyperparam_config(hid_units=hid_units,
+                                                 n_heads=n_heads,
+                                                 nb_epochs=1500,
+                                                 edge_w_limit=ew_limit,
+                                                 aggregator=aggr,
+                                                 include_weights=iw,
+                                                 pers_traits=None,
+                                                 dataset_type='struct',
+                                                 lr=0.0001,
+                                                 l2_coef=0.0005)
+        plt_learn_proc(model_GAT_config)
 
