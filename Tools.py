@@ -8,6 +8,7 @@ import operator
 import sys
 from sklearn.preprocessing import normalize
 from itertools import product
+import math
 
 
 # class embodying the hyperparameter choice of a GAT model

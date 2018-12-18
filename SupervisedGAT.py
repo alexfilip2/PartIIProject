@@ -85,7 +85,7 @@ def create_GAT_model(model_GAT_choice):
 
     # data for adjancency matrices, node feature vectors and personality scores for each study patient
     load_data = load_struct_data if model_GAT_choice.dataset_type == 'struct' else load_funct_data
-    adj_matrices, graphs_features, score_train, score_test, score_val = load_data(model_GAT_choice.edge_w_limit)
+    adj_matrices, graphs_features, score_train, score_test, score_val = load_data(trait_choice=pers_traits)
 
     # used in order to implement MASKED ATTENTION by discardining non-neighbours out of nhood hops
     biases = adj_to_bias(adj_matrices, [graph.shape[0] for graph in adj_matrices], nhood=1)
@@ -242,7 +242,7 @@ if __name__ == "__main__":
                                                  edge_w_limit=ew_limit,
                                                  aggregator=aggr,
                                                  include_weights=iw,
-                                                 pers_traits=None,
+                                                 pers_traits=['A'],
                                                  dataset_type='struct',
                                                  lr=0.0001,
                                                  l2_coef=0.0005)

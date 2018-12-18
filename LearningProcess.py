@@ -7,7 +7,6 @@ from SupervisedGAT import GAT_hyperparam_config, gat_model_stats
 from MainGAT import *
 
 
-
 def plt_learn_proc(model_GAT_config):
     train_losses_file = os.path.join(gat_model_stats, 'train_losses' + str(model_GAT_config))
     tr_loss, vl_loss = [], []
@@ -17,8 +16,6 @@ def plt_learn_proc(model_GAT_config):
             tr_loss.append(float(line.split()[3]))
             vl_loss.append(float(line.split()[8]))
     # Create data
-    print(index)
-    print(len(tr_loss))
     df = pd.DataFrame({'x': list(range(1, index + 1)), 'y': np.array(tr_loss), 'y1': np.array(vl_loss)})
 
     # plot with matplotlib
@@ -28,20 +25,24 @@ def plt_learn_proc(model_GAT_config):
     plt.plot('x', 'y', data=df, color='green', label='training loss')
     plt.plot('x', 'y1', data=df, color='red', label='validation loss')
     plt.xlabel('epoch')
+    plt.title(str(model_GAT_config))
     plt.legend(loc='upper right')
     plt.savefig('loss_woWeights.png')
     plt.show()
 
 
-def edge_weight_distrib(limit):
-    if os.path.exists('temp_file.npy'):
-        edge_weights = np.load('temp_file.npy')
-        print('load file')
+def node_degree_distrib(limit):
+    ew_file = os.path.join(os.getcwd(), os.pardir, 'PartIIProject', 'flatten_edge_weigths.npy')
+    if os.path.exists(ew_file):
+        print('Loading the serialized edge weights data...')
+        edge_weights = np.load(ew_file)
+        print('Edge weights data was loaded.')
     else:
+        print('Creating and serializing edge weights data...')
         edge_weights = np.array(list(get_filtered_struct_adjs().values())).flatten()
-        np.save('temp_file', edge_weights)
 
-
+        np.save(ew_file, edge_weights)
+        print('Edge weights data was persisted on disk.')
 
     edge_weights = list(map(int, edge_weights))
     print(max(edge_weights))
@@ -51,12 +52,51 @@ def edge_weight_distrib(limit):
     print('The ratio of elements under the limit %d is %f' % (limit, len(filter_weights) / len(edge_weights)))
 
 
+def plot_hist_ew(only_conf_interv=True, log_scale=10):
+    ew_file = os.path.join(os.getcwd(), os.pardir, 'PartIIProject', 'flatten_edge_weigths.npy')
+    if os.path.exists(ew_file):
+        print('Loading the serialized edge weights data...')
+        edge_weights = np.load(ew_file)
+        print('Edge weights data was loaded.')
+    else:
+        print('Creating and serializing edge weights data...')
+        adjs = list(get_filtered_struct_adjs().values())
+        edge_weights = [np.array(mat)[np.triu_indices(len(mat))] for mat in adjs]
+        edge_weights = np.array(edge_weights).flatten()
+        np.save(ew_file, edge_weights)
+        print('Edge weights data was persisted on disk.')
+    # log-scale values of the weights, excluding the 0 edges (self-edges still have weigth 0)
+    edge_weights = np.array([math.log(x, log_scale) for x in edge_weights if x != 0])
+
+    lower_conf = np.percentile(edge_weights, 5)
+    upper_conf = np.percentile(edge_weights, 95)
+    if only_conf_interv:
+        return lower_conf, upper_conf
+
+    # An "interface" to matplotlib.axes.Axes.hist() method
+    n, bins, patches = plt.hist(x=edge_weights, bins='auto', color='#0504aa', alpha=0.7, rwidth=0.85)
+    for index, patch in enumerate(patches):
+        patch.set_facecolor('#0504aa' if lower_conf <= bins[index] <= upper_conf else 'black')
+
+    plt.grid(axis='y', alpha=0.75)
+    plt.xlabel('Edge weight value')
+    plt.ylabel('Frequency')
+    plt.title('Edge Weights Histogram')
+    plt.text(23, 45, r'$\mu=15, b=3$')
+    maxfreq = n.max()
+    # Set a clean upper y-axis limit.
+    plt.ylim(top=np.ceil(maxfreq / 10) * 10 if maxfreq % 10 else maxfreq + 10)
+    plt.show()
+
+    return lower_conf, upper_conf
+
+
 if __name__ == "__main__":
     hid_units = [64, 32, 16]
     n_heads = [4, 4, 6]
     edge_w_limits = [80000, 200000, 4000000]
     aggregators = [concat_feature_aggregator, average_feature_aggregator]
-    include_weights = [False, True]
+    include_weights = [True]
     for ew_limit, aggr, iw in product(edge_w_limits, aggregators, include_weights):
         model_GAT_config = GAT_hyperparam_config(hid_units=hid_units,
                                                  n_heads=n_heads,
@@ -64,9 +104,10 @@ if __name__ == "__main__":
                                                  edge_w_limit=ew_limit,
                                                  aggregator=aggr,
                                                  include_weights=iw,
-                                                 pers_traits=None,
                                                  dataset_type='struct',
                                                  lr=0.0001,
                                                  l2_coef=0.0005)
         plt_learn_proc(model_GAT_config)
+
+    plot_hist_ew(only_conf_interv=False)
 

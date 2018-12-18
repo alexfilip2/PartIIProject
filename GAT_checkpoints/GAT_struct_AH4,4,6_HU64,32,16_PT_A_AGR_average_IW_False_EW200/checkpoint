@@ -1,0 +1,6 @@
+model_checkpoint_path: "C:\\Users\\user\\PycharmProjects\\PartIIProject\\..\\PartIIProject\\GAT_checkpoints\\GAT_struct_AH4,4,6_HU64,32,16_PT_A_AGR_average_IW_False_EW200\\trained_model"
+all_model_checkpoint_paths: "C:\\Users\\user\\PycharmProjects\\PartIIProject\\..\\PartIIProject\\GAT_checkpoints\\GAT_struct_AH4,4,6_HU64,32,16_PT_A_AGR_average_IW_False_EW200\\checkpoint-250"
+all_model_checkpoint_paths: "C:\\Users\\user\\PycharmProjects\\PartIIProject\\..\\PartIIProject\\GAT_checkpoints\\GAT_struct_AH4,4,6_HU64,32,16_PT_A_AGR_average_IW_False_EW200\\checkpoint-275"
+all_model_checkpoint_paths: "C:\\Users\\user\\PycharmProjects\\PartIIProject\\..\\PartIIProject\\GAT_checkpoints\\GAT_struct_AH4,4,6_HU64,32,16_PT_A_AGR_average_IW_False_EW200\\checkpoint-300"
+all_model_checkpoint_paths: "C:\\Users\\user\\PycharmProjects\\PartIIProject\\..\\PartIIProject\\GAT_checkpoints\\GAT_struct_AH4,4,6_HU64,32,16_PT_A_AGR_average_IW_False_EW200\\checkpoint-325"
+all_model_checkpoint_paths: "C:\\Users\\user\\PycharmProjects\\PartIIProject\\..\\PartIIProject\\GAT_checkpoints\\GAT_struct_AH4,4,6_HU64,32,16_PT_A_AGR_average_IW_False_EW200\\trained_model"

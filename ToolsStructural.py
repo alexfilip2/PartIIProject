@@ -1,4 +1,5 @@
 from Tools import *
+from LearningProcess import *
 
 np.set_printoptions(threshold=np.nan)
 from sys import stderr
@@ -89,10 +90,15 @@ def check_symmetric(a, tol=1e-8):
 def norm_matrix(mat):
     row_sums = np.array(mat).sum(axis=1)
     new_matrix = np.array(mat) / row_sums[:, np.newaxis]
-    return[[round(a,2) for a in row] for row in new_matrix.tolist()]
+    return [[round(a, 2) for a in row] for row in new_matrix.tolist()]
 
 
-def get_filtered_struct_adjs(limit=sys.float_info.max):
+def interval_filter(x):
+    lower, upper = plot_hist_ew(only_conf_interv=False)
+    return lower <= x <= upper
+
+
+def get_filtered_struct_adjs(edge_filter=None):
     # os.walk includes as the first item the parent directory itself then the rest of sub-directories
     subjects_subdirs = [os.path.join(dir_struct_mat_HCP, subdir) for subdir in next(os.walk(dir_struct_mat_HCP))[1]]
     # the brain region ID's of all nodes that have node features
@@ -109,7 +115,7 @@ def get_filtered_struct_adjs(limit=sys.float_info.max):
                     for col_index, edge_weight in enumerate(line.split(), start=1):
                         if col_index not in filtered_nodes: continue
                         adj_row.append(
-                            float(edge_weight) if float(edge_weight) < limit else 0.0)
+                            float(edge_weight) if interval_filter is None or interval_filter(edge_weight) else 0.0)
                     graph.append(adj_row)
             # the adjancency matrices are upper diagonal, we make them symmetric
             i_lower = np.tril_indices(len(graph), -1)
@@ -118,13 +124,13 @@ def get_filtered_struct_adjs(limit=sys.float_info.max):
             if not check_symmetric(sym_adj): print("Making this adjancency matrix symmetric failed", file=stderr)
             # normalize the rows of the adjacency matrix
 
-            adj[subj_id.split('_')[0]] =  sym_adj.tolist()
+            adj[subj_id.split('_')[0]] = sym_adj.tolist()
 
     return adj
 
 
-def load_struct_data(ew_limit,trait_choice=None):
-    dict_adj = get_filtered_struct_adjs(ew_limit)
+def load_struct_data(trait_choice=None):
+    dict_adj = get_filtered_struct_adjs(interval_filter)
     dict_node_feat = get_struct_node_feat()
     dict_tiv_score = get_NEO5_scores(trait_choice)
 
