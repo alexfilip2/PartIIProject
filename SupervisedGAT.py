@@ -1,5 +1,4 @@
 import tensorflow as tf
-
 from MainGAT import *
 from ToolsFunctional import *
 from ToolsStructural import *
@@ -8,9 +7,6 @@ CHECKPT_PERIOD = 25
 checkpts_dir = os.path.join(os.getcwd(), os.pardir, 'PartIIProject', 'GAT_checkpoints')
 if not os.path.exists(checkpts_dir):
     os.makedirs(checkpts_dir)
-gat_model_stats = os.path.join(os.getcwd(), os.pardir, 'PartIIProject', 'learning_process')
-if not os.path.exists(gat_model_stats):
-    os.makedirs(gat_model_stats)
 
 
 def reload_GAT_model(model_GAT_choice, sess, saver):
@@ -41,10 +37,8 @@ def reload_GAT_model(model_GAT_choice, sess, saver):
 
 def print_GAT_learn_loss(model_GAT_choice, tr_avg_loss, vl_avg_loss):
     train_losses_file = open(os.path.join(gat_model_stats, 'train_losses' + str(model_GAT_choice)), 'a')
-    print(
-        'Training: loss = %.5f | Val: loss = %.5f' % (tr_avg_loss, vl_avg_loss))
-    print(
-        'Training: loss = %.5f | Val: loss = %.5f' % (tr_avg_loss, vl_avg_loss), file=train_losses_file)
+    print('%.5f %.5f' % (tr_avg_loss, vl_avg_loss), file=train_losses_file)
+    print('Training: loss = %.5f | Val: loss = %.5f' % (tr_avg_loss, vl_avg_loss))
 
 
 def create_GAT_model(model_GAT_choice):
@@ -80,12 +74,9 @@ def create_GAT_model(model_GAT_choice):
     print('nonlinearity: ' + str(nonlinearity))
     print('model: ' + str(model))
 
-    # personality traits scores: 'NEO.NEOFAC_A', 'NEO.NEOFAC_O', 'NEO.NEOFAC_C', 'NEO.NEOFAC_N', 'NEO.NEOFAC_E'
-    pers_traits = ['NEO.NEOFAC_' + trait for trait in model_GAT_choice.pers_traits]
-
     # data for adjancency matrices, node feature vectors and personality scores for each study patient
     load_data = load_struct_data if model_GAT_choice.dataset_type == 'struct' else load_funct_data
-    adj_matrices, graphs_features, score_train, score_test, score_val = load_data(trait_choice=pers_traits)
+    adj_matrices, graphs_features, score_train, score_test, score_val = load_data(model_GAT_choice)
 
     # used in order to implement MASKED ATTENTION by discardining non-neighbours out of nhood hops
     biases = adj_to_bias(adj_matrices, [graph.shape[0] for graph in adj_matrices], nhood=1)
@@ -94,7 +85,7 @@ def create_GAT_model(model_GAT_choice):
     # the initial length F of each node feature vector: for every graph, node feat.vecs. have the same length
     ft_size = graphs_features.shape[-1]
     # how many of the big-five personality traits the model is targeting at once
-    outGAT_sz_target = len(pers_traits)
+    outGAT_sz_target = 5 if model_GAT_choice.pers_traits is None else len(model_GAT_choice.pers_traits)
 
     # create a TensofFlow session, the context of evaluation for the Tensor objects
     with tf.Graph().as_default():
@@ -232,17 +223,15 @@ def create_GAT_model(model_GAT_choice):
 if __name__ == "__main__":
     hid_units = [64, 32, 16]
     n_heads = [4, 4, 6]
-    edge_w_limits = [80000, 200000, 4000000]
     aggregators = [concat_feature_aggregator, average_feature_aggregator]
-    include_weights = [False, True]
-    for ew_limit, aggr, iw in product(edge_w_limits, aggregators, include_weights):
+    include_weights = [True, False]
+    for aggr, iw in product(aggregators, include_weights):
         model_GAT_config = GAT_hyperparam_config(hid_units=hid_units,
                                                  n_heads=n_heads,
                                                  nb_epochs=1500,
-                                                 edge_w_limit=ew_limit,
                                                  aggregator=aggr,
                                                  include_weights=iw,
-                                                 pers_traits=['A'],
+                                                 filter='interval',
                                                  dataset_type='struct',
                                                  lr=0.0001,
                                                  l2_coef=0.0005)

@@ -1,12 +1,14 @@
 from Tools import *
-from LearningProcess import *
+import pickle as pkl
 
 np.set_printoptions(threshold=np.nan)
-from sys import stderr
 
 dir_root_structural_data = os.path.join(os.getcwd(), os.pardir, 'PartIIProject', 'structural_data')
 dir_struct_mat_HCP = os.path.join(dir_root_structural_data, 'PTN matrices HCP')
 structural_feats_excel = os.path.join(dir_root_structural_data, 'Features_all.xlsx')
+dir_proc_struct_data = os.path.join(dir_root_structural_data, 'processed_data')
+if not os.path.exists(dir_proc_struct_data):
+    os.makedirs(dir_proc_struct_data)
 
 
 # dictionary of node names-brain regions (with features attached) of structural graphs and their ID's among all nodes
@@ -31,6 +33,15 @@ def rescale_feats(min, max, x):
 
 
 def get_struct_node_feat():
+    node_feats_file = os.path.join(dir_proc_struct_data, 'node_feats.pkl')
+    if os.path.exists(node_feats_file):
+        print('Loading the serialized node features data...')
+        with open(node_feats_file, 'rb') as handle:
+            all_node_feats = pkl.load(handle)
+        print('Node features data was loaded.')
+        return all_node_feats
+
+    print('Creating and serializing node features data...')
     # DataFrame object containing the data of the 'Data' sheet in the Excel dataset
     df = pd.read_excel(structural_feats_excel, sheet_name='Data')
     # dictionary of string patient id : array of shape (nr_of_nodes, nr_of_features_per_node)
@@ -79,6 +90,10 @@ def get_struct_node_feat():
 
         all_node_feats[str(int(graph_data['Subjects']))] = current_graph_feats
 
+    with open(node_feats_file, 'wb') as handle:
+        pkl.dump(all_node_feats, handle, protocol=pkl.HIGHEST_PROTOCOL)
+    print('Node features data was persisted on disk.')
+
     return all_node_feats
 
 
@@ -93,12 +108,27 @@ def norm_matrix(mat):
     return [[round(a, 2) for a in row] for row in new_matrix.tolist()]
 
 
-def interval_filter(x):
-    lower, upper = plot_hist_ew(only_conf_interv=False)
-    return lower <= x <= upper
+def interval_filter(adj_arr):
+    lower, upper = pow(2.26376210410143, 10), pow(5.421369530125328, 10)
+    filtered_arr = np.empty(adj_arr.shape)
+    for g_id, g in enumerate(adj_arr):
+        for i in range(g.shape[0]):
+            for j in range(g.shape[1]):
+                filtered_arr[g_id][i][j] = g[i][j] if (lower <= g[i][j] <= upper) else 0.0
+
+    return filtered_arr
 
 
-def get_filtered_struct_adjs(edge_filter=None):
+def get_struct_adjs():
+    adjs_file = os.path.join(dir_proc_struct_data, 'adjs_matrices.pkl')
+    if os.path.exists(adjs_file):
+        print('Loading the serialized adjacency matrices data...')
+        with open(adjs_file, 'rb') as handle:
+            adj = pkl.load(handle)
+        print('Adjacency matrices data was loaded.')
+        return adj
+
+    print('Creating and serializing adjacency matrices data...')
     # os.walk includes as the first item the parent directory itself then the rest of sub-directories
     subjects_subdirs = [os.path.join(dir_struct_mat_HCP, subdir) for subdir in next(os.walk(dir_struct_mat_HCP))[1]]
     # the brain region ID's of all nodes that have node features
@@ -114,8 +144,7 @@ def get_filtered_struct_adjs(edge_filter=None):
                     adj_row = []
                     for col_index, edge_weight in enumerate(line.split(), start=1):
                         if col_index not in filtered_nodes: continue
-                        adj_row.append(
-                            float(edge_weight) if interval_filter is None or interval_filter(edge_weight) else 0.0)
+                        adj_row.append(float(edge_weight))
                     graph.append(adj_row)
             # the adjancency matrices are upper diagonal, we make them symmetric
             i_lower = np.tril_indices(len(graph), -1)
@@ -126,13 +155,21 @@ def get_filtered_struct_adjs(edge_filter=None):
 
             adj[subj_id.split('_')[0]] = sym_adj.tolist()
 
+    with open(adjs_file, 'wb') as handle:
+        pkl.dump(adj, handle, protocol=pkl.HIGHEST_PROTOCOL)
     return adj
 
 
-def load_struct_data(trait_choice=None):
-    dict_adj = get_filtered_struct_adjs(interval_filter)
+def load_struct_data(model_GAT_choice):
+    # personality traits scores: 'NEO.NEOFAC_A', 'NEO.NEOFAC_O', 'NEO.NEOFAC_C', 'NEO.NEOFAC_N', 'NEO.NEOFAC_E'
+    pers_traits = None
+    if model_GAT_choice.pers_traits is not None:
+        pers_traits = ['NEO.NEOFAC_' + trait for trait in model_GAT_choice.pers_traits]
+    filter = interval_filter if model_GAT_choice.filter == 'interval' else lambda x: x
+
+    dict_adj = get_struct_adjs()
     dict_node_feat = get_struct_node_feat()
-    dict_tiv_score = get_NEO5_scores(trait_choice)
+    dict_tiv_score = get_NEO5_scores(pers_traits)
 
     adj_matrices, graph_features, scores = [], [], []
     subjects = sorted(list(dict_adj.keys()))
@@ -145,7 +182,8 @@ def load_struct_data(trait_choice=None):
     data_sz = len(scores)
 
     score_train, score_val, score_test = np.split(np.array(scores), [int(data_sz * 0.8), int(data_sz * 0.9)])
-    return np.array(adj_matrices), np.array(graph_features), score_train, score_val, score_test
+
+    return filter(np.array(adj_matrices)), np.array(graph_features), score_train, score_val, score_test
 
 
 def mat_flatten(mat):
@@ -153,7 +191,7 @@ def mat_flatten(mat):
 
 
 def load_regress_data(trait_choice):
-    dict_adj = get_filtered_struct_adjs()
+    dict_adj = get_struct_adjs()
     dict_tiv_score = get_NEO5_scores(trait_choice)
     adj_matrices, scores = [], []
     for subj_id in sorted(list(dict_adj.keys())):
@@ -165,7 +203,7 @@ def load_regress_data(trait_choice):
 
 
 if __name__ == "__main__":
-    adjs = get_filtered_struct_adjs()
+    adjs = get_struct_adjs()
     norm_mat = norm_matrix(adjs['100206'])
     # print(norm_mat)
     print(np.array(norm_mat))

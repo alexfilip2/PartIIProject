@@ -1,10 +1,5 @@
-import os
 import matplotlib.pyplot as plt
-import pandas as pd
-import numpy as np
 from ToolsStructural import *
-from SupervisedGAT import GAT_hyperparam_config, gat_model_stats
-from MainGAT import *
 
 
 def plt_learn_proc(model_GAT_config):
@@ -13,21 +8,18 @@ def plt_learn_proc(model_GAT_config):
 
     with open(train_losses_file, 'r') as tr_loss_handle:
         for index, line in enumerate(tr_loss_handle, 1):
-            tr_loss.append(float(line.split()[3]))
-            vl_loss.append(float(line.split()[8]))
+            tr_loss.append(float(line.split()[0]))
+            vl_loss.append(float(line.split()[1]))
     # Create data
-    df = pd.DataFrame({'x': list(range(1, index + 1)), 'y': np.array(tr_loss), 'y1': np.array(vl_loss)})
+    df = pd.DataFrame({'epoch': list(range(1, index + 1)), 'train': np.array(tr_loss), 'val': np.array(vl_loss)})
 
-    # plot with matplotlib
-
-    # Just load seaborn and the chart looks better:
-
-    plt.plot('x', 'y', data=df, color='green', label='training loss')
-    plt.plot('x', 'y1', data=df, color='red', label='validation loss')
-    plt.xlabel('epoch')
+    plt.plot('epoch', 'train', data=df, color='green', label='training loss')
+    plt.plot('epoch', 'val', data=df, color='red', label='validation loss')
     plt.title(str(model_GAT_config))
+    plt.xlabel('epoch')
+    plt.ylabel('MSE loss')
     plt.legend(loc='upper right')
-    plt.savefig('loss_woWeights.png')
+    plt.savefig(os.path.join(gat_model_stats, 'loss_plot_' + str(model_GAT_config) + '.png'))
     plt.show()
 
 
@@ -39,7 +31,7 @@ def node_degree_distrib(limit):
         print('Edge weights data was loaded.')
     else:
         print('Creating and serializing edge weights data...')
-        edge_weights = np.array(list(get_filtered_struct_adjs().values())).flatten()
+        edge_weights = np.array(list(get_struct_adjs().values())).flatten()
 
         np.save(ew_file, edge_weights)
         print('Edge weights data was persisted on disk.')
@@ -60,7 +52,7 @@ def plot_hist_ew(only_conf_interv=True, log_scale=10):
         print('Edge weights data was loaded.')
     else:
         print('Creating and serializing edge weights data...')
-        adjs = list(get_filtered_struct_adjs().values())
+        adjs = list(get_struct_adjs().values())
         edge_weights = [np.array(mat)[np.triu_indices(len(mat))] for mat in adjs]
         edge_weights = np.array(edge_weights).flatten()
         np.save(ew_file, edge_weights)
@@ -92,6 +84,7 @@ def plot_hist_ew(only_conf_interv=True, log_scale=10):
 
 
 if __name__ == "__main__":
+    '''
     hid_units = [64, 32, 16]
     n_heads = [4, 4, 6]
     edge_w_limits = [80000, 200000, 4000000]
@@ -108,6 +101,5 @@ if __name__ == "__main__":
                                                  lr=0.0001,
                                                  l2_coef=0.0005)
         plt_learn_proc(model_GAT_config)
-
-    plot_hist_ew(only_conf_interv=False)
-
+    '''
+    print(plot_hist_ew(only_conf_interv=False))

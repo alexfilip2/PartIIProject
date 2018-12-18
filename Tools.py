@@ -9,6 +9,14 @@ import sys
 from sklearn.preprocessing import normalize
 from itertools import product
 import math
+from sys import stderr
+
+# Excel file containing per-subject personality scores
+pers_scores = os.path.join(os.getcwd(), os.pardir, 'PartIIProject', 'TIVscores', '1016_HCP_TIVscores.xlsx')
+# Output of the learning process losses directory
+gat_model_stats = os.path.join(os.getcwd(), os.pardir, 'PartIIProject', 'learning_process')
+if not os.path.exists(gat_model_stats):
+    os.makedirs(gat_model_stats)
 
 
 # class embodying the hyperparameter choice of a GAT model
@@ -17,9 +25,9 @@ class GAT_hyperparam_config(object):
                  hid_units,
                  n_heads,
                  nb_epochs,
-                 edge_w_limit,
                  aggregator,
                  include_weights,
+                 filter='interval',
                  pers_traits=None,
                  dataset_type='struct',
                  lr=0.0001,
@@ -28,26 +36,23 @@ class GAT_hyperparam_config(object):
         self.n_heads = n_heads
         self.hid_units = hid_units
         self.aggregator = aggregator
+        self.filter = filter
         self.include_weights = include_weights
         self.pers_traits = pers_traits if pers_traits is not None else ['A', 'O', 'C', 'N', 'E']
         self.dataset_type = dataset_type
-        self.edge_w_limit = edge_w_limit
         self.lr = lr
         self.l2_coef = l2_coef
 
     def __str__(self):
-        name = 'GAT_%s_AH%s_HU%s_PT_%s_AGR_%s_IW_%r_EW%d' % (self.dataset_type,
-                                                             ",".join(map(str, self.n_heads)),
-                                                             ",".join(map(str, self.hid_units)),
-                                                             "".join(map(str, self.pers_traits)),
-                                                             self.aggregator.__name__.split('_')[0],
-                                                             self.include_weights,
-                                                             int(self.edge_w_limit / 1000))
+        name = 'GAT_%s_AH%s_HU%s_PT_%s_AGR_%s_IW_%r_fltr_%s' % (self.dataset_type,
+                                                                ",".join(map(str, self.n_heads)),
+                                                                ",".join(map(str, self.hid_units)),
+                                                                "".join(map(str, self.pers_traits)),
+                                                                self.aggregator.__name__.split('_')[0],
+                                                                self.include_weights,
+                                                                self.filter)
+
         return name
-
-
-# Excel file containing per-subject personality scores
-pers_scores = os.path.join(os.getcwd(), os.pardir, 'PartIIProject', 'TIVscores', '1016_HCP_TIVscores.xlsx')
 
 
 # dictionary of string subject ID: array of real-valued scores for each trait
