@@ -1,9 +1,8 @@
 import tensorflow as tf
 from MainGAT import *
-from ToolsFunctional import *
-from ToolsStructural import *
 
 CHECKPT_PERIOD = 25
+SETTLE_EPOCHS = 25
 checkpts_dir = os.path.join(os.getcwd(), os.pardir, 'PartIIProject', 'GAT_checkpoints')
 if not os.path.exists(checkpts_dir):
     os.makedirs(checkpts_dir)
@@ -44,14 +43,10 @@ def print_GAT_learn_loss(model_GAT_choice, tr_avg_loss, vl_avg_loss):
 def create_GAT_model(model_GAT_choice):
     # GAT model
     model = MainGAT
-    # Checkpoint file for the training of the GAT model
-    current_chkpt_dir = os.path.join(checkpts_dir, str(model_GAT_choice))
-    if not os.path.exists(current_chkpt_dir):
-        os.makedirs(current_chkpt_dir)
 
     # training hyper-parameters
     batch_sz = 1  # batch training size; currently ONLY ONE example per training step: TO BE EXTENDED!!
-    nb_epochs = model_GAT_choice.nb_epochs
+    nb_epochs = model_GAT_choice.nb_epochs  # number of learning iterations over the trainign dataset
     lr = model_GAT_choice.lr  # learning rate
     l2_coef = model_GAT_choice.l2_coef  # weight decay
     hid_units = model_GAT_choice.hid_units  # numbers of features produced by each attention head per network layer
@@ -75,8 +70,7 @@ def create_GAT_model(model_GAT_choice):
     print('model: ' + str(model))
 
     # data for adjancency matrices, node feature vectors and personality scores for each study patient
-    load_data = load_struct_data if model_GAT_choice.dataset_type == 'struct' else load_funct_data
-    adj_matrices, graphs_features, score_train, score_test, score_val = load_data(model_GAT_choice)
+    adj_matrices, graphs_features, score_train, score_test, score_val = model_GAT_choice.load_data(model_GAT_choice)
 
     # used in order to implement MASKED ATTENTION by discardining non-neighbours out of nhood hops
     biases = adj_to_bias(adj_matrices, [graph.shape[0] for graph in adj_matrices], nhood=1)
@@ -85,7 +79,9 @@ def create_GAT_model(model_GAT_choice):
     # the initial length F of each node feature vector: for every graph, node feat.vecs. have the same length
     ft_size = graphs_features.shape[-1]
     # how many of the big-five personality traits the model is targeting at once
-    outGAT_sz_target = 5 if model_GAT_choice.pers_traits is None else len(model_GAT_choice.pers_traits)
+    outGAT_sz_target = len(model_GAT_choice.pers_traits)
+    # checkpoint directory storing the progress of the current model
+    current_chkpt_dir = os.path.join(checkpts_dir, str(model_GAT_choice))
 
     # create a TensofFlow session, the context of evaluation for the Tensor objects
     with tf.Graph().as_default():
@@ -125,11 +121,15 @@ def create_GAT_model(model_GAT_choice):
             vl_size = len(score_val)
             # number of test graph examples
             ts_size = len(score_test)
+            # initialize the learnable parameters of the architecture
             sess.run(init_op)
 
             print('The training size is: %d, the validation: %d and the test: %d' % (tr_size, vl_size, ts_size))
 
             epoch_start = reload_GAT_model(model_GAT_choice=model_GAT_choice, sess=sess, saver=saver)
+
+            constant_loss_tstamp = 0
+            prev_tr_loss = sys.float_info.max
 
             # nb_epochs - number of epochs for training: the number of iteration of gradient descent to optimize
             for epoch in range(epoch_start, nb_epochs + 1):
@@ -177,15 +177,24 @@ def create_GAT_model(model_GAT_choice):
                     val_loss_avg += loss_value_vl
                     vl_step += 1
 
-                print_GAT_learn_loss(model_GAT_choice=model_GAT_choice,
-                                     tr_avg_loss=train_loss_avg / tr_size,
-                                     vl_avg_loss=val_loss_avg / vl_size)
+                tr_loss_epoch = train_loss_avg / tr_size
+                vl_loss_epoch = val_loss_avg / vl_size
+                print_GAT_learn_loss(model_GAT_choice, tr_avg_loss=tr_loss_epoch, vl_avg_loss=vl_loss_epoch)
 
                 checkpt_file = os.path.join(current_chkpt_dir, 'checkpoint')
                 if epoch % CHECKPT_PERIOD == 0:
                     save_path = saver.save(sess, checkpt_file, global_step=epoch)
                     print("Training progress after %d epochs saved in path: %s" % (epoch, save_path))
-                if abs(train_loss_avg / tr_size - val_loss_avg / vl_size) < 1.0: break
+
+                # wait for the learning losses to settle before the specified number of training iterations
+                THRESHOLD = 2.0
+                if abs(tr_loss_epoch - vl_loss_epoch) < THRESHOLD and abs(tr_loss_epoch - prev_tr_loss) < THRESHOLD:
+                    constant_loss_tstamp += 1
+                else:
+                    constant_loss_tstamp = 0
+                # if suffiecient epochs have passed and the losses are not changing finish the training
+                if constant_loss_tstamp == SETTLE_EPOCHS: break
+                prev_tr_loss = tr_loss_epoch
 
             model_file = os.path.join(current_chkpt_dir, 'trained_model')
             if not tf.train.checkpoint_exists(model_file):
@@ -204,9 +213,8 @@ def create_GAT_model(model_GAT_choice):
                                             feed_dict={
                                                 ftr_in: graphs_features[ts_step:ts_step + 1],
                                                 bias_in: biases[ts_step:ts_step + 1],
-                                                score_in: score_test[
-                                                          ts_step - (vl_size + tr_size): ts_step + 1 - (
-                                                                  vl_size + tr_size)],
+                                                score_in: score_test[ts_step - (vl_size + tr_size): ts_step + 1 - (
+                                                            vl_size + tr_size)],
                                                 adj_in: adj_matrices[ts_step:ts_step + 1],
                                                 is_train: False,
                                                 attn_drop: 0.0,
@@ -225,13 +233,15 @@ if __name__ == "__main__":
     n_heads = [4, 4, 6]
     aggregators = [concat_feature_aggregator, average_feature_aggregator]
     include_weights = [True, False]
-    for aggr, iw in product(aggregators, include_weights):
+    limits = [(0, 80000), (183, 263857), (0, 500000), (80000, 4000000)]
+    for aggr, iw, limit in product(aggregators, include_weights, limits):
         model_GAT_config = GAT_hyperparam_config(hid_units=hid_units,
                                                  n_heads=n_heads,
                                                  nb_epochs=1500,
                                                  aggregator=aggr,
                                                  include_weights=iw,
-                                                 filter='interval',
+                                                 filter_name='interval',
+                                                 limits = limit,
                                                  dataset_type='struct',
                                                  lr=0.0001,
                                                  l2_coef=0.0005)

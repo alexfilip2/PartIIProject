@@ -19,40 +19,6 @@ if not os.path.exists(gat_model_stats):
     os.makedirs(gat_model_stats)
 
 
-# class embodying the hyperparameter choice of a GAT model
-class GAT_hyperparam_config(object):
-    def __init__(self,
-                 hid_units,
-                 n_heads,
-                 nb_epochs,
-                 aggregator,
-                 include_weights,
-                 filter='interval',
-                 pers_traits=None,
-                 dataset_type='struct',
-                 lr=0.0001,
-                 l2_coef=0.0005):
-        self.nb_epochs = nb_epochs
-        self.n_heads = n_heads
-        self.hid_units = hid_units
-        self.aggregator = aggregator
-        self.filter = filter
-        self.include_weights = include_weights
-        self.pers_traits = pers_traits if pers_traits is not None else ['A', 'O', 'C', 'N', 'E']
-        self.dataset_type = dataset_type
-        self.lr = lr
-        self.l2_coef = l2_coef
-
-    def __str__(self):
-        name = 'GAT_%s_AH%s_HU%s_PT_%s_AGR_%s_IW_%r_fltr_%s' % (self.dataset_type,
-                                                                ",".join(map(str, self.n_heads)),
-                                                                ",".join(map(str, self.hid_units)),
-                                                                "".join(map(str, self.pers_traits)),
-                                                                self.aggregator.__name__.split('_')[0],
-                                                                self.include_weights,
-                                                                self.filter)
-
-        return name
 
 
 # dictionary of string subject ID: array of real-valued scores for each trait

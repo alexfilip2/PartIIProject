@@ -2,6 +2,8 @@ import numpy as np
 import tensorflow as tf
 import AttentionHead as attn_layer
 from BaseGAT import BaseGAT
+from ToolsFunctional import *
+from ToolsStructural import *
 
 dense = tf.layers.dense
 
@@ -88,3 +90,55 @@ class MainGAT(BaseGAT):
         output = aggregator(model_GAT_output=model_GAT_output, target_score_type=target_score_type)
         print('Shape of the embedding output of the neural network for an inpiut graph is ' + str(output.shape))
         return output
+
+
+# class embodying the hyperparameter choice of a GAT model
+class GAT_hyperparam_config(object):
+    def __init__(self,
+                 hid_units,
+                 n_heads,
+                 nb_epochs,
+                 aggregator,
+                 include_weights,
+                 limits,
+                 filter_name='interval',
+                 pers_traits=None,
+                 dataset_type='struct',
+                 lr=0.0001,
+                 l2_coef=0.0005):
+
+        self.nb_epochs = nb_epochs
+        self.n_heads = n_heads
+        self.hid_units = hid_units
+        self.aggregator = aggregator
+        self.load_data = load_struct_data if dataset_type == 'struct' else load_funct_data
+        self.filter_name = filter_name
+        if filter_name == 'interval':
+            self.filter = interval_filter
+            self.limits = limits
+
+        else:
+            self.filter = lambda x: x
+            self.limits = []
+        self.include_weights = include_weights
+
+        if pers_traits is None:
+            self.pers_traits = ['NEO.NEOFAC_A', 'NEO.NEOFAC_O', 'NEO.NEOFAC_C', 'NEO.NEOFAC_N', 'NEO.NEOFAC_E']
+        else:
+            self.pers_traits = ['NEO.NEOFAC_' + trait for trait in pers_traits]
+        self.dataset_type = dataset_type
+        self.lr = lr
+        self.l2_coef = l2_coef
+
+    def __str__(self):
+        str_traits = "".join([pers.split('NEO.NEOFAC_')[1] for pers in self.pers_traits])
+        name = 'GAT_%s_AH%s_HU%s_PT_%s_AGR_%s_IW_%r_fltr_%s%s' % (self.dataset_type,
+                                                                  ",".join(map(str, self.n_heads)),
+                                                                  ",".join(map(str, self.hid_units)),
+                                                                  str_traits,
+                                                                  self.aggregator.__name__.split('_')[0],
+                                                                  self.include_weights,
+                                                                  self.filter_name,
+                                                                  ",".join([str(int(x / 10000)) for x in self.limits]))
+
+        return name

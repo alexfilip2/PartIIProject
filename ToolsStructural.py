@@ -108,17 +108,6 @@ def norm_matrix(mat):
     return [[round(a, 2) for a in row] for row in new_matrix.tolist()]
 
 
-def interval_filter(adj_arr):
-    lower, upper = pow(2.26376210410143, 10), pow(5.421369530125328, 10)
-    filtered_arr = np.empty(adj_arr.shape)
-    for g_id, g in enumerate(adj_arr):
-        for i in range(g.shape[0]):
-            for j in range(g.shape[1]):
-                filtered_arr[g_id][i][j] = g[i][j] if (lower <= g[i][j] <= upper) else 0.0
-
-    return filtered_arr
-
-
 def get_struct_adjs():
     adjs_file = os.path.join(dir_proc_struct_data, 'adjs_matrices.pkl')
     if os.path.exists(adjs_file):
@@ -160,16 +149,38 @@ def get_struct_adjs():
     return adj
 
 
-def load_struct_data(model_GAT_choice):
-    # personality traits scores: 'NEO.NEOFAC_A', 'NEO.NEOFAC_O', 'NEO.NEOFAC_C', 'NEO.NEOFAC_N', 'NEO.NEOFAC_E'
-    pers_traits = None
-    if model_GAT_choice.pers_traits is not None:
-        pers_traits = ['NEO.NEOFAC_' + trait for trait in model_GAT_choice.pers_traits]
-    filter = interval_filter if model_GAT_choice.filter == 'interval' else lambda x: x
+def persist_ew_data():
+    ew_file = os.path.join(os.getcwd(), os.pardir, 'PartIIProject', 'flatten_edge_weigths.npy')
+    if os.path.exists(ew_file):
+        print('Loading the serialized edge weights data...')
+        edge_weights = np.load(ew_file)
+        print('Edge weights data was loaded.')
+    else:
+        print('Creating and serializing edge weights data...')
+        adjs = list(get_struct_adjs().values())
+        edge_weights = [np.array(mat)[np.triu_indices(len(mat))] for mat in adjs]
+        edge_weights = np.array(edge_weights).flatten()
+        np.save(ew_file, edge_weights)
+        print('Edge weights data was persisted on disk.')
+    return edge_weights
 
+
+def interval_filter(limits, adj_arr):
+    lower_conf = limits[0]
+    upper_conf = limits[1]
+    filtered_arr = np.empty(adj_arr.shape)
+    for g_id, g in enumerate(adj_arr):
+        for i in range(g.shape[0]):
+            for j in range(g.shape[1]):
+                filtered_arr[g_id][i][j] = g[i][j] if (lower_conf <= g[i][j] <= upper_conf) else 0.0
+
+    return filtered_arr
+
+
+def load_struct_data(model_GAT_choice):
     dict_adj = get_struct_adjs()
     dict_node_feat = get_struct_node_feat()
-    dict_tiv_score = get_NEO5_scores(pers_traits)
+    dict_tiv_score = get_NEO5_scores(model_GAT_choice.pers_traits)
 
     adj_matrices, graph_features, scores = [], [], []
     subjects = sorted(list(dict_adj.keys()))
@@ -182,8 +193,10 @@ def load_struct_data(model_GAT_choice):
     data_sz = len(scores)
 
     score_train, score_val, score_test = np.split(np.array(scores), [int(data_sz * 0.8), int(data_sz * 0.9)])
+    adj_matrices = model_GAT_choice.filter(model_GAT_choice.limits, np.array(adj_matrices))
+    graph_features = np.array(graph_features)
 
-    return filter(np.array(adj_matrices)), np.array(graph_features), score_train, score_val, score_test
+    return adj_matrices, graph_features, score_train, score_val, score_test
 
 
 def mat_flatten(mat):
@@ -203,7 +216,8 @@ def load_regress_data(trait_choice):
 
 
 if __name__ == "__main__":
-    adjs = get_struct_adjs()
-    norm_mat = norm_matrix(adjs['100206'])
-    # print(norm_mat)
-    print(np.array(norm_mat))
+    edge_weights = [x for x in persist_ew_data() if x !=0]
+    lower_conf = np.percentile(edge_weights, 5)
+    upper_conf = np.percentile(edge_weights, 95)
+    print(lower_conf)
+    print(upper_conf)
