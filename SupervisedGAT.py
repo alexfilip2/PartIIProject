@@ -214,7 +214,7 @@ def create_GAT_model(model_GAT_choice):
                                                 ftr_in: graphs_features[ts_step:ts_step + 1],
                                                 bias_in: biases[ts_step:ts_step + 1],
                                                 score_in: score_test[ts_step - (vl_size + tr_size): ts_step + 1 - (
-                                                            vl_size + tr_size)],
+                                                        vl_size + tr_size)],
                                                 adj_in: adj_matrices[ts_step:ts_step + 1],
                                                 is_train: False,
                                                 attn_drop: 0.0,
@@ -232,18 +232,19 @@ if __name__ == "__main__":
     hid_units = [64, 32, 16]
     n_heads = [4, 4, 6]
     aggregators = [concat_feature_aggregator, average_feature_aggregator]
-    include_weights = [True, False]
-    limits = [(0, 80000), (183, 263857), (0, 500000), (80000, 4000000)]
-    for aggr, iw, limit in product(aggregators, include_weights, limits):
+    include_weights = [True]
+    limits = [(183, 263857)]
+    pers_traits = [None, ['A'], ['O'], ['C'], ['N'], ['E']]
+    for aggr, iw, limit, p_traits in product(aggregators, include_weights, limits, pers_traits):
         model_GAT_config = GAT_hyperparam_config(hid_units=hid_units,
                                                  n_heads=n_heads,
                                                  nb_epochs=1500,
                                                  aggregator=aggr,
                                                  include_weights=iw,
                                                  filter_name='interval',
-                                                 limits = limit,
+                                                 pers_traits=p_traits,
+                                                 limits=limit,
                                                  dataset_type='struct',
                                                  lr=0.0001,
                                                  l2_coef=0.0005)
-
         create_GAT_model(model_GAT_config)

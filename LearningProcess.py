@@ -79,7 +79,7 @@ if __name__ == "__main__":
     n_heads = [4, 4, 6]
     aggregators = [concat_feature_aggregator, average_feature_aggregator]
     include_weights = [True, False]
-    limits = [(0, 80000), (183, 263857), (0,500000),(80000,4000000)]
+    limits = [(0, 80000), (183, 263857), (0, 500000), (80000, 4000000)]
     for aggr, iw, limit in product(aggregators, include_weights, limits):
         model_GAT_config = GAT_hyperparam_config(hid_units=hid_units,
                                                  n_heads=n_heads,
@@ -92,5 +92,4 @@ if __name__ == "__main__":
                                                  lr=0.0001,
                                                  l2_coef=0.0005)
 
-        #plt_learn_proc(model_GAT_config)
-    n_degree_empirical_distrib()
+        plt_learn_proc(model_GAT_config)

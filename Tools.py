@@ -19,8 +19,6 @@ if not os.path.exists(gat_model_stats):
     os.makedirs(gat_model_stats)
 
 
-
-
 # dictionary of string subject ID: array of real-valued scores for each trait
 def get_NEO5_scores(trait_choice=None):
     df = pd.ExcelFile(pers_scores).parse('Raw_data')
