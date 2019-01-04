@@ -23,8 +23,6 @@ def plt_learn_proc(model_GAT_config):
     plt.show()
 
 
-
-
 def n_degree_empirical_distrib(hop=10000):
     edge_weights = list(map(int, persist_ew_data()))
     y_ratio, x_limit = [], []
@@ -55,6 +53,7 @@ def plot_hist_ew(log_scale=10):
     maxfreq = n.max()
     # Set a clean upper y-axis limit.
     plt.ylim(top=np.ceil(maxfreq / 10) * 10 if maxfreq % 10 else maxfreq + 10)
+    plt.savefig(os.path.join(gat_model_stats, 'edge_weight_distribution.png'))
     plt.show()
 
 
@@ -78,18 +77,21 @@ if __name__ == "__main__":
     hid_units = [64, 32, 16]
     n_heads = [4, 4, 6]
     aggregators = [concat_feature_aggregator, average_feature_aggregator]
-    include_weights = [True, False]
-    limits = [(0, 80000), (183, 263857), (0, 500000), (80000, 4000000)]
-    for aggr, iw, limit in product(aggregators, include_weights, limits):
+    include_weights = [True]
+    limits = [(183, 263857)]
+    pers_traits = [None, ['A'], ['O'], ['C'], ['N'], ['E']]
+    for aggr, iw, limit, p_traits in product(aggregators, include_weights, limits, pers_traits):
         model_GAT_config = GAT_hyperparam_config(hid_units=hid_units,
                                                  n_heads=n_heads,
                                                  nb_epochs=1500,
                                                  aggregator=aggr,
                                                  include_weights=iw,
                                                  filter_name='interval',
+                                                 pers_traits=p_traits,
                                                  limits=limit,
                                                  dataset_type='struct',
                                                  lr=0.0001,
                                                  l2_coef=0.0005)
-
         plt_learn_proc(model_GAT_config)
+
+

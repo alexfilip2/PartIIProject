@@ -113,13 +113,15 @@ class MainGAT(BaseGAT):
 # class embodying the hyperparameter choice of a GAT model
 class GAT_hyperparam_config(object):
 
-    def __init__(self, hid_units, n_heads, nb_epochs, aggregator, include_weights, limits, filter_name='interval',
+    def __init__(self, hid_units, n_heads, nb_epochs, aggregator, include_weights, limits, batch_sz=1,
+                 filter_name='interval',
                  pers_traits=None, dataset_type='struct', lr=0.0001, l2_coef=0.0005):
         self.hid_units = hid_units
         self.n_heads = n_heads
         self.nb_epochs = nb_epochs
         self.aggregator = aggregator
         self.include_weights = include_weights
+        self.batch_sz = batch_sz
         self.filter_name = filter_name
         if filter_name == 'interval':
             self.filter = interval_filter
@@ -142,13 +144,15 @@ class GAT_hyperparam_config(object):
         str_hid_units = ",".join(map(str, self.hid_units))
         str_aggregator = self.aggregator.__name__.split('_')[0]
         str_filter_limits = ",".join([str(int(x / 10000)) for x in self.limits])
-        name = 'GAT_%s_AH%s_HU%s_PT_%s_AGR_%s_IW_%r_fltr_%s%s' % (self.dataset_type,
-                                                                  str_attn_heads,
-                                                                  str_hid_units,
-                                                                  str_traits,
-                                                                  str_aggregator,
-                                                                  self.include_weights,
-                                                                  self.filter_name,
-                                                                  str_filter_limits)
+        str_batch_sz = '' if self.batch_sz == 1 else '_BS_' + str(self.batch_sz)
+        name = 'GAT_%s_AH%s_HU%s_PT_%s_AGR_%s_IW_%r_fltr_%s%s%s' % (self.dataset_type,
+                                                                    str_attn_heads,
+                                                                    str_hid_units,
+                                                                    str_traits,
+                                                                    str_aggregator,
+                                                                    self.include_weights,
+                                                                    self.filter_name,
+                                                                    str_filter_limits,
+                                                                    str_batch_sz)
 
         return name

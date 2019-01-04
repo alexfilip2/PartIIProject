@@ -3,6 +3,7 @@ from MainGAT import *
 
 CHECKPT_PERIOD = 25
 SETTLE_EPOCHS = 25
+
 checkpts_dir = os.path.join(os.getcwd(), os.pardir, 'PartIIProject', 'GAT_checkpoints')
 if not os.path.exists(checkpts_dir):
     os.makedirs(checkpts_dir)
@@ -148,10 +149,11 @@ def create_GAT_model(model_GAT_choice):
                 while tr_step < tr_size:
                     (_, loss_value_tr) = sess.run([train_op, loss],
                                                   feed_dict={
-                                                      ftr_in: ftr_in_tr[tr_step:tr_step + 1],
-                                                      bias_in: bias_in_tr[tr_step:tr_step + 1],
-                                                      score_in: score_in_tr[tr_step:tr_step + 1],
-                                                      adj_in: adj_in_tr[tr_step:tr_step + 1],
+                                                      ftr_in: ftr_in_tr[batch_sz * tr_step:batch_sz * (tr_step + 1)],
+                                                      bias_in: bias_in_tr[batch_sz * tr_step:batch_sz * (tr_step + 1)],
+                                                      score_in: score_in_tr[
+                                                                batch_sz * tr_step:batch_sz * (tr_step + 1)],
+                                                      adj_in: adj_in_tr[batch_sz * tr_step:batch_sz * (tr_step + 1)],
                                                       is_train: True,
                                                       attn_drop: 0.6,
                                                       ffd_drop: 0.6})
@@ -166,10 +168,12 @@ def create_GAT_model(model_GAT_choice):
                 while vl_step < vl_size + tr_size:
                     (loss_value_vl,) = sess.run([loss],
                                                 feed_dict={
-                                                    ftr_in: graphs_features[vl_step:vl_step + 1],
-                                                    bias_in: biases[vl_step:vl_step + 1],
-                                                    score_in: score_val[vl_step - tr_size:vl_step + 1 - tr_size],
-                                                    adj_in: adj_matrices[vl_step:vl_step + 1],
+                                                    ftr_in: graphs_features[
+                                                            batch_sz * vl_step:batch_sz * (vl_step + 1)],
+                                                    bias_in: biases[batch_sz * vl_step:batch_sz * (vl_step + 1)],
+                                                    score_in: score_val[batch_sz * (vl_step - tr_size):batch_sz * (
+                                                                vl_step + 1 - tr_size)],
+                                                    adj_in: adj_matrices[batch_sz * vl_step:batch_sz * (vl_step + 1)],
                                                     is_train: False,
                                                     attn_drop: 0.0,
                                                     ffd_drop: 0.0})
