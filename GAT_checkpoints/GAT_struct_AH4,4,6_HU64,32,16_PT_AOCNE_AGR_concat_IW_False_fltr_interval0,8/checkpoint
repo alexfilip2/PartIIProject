@@ -1,6 +1,0 @@
-model_checkpoint_path: "C:\\Users\\user\\PycharmProjects\\PartIIProject\\..\\PartIIProject\\GAT_checkpoints\\GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_False_fltr_interval0,8\\checkpoint-1125"
-all_model_checkpoint_paths: "C:\\Users\\user\\PycharmProjects\\PartIIProject\\..\\PartIIProject\\GAT_checkpoints\\GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_False_fltr_interval0,8\\checkpoint-1025"
-all_model_checkpoint_paths: "C:\\Users\\user\\PycharmProjects\\PartIIProject\\..\\PartIIProject\\GAT_checkpoints\\GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_False_fltr_interval0,8\\checkpoint-1050"
-all_model_checkpoint_paths: "C:\\Users\\user\\PycharmProjects\\PartIIProject\\..\\PartIIProject\\GAT_checkpoints\\GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_False_fltr_interval0,8\\checkpoint-1075"
-all_model_checkpoint_paths: "C:\\Users\\user\\PycharmProjects\\PartIIProject\\..\\PartIIProject\\GAT_checkpoints\\GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_False_fltr_interval0,8\\checkpoint-1100"
-all_model_checkpoint_paths: "C:\\Users\\user\\PycharmProjects\\PartIIProject\\..\\PartIIProject\\GAT_checkpoints\\GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_False_fltr_interval0,8\\checkpoint-1125"

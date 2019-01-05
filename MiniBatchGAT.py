@@ -3,6 +3,7 @@ from MainGAT import *
 
 CHECKPT_PERIOD = 25
 SETTLE_EPOCHS = 25
+patience = 100
 
 checkpts_dir = os.path.join(os.getcwd(), os.pardir, 'PartIIProject', 'GAT_checkpoints')
 if not os.path.exists(checkpts_dir):
@@ -26,8 +27,7 @@ def reload_GAT_model(model_GAT_choice, sess, saver):
             last_epoch_training = model_GAT_choice.nb_epochs
             print('Re-loading full model %s' % model_GAT_choice)
         else:
-            last_epoch_training = max(
-                [int(ck_file.split('-')[-1]) for ck_file in ckpt.all_model_checkpoint_paths])
+            last_epoch_training = max([int(ck_file.split('-')[-1]) for ck_file in ckpt.all_model_checkpoint_paths])
             print('Re-loading training from epoch %d' % last_epoch_training)
         # restart training from where it was left
         epoch_start = last_epoch_training + 1
@@ -44,7 +44,7 @@ def print_GAT_learn_loss(model_GAT_choice, tr_avg_loss, vl_avg_loss):
 def create_GAT_model(model_GAT_choice):
     # GAT model
     model = MainGAT
-    # training hyper-parameters
+    # GAT hyper-parameters
     batch_sz = model_GAT_choice.batch_sz  # batch training size
     nb_epochs = model_GAT_choice.nb_epochs  # number of learning iterations over the trainign dataset
     lr = model_GAT_choice.lr  # learning rate
@@ -108,8 +108,9 @@ def create_GAT_model(model_GAT_choice):
                                      ffd_drop=ffd_drop)
 
         loss = tf.losses.mean_squared_error(labels=score_in, predictions=prediction)
+        # create tf session saver
         saver = tf.train.Saver()
-        # optimizer
+        # create optimizer
         opt = tf.train.AdamOptimizer(learning_rate=lr)
 
         # minibatch operations
@@ -117,7 +118,7 @@ def create_GAT_model(model_GAT_choice):
         tvs = tf.trainable_variables()
         # 1) Create placeholders for the accumulating gradients we'll be storing
         accum_vars = [tf.Variable(tv.initialized_value(), trainable=False) for tv in tvs]
-        # 2) Operation to initialize accum_vars to zero
+        # 2) Operation to initialize accum_vars to zero (reinitialize the gradients)
         zero_grads_ops = [tv.assign(tf.zeros_like(tv)) for tv in accum_vars]
         # 3) Operation to compute the gradients for one minibatch
         # regularization loss of the parameters
@@ -128,23 +129,20 @@ def create_GAT_model(model_GAT_choice):
         # 5) Operation to perform the update (apply gradients)
         apply_ops = opt.apply_gradients([(accum_vars[i], tv) for i, tv in enumerate(tf.trainable_variables())])
 
-        # number of training graph examples
-        tr_size = len(score_train)
-        # number of validation examples
-        vl_size = len(score_val)
-        # number of test graph examples
-        ts_size = len(score_test)
+        # number of training, validation, test graph examples
+        tr_size, vl_size, ts_size = len(score_train), len(score_val), len(score_test)
         print('The training size is: %d, the validation: %d and the test: %d' % (tr_size, vl_size, ts_size))
 
-        # Create session to execute ops
+        # Create interactive session to execute the accumulation of gradients per batch
         sess = tf.InteractiveSession()
         # Necessary initializations
         tf.set_random_seed(1234)
         tf.group(tf.global_variables_initializer(), tf.local_variables_initializer()).run()
-
+        # reload the GAT model from the last checkpoint
         epoch_start = reload_GAT_model(model_GAT_choice=model_GAT_choice, sess=sess, saver=saver)
-        constant_loss_tstamp = 0
-        prev_tr_loss = sys.float_info.max
+
+        vlss_mn = np.inf
+        curr_step = 0
 
         # Train loop
         # nb_epochs - number of epochs for training: the number of iteration of gradient descent to optimize
@@ -209,39 +207,41 @@ def create_GAT_model(model_GAT_choice):
                 print("Training progress after %d epochs saved in path: %s" % (epoch, save_path))
 
             # wait for the learning losses to settle before the specified number of training iterations
-            THRESHOLD = 2.0
-            if abs(tr_avg_loss - vl_avg_loss) < THRESHOLD and abs(tr_avg_loss - prev_tr_loss) < THRESHOLD:
-                constant_loss_tstamp += 1
+            if vl_avg_loss <= vlss_mn:
+                vlss_early_model = vl_avg_loss
+                vlss_mn = np.min((vl_avg_loss, vlss_mn))
+                curr_step = 0
             else:
-                constant_loss_tstamp = 0
-            # if suffiecient epochs have passed and the losses are not changing finish the training
-            if constant_loss_tstamp == SETTLE_EPOCHS: break
-            prev_tr_loss = tr_avg_loss
+                curr_step += 1
+                if curr_step == patience:
+                    print('Early stop! Min loss: ', vlss_mn)
+                    print('Early stop model validation loss: ', vlss_early_model)
+                    break
 
-        model_file = os.path.join(current_chkpt_dir, 'trained_model')
-        if not tf.train.checkpoint_exists(model_file):
-            save_path = saver.save(sess, model_file)
-            print("Fully trained model saved in path: %s" % save_path)
+    model_file = os.path.join(current_chkpt_dir, 'trained_model')
+    if not tf.train.checkpoint_exists(model_file):
+        save_path = saver.save(sess, model_file)
+        print("Fully trained model saved in path: %s" % save_path)
 
-        # restoring a pre-trained model
-        saver.restore(sess, model_file)
-        print("Model restored.")
+    # restoring a pre-trained model
+    saver.restore(sess, model_file)
+    print("Model restored.")
 
-        ts_avg_loss = 0
-        for ts_step in range(tr_size + vl_size, tr_size + vl_size + ts_size):
-            (ts_example_loss,) = sess.run([loss], feed_dict={
-                ftr_in: graphs_features[ts_step:ts_step + 1],
-                bias_in: biases[ts_step:ts_step + 1],
-                score_in: score_test[ts_step - tr_size - vl_size:ts_step - tr_size - vl_size + 1],
-                adj_in: adj_matrices[ts_step:ts_step + 1],
-                is_train: False,
-                attn_drop: 0.0,
-                ffd_drop: 0.0})
-            ts_avg_loss += ts_example_loss
+    ts_avg_loss = 0
+    for ts_step in range(tr_size + vl_size, tr_size + vl_size + ts_size):
+        (ts_example_loss,) = sess.run([loss], feed_dict={
+            ftr_in: graphs_features[ts_step:ts_step + 1],
+            bias_in: biases[ts_step:ts_step + 1],
+            score_in: score_test[ts_step - tr_size - vl_size:ts_step - tr_size - vl_size + 1],
+            adj_in: adj_matrices[ts_step:ts_step + 1],
+            is_train: False,
+            attn_drop: 0.0,
+            ffd_drop: 0.0})
+        ts_avg_loss += ts_example_loss
 
-        print('Test loss:', ts_avg_loss / ts_size)
+    print('Test loss:', ts_avg_loss / ts_size)
 
-        sess.close()
+    sess.close()
 
 
 if __name__ == "__main__":
@@ -251,11 +251,11 @@ if __name__ == "__main__":
     include_weights = [True]
     limits = [(183, 263857)]
     pers_traits = [None, ['A']]
-    batches = [1, 5, 10]
+    batches = [1, 2]
     for aggr, iw, limit, p_traits, batch_sz in product(aggregators, include_weights, limits, pers_traits, batches):
         model_GAT_config = GAT_hyperparam_config(hid_units=hid_units,
                                                  n_heads=n_heads,
-                                                 nb_epochs=1500,
+                                                 nb_epochs=10000,
                                                  aggregator=aggr,
                                                  include_weights=iw,
                                                  filter_name='interval',

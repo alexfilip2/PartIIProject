@@ -76,11 +76,12 @@ def plot_node_degree_hist(log_scale=10):
 if __name__ == "__main__":
     hid_units = [64, 32, 16]
     n_heads = [4, 4, 6]
-    aggregators = [concat_feature_aggregator, average_feature_aggregator]
+    aggregators = [concat_feature_aggregator]
     include_weights = [True]
     limits = [(183, 263857)]
-    pers_traits = [None, ['A'], ['O'], ['C'], ['N'], ['E']]
-    for aggr, iw, limit, p_traits in product(aggregators, include_weights, limits, pers_traits):
+    pers_traits = [None, ['A']]
+    batches = [1, 5, 10]
+    for aggr, iw, limit, p_traits, batch_sz in product(aggregators, include_weights, limits, pers_traits, batches):
         model_GAT_config = GAT_hyperparam_config(hid_units=hid_units,
                                                  n_heads=n_heads,
                                                  nb_epochs=1500,
@@ -89,6 +90,7 @@ if __name__ == "__main__":
                                                  filter_name='interval',
                                                  pers_traits=p_traits,
                                                  limits=limit,
+                                                 batch_sz=batch_sz,
                                                  dataset_type='struct',
                                                  lr=0.0001,
                                                  l2_coef=0.0005)
