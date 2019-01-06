@@ -3,185 +3,13 @@
   <component name="ChangeListManager">
     <list default="true" id="e6c655ac-ac83-4960-96cd-bd108dfa904a" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU256,256,25_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,26/checkpoint" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU256,256,25_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,26/checkpoint-600.data-00000-of-00001" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU256,256,25_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,26/checkpoint-600.index" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU256,256,25_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,26/checkpoint-600.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU256,256,25_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,26/checkpoint-625.data-00000-of-00001" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU256,256,25_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,26/checkpoint-625.index" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU256,256,25_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,26/checkpoint-625.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU256,256,25_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,26/checkpoint-650.data-00000-of-00001" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU256,256,25_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,26/checkpoint-650.index" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU256,256,25_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,26/checkpoint-650.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU256,256,25_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,26/checkpoint-675.data-00000-of-00001" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU256,256,25_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,26/checkpoint-675.index" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU256,256,25_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,26/checkpoint-675.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU256,256,25_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,26/trained_model.data-00000-of-00001" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU256,256,25_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,26/trained_model.index" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU256,256,25_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,26/trained_model.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU256,256,25_PT_A_AGR_concat_IW_True_fltr_interval0,26/checkpoint" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU256,256,25_PT_A_AGR_concat_IW_True_fltr_interval0,26/checkpoint-100.data-00000-of-00001" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU256,256,25_PT_A_AGR_concat_IW_True_fltr_interval0,26/checkpoint-100.index" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU256,256,25_PT_A_AGR_concat_IW_True_fltr_interval0,26/checkpoint-100.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU256,256,25_PT_A_AGR_concat_IW_True_fltr_interval0,26/checkpoint-125.data-00000-of-00001" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU256,256,25_PT_A_AGR_concat_IW_True_fltr_interval0,26/checkpoint-125.index" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU256,256,25_PT_A_AGR_concat_IW_True_fltr_interval0,26/checkpoint-125.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU256,256,25_PT_A_AGR_concat_IW_True_fltr_interval0,26/checkpoint-150.data-00000-of-00001" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU256,256,25_PT_A_AGR_concat_IW_True_fltr_interval0,26/checkpoint-150.index" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU256,256,25_PT_A_AGR_concat_IW_True_fltr_interval0,26/checkpoint-150.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU256,256,25_PT_A_AGR_concat_IW_True_fltr_interval0,26/checkpoint-175.data-00000-of-00001" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU256,256,25_PT_A_AGR_concat_IW_True_fltr_interval0,26/checkpoint-175.index" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU256,256,25_PT_A_AGR_concat_IW_True_fltr_interval0,26/checkpoint-175.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU256,256,25_PT_A_AGR_concat_IW_True_fltr_interval0,26/checkpoint-200.data-00000-of-00001" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU256,256,25_PT_A_AGR_concat_IW_True_fltr_interval0,26/checkpoint-200.index" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU256,256,25_PT_A_AGR_concat_IW_True_fltr_interval0,26/checkpoint-200.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_False_fltr_interval0,8/checkpoint" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_False_fltr_interval0,8/checkpoint-1025.data-00000-of-00001" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_False_fltr_interval0,8/checkpoint-1025.index" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_False_fltr_interval0,8/checkpoint-1025.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_False_fltr_interval0,8/checkpoint-1050.data-00000-of-00001" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_False_fltr_interval0,8/checkpoint-1050.index" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_False_fltr_interval0,8/checkpoint-1050.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_False_fltr_interval0,8/checkpoint-1075.data-00000-of-00001" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_False_fltr_interval0,8/checkpoint-1075.index" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_False_fltr_interval0,8/checkpoint-1075.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_False_fltr_interval0,8/checkpoint-1100.data-00000-of-00001" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_False_fltr_interval0,8/checkpoint-1100.index" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_False_fltr_interval0,8/checkpoint-1100.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_False_fltr_interval0,8/checkpoint-1125.data-00000-of-00001" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_False_fltr_interval0,8/checkpoint-1125.index" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_False_fltr_interval0,8/checkpoint-1125.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,26/checkpoint" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,26/checkpoint-675.data-00000-of-00001" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,26/checkpoint-675.index" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,26/checkpoint-675.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,26/checkpoint-700.data-00000-of-00001" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,26/checkpoint-700.index" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,26/checkpoint-700.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,26/checkpoint-725.data-00000-of-00001" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,26/checkpoint-725.index" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,26/checkpoint-725.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,26/checkpoint-750.data-00000-of-00001" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,26/checkpoint-750.index" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,26/checkpoint-750.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,26/trained_model.data-00000-of-00001" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,26/trained_model.index" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,26/trained_model.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,50/checkpoint" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,50/checkpoint-600.data-00000-of-00001" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,50/checkpoint-600.index" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,50/checkpoint-600.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,50/checkpoint-625.data-00000-of-00001" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,50/checkpoint-625.index" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,50/checkpoint-625.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,50/checkpoint-650.data-00000-of-00001" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,50/checkpoint-650.index" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,50/checkpoint-650.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,50/checkpoint-675.data-00000-of-00001" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,50/checkpoint-675.index" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,50/checkpoint-675.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,50/trained_model.data-00000-of-00001" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,50/trained_model.index" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,50/trained_model.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,8/checkpoint" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,8/checkpoint-875.data-00000-of-00001" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,8/checkpoint-875.index" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,8/checkpoint-875.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,8/checkpoint-900.data-00000-of-00001" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,8/checkpoint-900.index" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,8/checkpoint-900.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,8/checkpoint-925.data-00000-of-00001" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,8/checkpoint-925.index" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,8/checkpoint-925.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,8/checkpoint-950.data-00000-of-00001" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,8/checkpoint-950.index" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,8/checkpoint-950.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,8/trained_model.data-00000-of-00001" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,8/trained_model.index" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,8/trained_model.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval8,400/checkpoint" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval8,400/checkpoint-325.data-00000-of-00001" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval8,400/checkpoint-325.index" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval8,400/checkpoint-325.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval8,400/checkpoint-350.data-00000-of-00001" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval8,400/checkpoint-350.index" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval8,400/checkpoint-350.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval8,400/checkpoint-375.data-00000-of-00001" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval8,400/checkpoint-375.index" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval8,400/checkpoint-375.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval8,400/checkpoint-400.data-00000-of-00001" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval8,400/checkpoint-400.index" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval8,400/checkpoint-400.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval8,400/trained_model.data-00000-of-00001" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval8,400/trained_model.index" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval8,400/trained_model.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_A_AGR_concat_IW_True_fltr_interval0,26/checkpoint" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_A_AGR_concat_IW_True_fltr_interval0,26/checkpoint-1425.data-00000-of-00001" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_A_AGR_concat_IW_True_fltr_interval0,26/checkpoint-1425.index" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_A_AGR_concat_IW_True_fltr_interval0,26/checkpoint-1425.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_A_AGR_concat_IW_True_fltr_interval0,26/checkpoint-1450.data-00000-of-00001" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_A_AGR_concat_IW_True_fltr_interval0,26/checkpoint-1450.index" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_A_AGR_concat_IW_True_fltr_interval0,26/checkpoint-1450.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_A_AGR_concat_IW_True_fltr_interval0,26/checkpoint-1475.data-00000-of-00001" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_A_AGR_concat_IW_True_fltr_interval0,26/checkpoint-1475.index" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_A_AGR_concat_IW_True_fltr_interval0,26/checkpoint-1475.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_A_AGR_concat_IW_True_fltr_interval0,26/checkpoint-1500.data-00000-of-00001" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_A_AGR_concat_IW_True_fltr_interval0,26/checkpoint-1500.index" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_A_AGR_concat_IW_True_fltr_interval0,26/checkpoint-1500.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_A_AGR_concat_IW_True_fltr_interval0,26/trained_model.data-00000-of-00001" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_A_AGR_concat_IW_True_fltr_interval0,26/trained_model.index" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_A_AGR_concat_IW_True_fltr_interval0,26/trained_model.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_C_AGR_concat_IW_True_fltr_interval0,26/checkpoint" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_C_AGR_concat_IW_True_fltr_interval0,26/checkpoint-1425.data-00000-of-00001" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_C_AGR_concat_IW_True_fltr_interval0,26/checkpoint-1425.index" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_C_AGR_concat_IW_True_fltr_interval0,26/checkpoint-1425.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_C_AGR_concat_IW_True_fltr_interval0,26/checkpoint-1450.data-00000-of-00001" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_C_AGR_concat_IW_True_fltr_interval0,26/checkpoint-1450.index" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_C_AGR_concat_IW_True_fltr_interval0,26/checkpoint-1450.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_C_AGR_concat_IW_True_fltr_interval0,26/checkpoint-1475.data-00000-of-00001" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_C_AGR_concat_IW_True_fltr_interval0,26/checkpoint-1475.index" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_C_AGR_concat_IW_True_fltr_interval0,26/checkpoint-1475.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_C_AGR_concat_IW_True_fltr_interval0,26/checkpoint-1500.data-00000-of-00001" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_C_AGR_concat_IW_True_fltr_interval0,26/checkpoint-1500.index" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_C_AGR_concat_IW_True_fltr_interval0,26/checkpoint-1500.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_C_AGR_concat_IW_True_fltr_interval0,26/trained_model.data-00000-of-00001" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_C_AGR_concat_IW_True_fltr_interval0,26/trained_model.index" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_C_AGR_concat_IW_True_fltr_interval0,26/trained_model.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_N_AGR_concat_IW_True_fltr_interval0,26/checkpoint" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_N_AGR_concat_IW_True_fltr_interval0,26/checkpoint-225.data-00000-of-00001" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_N_AGR_concat_IW_True_fltr_interval0,26/checkpoint-225.index" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_N_AGR_concat_IW_True_fltr_interval0,26/checkpoint-225.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_N_AGR_concat_IW_True_fltr_interval0,26/checkpoint-250.data-00000-of-00001" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_N_AGR_concat_IW_True_fltr_interval0,26/checkpoint-250.index" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_N_AGR_concat_IW_True_fltr_interval0,26/checkpoint-250.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_N_AGR_concat_IW_True_fltr_interval0,26/checkpoint-275.data-00000-of-00001" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_N_AGR_concat_IW_True_fltr_interval0,26/checkpoint-275.index" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_N_AGR_concat_IW_True_fltr_interval0,26/checkpoint-275.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_N_AGR_concat_IW_True_fltr_interval0,26/checkpoint-300.data-00000-of-00001" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_N_AGR_concat_IW_True_fltr_interval0,26/checkpoint-300.index" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_N_AGR_concat_IW_True_fltr_interval0,26/checkpoint-300.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_N_AGR_concat_IW_True_fltr_interval0,26/checkpoint-325.data-00000-of-00001" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_N_AGR_concat_IW_True_fltr_interval0,26/checkpoint-325.index" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_N_AGR_concat_IW_True_fltr_interval0,26/checkpoint-325.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_O_AGR_concat_IW_True_fltr_interval0,26/checkpoint" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_O_AGR_concat_IW_True_fltr_interval0,26/checkpoint-1425.data-00000-of-00001" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_O_AGR_concat_IW_True_fltr_interval0,26/checkpoint-1425.index" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_O_AGR_concat_IW_True_fltr_interval0,26/checkpoint-1425.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_O_AGR_concat_IW_True_fltr_interval0,26/checkpoint-1450.data-00000-of-00001" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_O_AGR_concat_IW_True_fltr_interval0,26/checkpoint-1450.index" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_O_AGR_concat_IW_True_fltr_interval0,26/checkpoint-1450.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_O_AGR_concat_IW_True_fltr_interval0,26/checkpoint-1475.data-00000-of-00001" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_O_AGR_concat_IW_True_fltr_interval0,26/checkpoint-1475.index" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_O_AGR_concat_IW_True_fltr_interval0,26/checkpoint-1475.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_O_AGR_concat_IW_True_fltr_interval0,26/checkpoint-1500.data-00000-of-00001" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_O_AGR_concat_IW_True_fltr_interval0,26/checkpoint-1500.index" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_O_AGR_concat_IW_True_fltr_interval0,26/checkpoint-1500.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_O_AGR_concat_IW_True_fltr_interval0,26/trained_model.data-00000-of-00001" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_O_AGR_concat_IW_True_fltr_interval0,26/trained_model.index" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/GAT_struct_AH4,4,6_HU64,32,16_PT_O_AGR_concat_IW_True_fltr_interval0,26/trained_model.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/AttentionHead.py" beforeDir="false" afterPath="$PROJECT_DIR$/AttentionHead.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BaseGAT.py" beforeDir="false" afterPath="$PROJECT_DIR$/BaseGAT.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/LearningProcess.py" beforeDir="false" afterPath="$PROJECT_DIR$/LearningProcess.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/MiniBatchGAT.py" beforeDir="false" afterPath="$PROJECT_DIR$/MiniBatchGAT.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/learning_process/train_lossesGAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,26_BS_5" beforeDir="false" afterPath="$PROJECT_DIR$/learning_process/train_lossesGAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,26_BS_5" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/learning_process/loss_plot_GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,26.png" beforeDir="false" afterPath="$PROJECT_DIR$/learning_process/loss_plot_GAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,26.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/learning_process/train_lossesGAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,26" beforeDir="false" afterPath="$PROJECT_DIR$/learning_process/train_lossesGAT_struct_AH4,4,6_HU64,32,16_PT_AOCNE_AGR_concat_IW_True_fltr_interval0,26" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/learning_process/train_lossesGAT_struct_AH4,4,6_HU64,32,16_PT_A_AGR_concat_IW_True_fltr_interval0,26" beforeDir="false" afterPath="$PROJECT_DIR$/learning_process/train_lossesGAT_struct_AH4,4,6_HU64,32,16_PT_A_AGR_concat_IW_True_fltr_interval0,26" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -190,9 +18,9 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="CoverageDataManager">
-    <SUITE FILE_PATH="coverage/PartIIProject$MiniBatchGAT.coverage" NAME="MiniBatchGAT Coverage Results" MODIFIED="1546622573047" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/PartIIProject$MiniBatchGAT.coverage" NAME="MiniBatchGAT Coverage Results" MODIFIED="1546801575711" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/PartIIProject$ToolsStructural.coverage" NAME="ToolsStructural Coverage Results" MODIFIED="1545239992749" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/PartIIProject$LearningProcess.coverage" NAME="LearningProcess Coverage Results" MODIFIED="1546684150960" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/PartIIProject$LearningProcess.coverage" NAME="LearningProcess Coverage Results" MODIFIED="1546805525984" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/PartIIProject$SupervisedGAT.coverage" NAME="SupervisedGAT Coverage Results" MODIFIED="1546598699331" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/PartIIProject$Tools.coverage" NAME="Tools Coverage Results" MODIFIED="1544692448974" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/PartIIProject$LinearRegression.coverage" NAME="LinearRegression Coverage Results" MODIFIED="1544809611926" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
@@ -201,10 +29,11 @@
     <session id="-518088592">
       <usages-collector id="statistics.lifecycle.project">
         <counts>
-          <entry key="project.closed" value="41" />
+          <entry key="project.closed" value="43" />
           <entry key="project.open.time.0" value="7" />
           <entry key="project.open.time.1" value="4" />
           <entry key="project.open.time.17" value="1" />
+          <entry key="project.open.time.20" value="1" />
           <entry key="project.open.time.24" value="2" />
           <entry key="project.open.time.25" value="2" />
           <entry key="project.open.time.26" value="1" />
@@ -225,29 +54,29 @@
           <entry key="project.open.time.7" value="3" />
           <entry key="project.open.time.8" value="1" />
           <entry key="project.open.time.9" value="2" />
-          <entry key="project.opened" value="45" />
+          <entry key="project.opened" value="46" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
         <counts>
-          <entry key="py" value="35" />
+          <entry key="py" value="36" />
           <entry key="txt" value="1" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.open">
         <counts>
           <entry key="PLAIN_TEXT" value="1" />
-          <entry key="Python" value="35" />
+          <entry key="Python" value="36" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
-          <entry key="py" value="29916" />
+          <entry key="py" value="31139" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
-          <entry key="Python" value="29916" />
+          <entry key="Python" value="31139" />
         </counts>
       </usages-collector>
     </session>
@@ -257,8 +86,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/SupervisedGAT.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="495">
-              <caret line="237" column="72" lean-forward="true" selection-start-line="237" selection-start-column="72" selection-end-line="237" selection-end-column="72" />
+            <state relative-caret-position="1173">
+              <caret line="237" column="72" selection-start-line="237" selection-start-column="72" selection-end-line="237" selection-end-column="72" />
               <folding>
                 <element signature="e#0#23#0" expanded="true" />
                 <marker date="1546598699267" expanded="true" signature="1414:1681" ph="..." />
@@ -270,11 +99,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/MiniBatchGAT.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="3825">
-              <caret line="253" column="19" selection-start-line="253" selection-start-column="19" selection-end-line="253" selection-end-column="19" />
+            <state relative-caret-position="313">
+              <caret line="253" column="64" selection-start-line="234" selection-start-column="3" selection-end-line="253" selection-end-column="64" />
               <folding>
                 <element signature="e#0#23#0" expanded="true" />
               </folding>
@@ -283,44 +112,29 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/MainGAT.py">
+        <entry file="file://$PROJECT_DIR$/ToolsStructural.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="2380">
-              <caret line="145" column="75" selection-start-line="145" selection-start-column="75" selection-end-line="145" selection-end-column="75" />
+            <state relative-caret-position="-868">
+              <caret line="51" column="52" selection-start-line="51" selection-start-column="52" selection-end-line="51" selection-end-column="52" />
               <folding>
-                <element signature="e#0#18#0" expanded="true" />
+                <element signature="e#0#19#0" expanded="true" />
+                <marker date="1546804646801" expanded="true" signature="1293:1298" ph="..." />
+                <marker date="1546804646801" expanded="true" signature="7900:7903" ph="..." />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/AttentionHead.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="306">
-              <caret line="18" column="40" selection-start-line="18" selection-start-column="40" selection-end-line="18" selection-end-column="40" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/BaseGAT.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="578">
-              <caret line="34" selection-end-line="34" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/LearningProcess.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1581">
-              <caret line="95" column="64" selection-start-line="95" selection-start-column="64" selection-end-line="95" selection-end-column="64" />
+            <state relative-caret-position="576">
+              <caret line="84" column="36" selection-start-line="84" selection-start-column="36" selection-end-line="84" selection-end-column="36" />
               <folding>
                 <element signature="e#0#31#0" expanded="true" />
-                <marker date="1546647598916" expanded="true" signature="225:229" ph="..." />
-                <marker date="1546647598916" expanded="true" signature="2441:3087" ph="..." />
+                <marker date="1546805525875" expanded="true" signature="225:229" ph="..." />
+                <marker date="1546805525875" expanded="true" signature="2441:3797" ph="..." />
+                <marker date="1546805525875" expanded="true" signature="3205:3797" ph="..." />
               </folding>
             </state>
           </provider>
@@ -337,9 +151,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>model</find>
-      <find>attn_drop</find>
-      <find>adj_matrices</find>
       <find>curr_step</find>
       <find>biases</find>
       <find>prin</find>
@@ -365,8 +176,11 @@
       <find>get_struct_adjs</find>
       <find>current_chkpt_dir</find>
       <find>Test loss</find>
-      <find>batch_sz</find>
       <find>prev_tr_loss</find>
+      <find>sess</find>
+      <find>loss</find>
+      <find>inter</find>
+      <find>batch_sz</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -378,14 +192,14 @@
         <option value="$PROJECT_DIR$/stats/train_losses.txt" />
         <option value="$PROJECT_DIR$/ToolsFunctional.py" />
         <option value="$PROJECT_DIR$/LinearRegression.py" />
-        <option value="$PROJECT_DIR$/ToolsStructural.py" />
         <option value="$PROJECT_DIR$/Tools.py" />
-        <option value="$PROJECT_DIR$/AttentionHead.py" />
-        <option value="$PROJECT_DIR$/BaseGAT.py" />
         <option value="$PROJECT_DIR$/SupervisedGAT.py" />
         <option value="$PROJECT_DIR$/MainGAT.py" />
-        <option value="$PROJECT_DIR$/LearningProcess.py" />
+        <option value="$PROJECT_DIR$/AttentionHead.py" />
         <option value="$PROJECT_DIR$/MiniBatchGAT.py" />
+        <option value="$PROJECT_DIR$/BaseGAT.py" />
+        <option value="$PROJECT_DIR$/ToolsStructural.py" />
+        <option value="$PROJECT_DIR$/LearningProcess.py" />
       </list>
     </option>
   </component>
@@ -395,7 +209,7 @@
     <detection-done>true</detection-done>
     <sorting>DEFINITION_ORDER</sorting>
   </component>
-  <component name="ProjectFrameBounds" extendedState="7">
+  <component name="ProjectFrameBounds" extendedState="6">
     <option name="x" value="85" />
     <option name="y" value="25" />
     <option name="width" value="1750" />
@@ -623,14 +437,13 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="-7" y="-7" width="1550" height="838" extended-state="6" />
-    <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.21879195" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.22214764" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.15439093" />
+      <window_info anchor="bottom" id="Run" order="2" weight="0.3526912" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.39943343" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -677,17 +490,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/ToolsStructural.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="621">
-          <caret line="218" column="58" selection-start-line="218" selection-start-column="58" selection-end-line="218" selection-end-column="58" />
-          <folding>
-            <element signature="e#0#19#0" expanded="true" />
-            <marker date="1545239992633" expanded="true" signature="7900:7903" ph="..." />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/ToolsFunctional.py">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
@@ -698,10 +500,28 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/AttentionHead.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="197">
+          <caret line="55" column="95" selection-start-line="55" selection-start-column="95" selection-end-line="55" selection-end-column="95" />
+          <caret line="52" column="51" selection-start-line="52" selection-start-column="51" selection-end-line="52" selection-end-column="51" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/MainGAT.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1853">
+          <caret line="109" column="21" selection-start-line="109" selection-start-column="21" selection-end-line="109" selection-end-column="21" />
+          <folding>
+            <element signature="e#0#18#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/SupervisedGAT.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="495">
-          <caret line="237" column="72" lean-forward="true" selection-start-line="237" selection-start-column="72" selection-end-line="237" selection-end-column="72" />
+        <state relative-caret-position="1173">
+          <caret line="237" column="72" selection-start-line="237" selection-start-column="72" selection-end-line="237" selection-end-column="72" />
           <folding>
             <element signature="e#0#23#0" expanded="true" />
             <marker date="1546598699267" expanded="true" signature="1414:1681" ph="..." />
@@ -712,48 +532,44 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/MainGAT.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2380">
-          <caret line="145" column="75" selection-start-line="145" selection-start-column="75" selection-end-line="145" selection-end-column="75" />
-          <folding>
-            <element signature="e#0#18#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/AttentionHead.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="306">
-          <caret line="18" column="40" selection-start-line="18" selection-start-column="40" selection-end-line="18" selection-end-column="40" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/BaseGAT.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="578">
-          <caret line="34" selection-end-line="34" />
+        <state relative-caret-position="510">
+          <caret line="30" column="21" lean-forward="true" selection-start-line="30" selection-start-column="21" selection-end-line="30" selection-end-column="21" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/LearningProcess.py">
+    <entry file="file://$PROJECT_DIR$/ToolsStructural.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1581">
-          <caret line="95" column="64" selection-start-line="95" selection-start-column="64" selection-end-line="95" selection-end-column="64" />
+        <state relative-caret-position="-868">
+          <caret line="51" column="52" selection-start-line="51" selection-start-column="52" selection-end-line="51" selection-end-column="52" />
           <folding>
-            <element signature="e#0#31#0" expanded="true" />
-            <marker date="1546647598916" expanded="true" signature="225:229" ph="..." />
-            <marker date="1546647598916" expanded="true" signature="2441:3087" ph="..." />
+            <element signature="e#0#19#0" expanded="true" />
+            <marker date="1546804646801" expanded="true" signature="1293:1298" ph="..." />
+            <marker date="1546804646801" expanded="true" signature="7900:7903" ph="..." />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/MiniBatchGAT.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="3825">
-          <caret line="253" column="19" selection-start-line="253" selection-start-column="19" selection-end-line="253" selection-end-column="19" />
+        <state relative-caret-position="313">
+          <caret line="253" column="64" selection-start-line="234" selection-start-column="3" selection-end-line="253" selection-end-column="64" />
           <folding>
             <element signature="e#0#23#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/LearningProcess.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="576">
+          <caret line="84" column="36" selection-start-line="84" selection-start-column="36" selection-end-line="84" selection-end-column="36" />
+          <folding>
+            <element signature="e#0#31#0" expanded="true" />
+            <marker date="1546805525875" expanded="true" signature="225:229" ph="..." />
+            <marker date="1546805525875" expanded="true" signature="2441:3797" ph="..." />
+            <marker date="1546805525875" expanded="true" signature="3205:3797" ph="..." />
           </folding>
         </state>
       </provider>

@@ -32,3 +32,24 @@ class BaseGAT:
         train_op = opt.minimize(loss + lossL2)
 
         return train_op
+
+    def batch_training(loss, lr, l2_coef):
+        # create optimizer
+        opt = tf.train.AdamOptimizer(learning_rate=lr)
+        # minibatch operations
+        # 0) Retrieve trainable variables
+        tvs = tf.trainable_variables()
+        # 1) Create placeholders for the accumulating gradients we'll be storing
+        accum_vars = [tf.Variable(tv.initialized_value(), trainable=False) for tv in tvs]
+        # 2) Operation to initialize accum_vars to zero (reinitialize the gradients)
+        zero_grads_ops = [tv.assign(tf.zeros_like(tv)) for tv in accum_vars]
+        # 3) Operation to compute the gradients for one minibatch
+        # regularization loss of the parameters
+        l2_l = tf.add_n([tf.nn.l2_loss(v) for v in tvs if v.name not in ['bias', 'gamma', 'b', 'g', 'beta']]) * l2_coef
+        gvs = opt.compute_gradients(loss + l2_l)
+        # 4) Operation to accumulate the gradients in accum_vars
+        accum_ops = [accum_vars[i].assign_add(gv[0]) for i, gv in enumerate(gvs)]
+        # 5) Operation to perform the update (apply gradients)
+        apply_ops = opt.apply_gradients([(accum_vars[i], tv) for i, tv in enumerate(tf.trainable_variables())])
+
+        return zero_grads_ops, accum_ops, apply_ops

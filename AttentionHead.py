@@ -53,6 +53,7 @@ def attn_head(input_feat_seq, out_size, adj_mat, bias_mat,
         logits = f_1 + tf.transpose(f_2, [0, 2, 1])
 
         # include the edge weights w_ij of the graph to the e_ij coefficients
+        # need to implement a more complex READOUT approach to include the edge weights : TO DO
         if include_weights:
             logits = tf.multiply(logits, adj_mat)
 

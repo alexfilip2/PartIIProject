@@ -58,7 +58,7 @@ def plot_hist_ew(log_scale=10):
 
 
 def plot_node_degree_hist(log_scale=10):
-    adjs = np.array(list(get_struct_adjs().values()))
+    adjs = np.array(interval_filter([183, 263857], np.array(list(get_struct_adjs().values()))))
     binary_adjs = [get_binary_adj(g) for g in adjs]
     degrees = np.array([[np.sum(curr_node_edges) for curr_node_edges in g] for g in binary_adjs]).flatten()
     n, bins, patches = plt.hist(x=degrees, bins='auto', color='#0504aa', alpha=0.7, rwidth=0.85)
@@ -70,30 +70,47 @@ def plot_node_degree_hist(log_scale=10):
     maxfreq = n.max()
     # Set a clean upper y-axis limit.
     plt.ylim(top=np.ceil(maxfreq / 10) * 10 if maxfreq % 10 else maxfreq + 10)
+    plt.savefig('node_degrees_filtered.png')
     plt.show()
 
 
+def plot_pers_scores_distrib():
+    all_traits = np.array(list(get_NEO5_scores().values())).transpose()
+
+    for trait_vals in all_traits:
+        n, bins, patches = plt.hist(x=trait_vals, bins='auto', color='#0504aa', alpha=0.7, rwidth=0.85)
+        plt.grid(axis='y', alpha=0.75)
+        plt.xlabel('Peronality trait value')
+        plt.ylabel('Frequency')
+        plt.title('Peronality trait Histogram')
+        plt.text(23, 45, r'$\mu=15, b=3$')
+        maxfreq = n.max()
+        # Set a clean upper y-axis limit.
+        plt.ylim(top=np.ceil(maxfreq / 10) * 10 if maxfreq % 10 else maxfreq + 10)
+        plt.show()
+
+
+
 if __name__ == "__main__":
-    hid_units = [64, 32, 16]
-    n_heads = [4, 4, 6]
+    hid_units = [16, 8]
+    n_heads = [2, 3]
     aggregators = [concat_feature_aggregator]
-    include_weights = [True]
+    include_weights = [False]
     limits = [(183, 263857)]
     pers_traits = [None, ['A']]
-    batches = [1, 5, 10]
-    for aggr, iw, limit, p_traits, batch_sz in product(aggregators, include_weights, limits, pers_traits, batches):
+    batches = [2]
+    for aggr, iw, limit, p_traits, batch_size in product(aggregators, include_weights, limits, pers_traits, batches):
         model_GAT_config = GAT_hyperparam_config(hid_units=hid_units,
                                                  n_heads=n_heads,
-                                                 nb_epochs=1500,
+                                                 nb_epochs=10000,
                                                  aggregator=aggr,
                                                  include_weights=iw,
                                                  filter_name='interval',
                                                  pers_traits=p_traits,
                                                  limits=limit,
-                                                 batch_sz=batch_sz,
+                                                 batch_sz=batch_size,
                                                  dataset_type='struct',
                                                  lr=0.0001,
                                                  l2_coef=0.0005)
-        plt_learn_proc(model_GAT_config)
-
-
+        #plt_learn_proc(model_GAT_config)
+    plot_pers_scores_distrib()

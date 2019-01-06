@@ -2,7 +2,6 @@ import tensorflow as tf
 from MainGAT import *
 
 CHECKPT_PERIOD = 25
-SETTLE_EPOCHS = 25
 patience = 100
 
 checkpts_dir = os.path.join(os.getcwd(), os.pardir, 'PartIIProject', 'GAT_checkpoints')
@@ -110,24 +109,9 @@ def create_GAT_model(model_GAT_choice):
         loss = tf.losses.mean_squared_error(labels=score_in, predictions=prediction)
         # create tf session saver
         saver = tf.train.Saver()
-        # create optimizer
-        opt = tf.train.AdamOptimizer(learning_rate=lr)
 
         # minibatch operations
-        # 0) Retrieve trainable variables
-        tvs = tf.trainable_variables()
-        # 1) Create placeholders for the accumulating gradients we'll be storing
-        accum_vars = [tf.Variable(tv.initialized_value(), trainable=False) for tv in tvs]
-        # 2) Operation to initialize accum_vars to zero (reinitialize the gradients)
-        zero_grads_ops = [tv.assign(tf.zeros_like(tv)) for tv in accum_vars]
-        # 3) Operation to compute the gradients for one minibatch
-        # regularization loss of the parameters
-        l2_l = tf.add_n([tf.nn.l2_loss(v) for v in tvs if v.name not in ['bias', 'gamma', 'b', 'g', 'beta']]) * l2_coef
-        gvs = opt.compute_gradients(loss + l2_l)
-        # 4) Operation to accumulate the gradients in accum_vars
-        accum_ops = [accum_vars[i].assign_add(gv[0]) for i, gv in enumerate(gvs)]
-        # 5) Operation to perform the update (apply gradients)
-        apply_ops = opt.apply_gradients([(accum_vars[i], tv) for i, tv in enumerate(tf.trainable_variables())])
+        zero_grads_ops, accum_ops, apply_ops = model.batch_training(loss=loss, lr=lr, l2_coef=l2_coef)
 
         # number of training, validation, test graph examples
         tr_size, vl_size, ts_size = len(score_train), len(score_val), len(score_test)
@@ -138,66 +122,69 @@ def create_GAT_model(model_GAT_choice):
         # Necessary initializations
         tf.set_random_seed(1234)
         tf.group(tf.global_variables_initializer(), tf.local_variables_initializer()).run()
+
         # reload the GAT model from the last checkpoint
         epoch_start = reload_GAT_model(model_GAT_choice=model_GAT_choice, sess=sess, saver=saver)
-
+        # record the minimum validation loss encountered until current epoch
         vlss_mn = np.inf
+        # record the number of consecutive epochs when the loss doesn't improve
         curr_step = 0
 
         # Train loop
         # nb_epochs - number of epochs for training: the number of iteration of gradient descent to optimize
         for epoch in range(epoch_start, nb_epochs + 1):
+            # number of iterations of the training set when batch-training
+            tr_iterations = tr_size // batch_sz
             # Array for logging the loss
-            tr_loss_log = np.zeros(tr_size // batch_sz)
+            tr_loss_log = np.zeros(tr_iterations)
+
             # shuffle the training dataset
             score_in_tr, ftr_in_tr, bias_in_tr, adj_in_tr = shuffle_tr_data(score_train,
                                                                             graphs_features,
                                                                             biases,
                                                                             adj_matrices,
                                                                             tr_size)
-            for batch_nr in range(tr_size // batch_sz):
+            for iteration in range(tr_iterations):
                 # Make sure gradients are set to 0 before entering minibatch loop
                 sess.run(zero_grads_ops)
                 # Loop over minibatches and execute accumulate-gradient operation
                 for batch_step in range(batch_sz):
-                    index = batch_step + batch_nr * batch_sz
-                    sess.run([accum_ops], feed_dict={
-                        ftr_in: ftr_in_tr[index:index + 1],
-                        bias_in: bias_in_tr[index:index + 1],
-                        score_in: score_in_tr[index:index + 1],
-                        adj_in: adj_in_tr[index:index + 1],
-                        is_train: True,
-                        attn_drop: 0.6,
-                        ffd_drop: 0.6})
+                    index = batch_step + iteration * batch_sz
+                    sess.run([accum_ops], feed_dict={ftr_in: ftr_in_tr[index:index + 1],
+                                                     bias_in: bias_in_tr[index:index + 1],
+                                                     score_in: score_in_tr[index:index + 1],
+                                                     adj_in: adj_in_tr[index:index + 1],
+                                                     is_train: True,
+                                                     attn_drop: 0.6,
+                                                     ffd_drop: 0.6})
                 # Done looping over minibatches. Now apply gradients.
                 sess.run(apply_ops)
-
+                # Calculate the validation loss after every single batch training
                 for batch_step in range(batch_sz):
-                    index = batch_step + batch_nr * batch_sz
-                    (tr_example_loss,) = sess.run([loss], feed_dict={
-                        ftr_in: ftr_in_tr[index:index + 1],
-                        bias_in: bias_in_tr[index:index + 1],
-                        score_in: score_in_tr[index:index + 1],
-                        adj_in: adj_in_tr[index:index + 1],
-                        is_train: True,
-                        attn_drop: 0.6,
-                        ffd_drop: 0.6})
-                    tr_loss_log[batch_nr] += tr_example_loss
-                tr_loss_log[batch_nr] /= batch_sz
+                    index = batch_step + iteration * batch_sz
+                    (tr_example_loss,) = sess.run([loss], feed_dict={ftr_in: ftr_in_tr[index:index + 1],
+                                                                     bias_in: bias_in_tr[index:index + 1],
+                                                                     score_in: score_in_tr[index:index + 1],
+                                                                     adj_in: adj_in_tr[index:index + 1],
+                                                                     is_train: True,
+                                                                     attn_drop: 0.6,
+                                                                     ffd_drop: 0.6})
+                    tr_loss_log[iteration] += tr_example_loss
+                tr_loss_log[iteration] /= batch_sz
 
             vl_avg_loss = 0
             for vl_step in range(tr_size, tr_size + vl_size):
-                (vl_example_loss,) = sess.run([loss], feed_dict={
-                    ftr_in: graphs_features[vl_step:vl_step + 1],
-                    bias_in: biases[vl_step:vl_step + 1],
-                    score_in: score_val[vl_step - tr_size:vl_step - tr_size + 1],
-                    adj_in: adj_matrices[vl_step:vl_step + 1],
-                    is_train: False,
-                    attn_drop: 0.0,
-                    ffd_drop: 0.0})
+                (vl_example_loss,) = sess.run([loss], feed_dict={ftr_in: graphs_features[vl_step:vl_step + 1],
+                                                                 bias_in: biases[vl_step:vl_step + 1],
+                                                                 score_in: score_val[
+                                                                           vl_step - tr_size:vl_step - tr_size + 1],
+                                                                 adj_in: adj_matrices[vl_step:vl_step + 1],
+                                                                 is_train: False,
+                                                                 attn_drop: 0.0,
+                                                                 ffd_drop: 0.0})
                 vl_avg_loss += vl_example_loss
-
             vl_avg_loss /= vl_size
+
             tr_avg_loss = np.sum(tr_loss_log) / (tr_size // batch_sz)
             print_GAT_learn_loss(model_GAT_choice, tr_avg_loss=tr_avg_loss, vl_avg_loss=vl_avg_loss)
 
@@ -206,7 +193,7 @@ def create_GAT_model(model_GAT_choice):
                 save_path = saver.save(sess, checkpt_file, global_step=epoch)
                 print("Training progress after %d epochs saved in path: %s" % (epoch, save_path))
 
-            # wait for the learning losses to settle before the specified number of training iterations
+            # wait for the validation loss to settle before the specified number of training iterations
             if vl_avg_loss <= vlss_mn:
                 vlss_early_model = vl_avg_loss
                 vlss_mn = np.min((vl_avg_loss, vlss_mn))
@@ -229,14 +216,14 @@ def create_GAT_model(model_GAT_choice):
 
     ts_avg_loss = 0
     for ts_step in range(tr_size + vl_size, tr_size + vl_size + ts_size):
-        (ts_example_loss,) = sess.run([loss], feed_dict={
-            ftr_in: graphs_features[ts_step:ts_step + 1],
-            bias_in: biases[ts_step:ts_step + 1],
-            score_in: score_test[ts_step - tr_size - vl_size:ts_step - tr_size - vl_size + 1],
-            adj_in: adj_matrices[ts_step:ts_step + 1],
-            is_train: False,
-            attn_drop: 0.0,
-            ffd_drop: 0.0})
+        (ts_example_loss,) = sess.run([loss], feed_dict={ftr_in: graphs_features[ts_step:ts_step + 1],
+                                                         bias_in: biases[ts_step:ts_step + 1],
+                                                         score_in: score_test[ts_step - tr_size - vl_size:
+                                                                              ts_step - tr_size - vl_size + 1],
+                                                         adj_in: adj_matrices[ts_step:ts_step + 1],
+                                                         is_train: False,
+                                                         attn_drop: 0.0,
+                                                         ffd_drop: 0.0})
         ts_avg_loss += ts_example_loss
 
     print('Test loss:', ts_avg_loss / ts_size)
@@ -245,14 +232,14 @@ def create_GAT_model(model_GAT_choice):
 
 
 if __name__ == "__main__":
-    hid_units = [64, 32, 16]
-    n_heads = [4, 4, 6]
+    hid_units = [16, 8]
+    n_heads = [2, 3]
     aggregators = [concat_feature_aggregator]
-    include_weights = [True]
+    include_weights = [False]
     limits = [(183, 263857)]
     pers_traits = [None, ['A']]
-    batches = [1, 2]
-    for aggr, iw, limit, p_traits, batch_sz in product(aggregators, include_weights, limits, pers_traits, batches):
+    batches = [2]
+    for aggr, iw, limit, p_traits, batch_size in product(aggregators, include_weights, limits, pers_traits, batches):
         model_GAT_config = GAT_hyperparam_config(hid_units=hid_units,
                                                  n_heads=n_heads,
                                                  nb_epochs=10000,
@@ -261,7 +248,7 @@ if __name__ == "__main__":
                                                  filter_name='interval',
                                                  pers_traits=p_traits,
                                                  limits=limit,
-                                                 batch_sz=batch_sz,
+                                                 batch_sz=batch_size,
                                                  dataset_type='struct',
                                                  lr=0.0001,
                                                  l2_coef=0.0005)
