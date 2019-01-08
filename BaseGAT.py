@@ -4,7 +4,7 @@ import tensorflow as tf
 class BaseGAT:
 
     def training(loss, lr, l2_coef):
-        """ Defines the training operation of the whole GAT neural network model
+        """ Defines the training operation of the entire GAT neural network model
 
                 Parameters
                 ----------
@@ -17,23 +17,43 @@ class BaseGAT:
 
                 Returns
                 -------
-                train_op : function
+                train_op : tf Operation
                     The training operation using the Adam optimizer to learn the parameters by minimizing 'loss'
-                """
-        # weight decay
+        """
         # Returns all variables created which have trainable = True (by default or implicitly)
         vars = tf.trainable_variables()
-        # regularization loss of the parameters
+        # Regularization loss of the parameters: weight decay of the learnable parameters
         lossL2 = tf.add_n([tf.nn.l2_loss(v) for v in vars if v.name not
                            in ['bias', 'gamma', 'b', 'g', 'beta']]) * l2_coef
-        # optimizer
+        # Create optimizer
         opt = tf.train.AdamOptimizer(learning_rate=lr)
-        # training op
+        # Training tensorflow Operation for batches of size 1
         train_op = opt.minimize(loss + lossL2)
 
         return train_op
 
     def batch_training(loss, lr, l2_coef):
+        """ Defines the training operation of the entire GAT neural network model
+
+                    Parameters
+                    ----------
+                    loss : function
+                        The loss function of the regression, it can be MSE, MAE, etc
+                    lr : float
+                        The learning rate of the parameters
+                    l2_coef : float
+                        L2 regularization coefficient
+
+                    Returns
+                    -------
+                    zero_grads_ops : tf Operation
+                        The tf operation clearing the gradients accumulated so far for each Trainable Variable
+                    accum_ops :  tf Operation
+                        The operation accumulating gradients for each Variable instead of using them for update
+                    apply_ops : tf Operation
+                        The operation  applying the gradients as updates to the Variables after being accumulated
+                        for a number of training examples (a batch)
+            """
         # create optimizer
         opt = tf.train.AdamOptimizer(learning_rate=lr)
         # minibatch operations

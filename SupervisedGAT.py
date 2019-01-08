@@ -235,7 +235,7 @@ def create_GAT_model(model_GAT_choice):
 if __name__ == "__main__":
     hid_units = [64, 32, 16]
     n_heads = [4, 4, 6]
-    aggregators = [concat_feature_aggregator, average_feature_aggregator]
+    aggregators = [MainGAT.concat_feature_aggregator, MainGAT.average_feature_aggregator]
     include_weights = [True]
     limits = [(183, 263857)]
     pers_traits = [None, ['A'], ['O'], ['C'], ['N'], ['E']]

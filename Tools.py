@@ -2,6 +2,8 @@ import numpy as np
 
 np.set_printoptions(threshold=np.nan)
 import os
+from os.path import join as join
+import pickle as pkl
 import pandas as pd
 import random
 import operator
@@ -12,9 +14,9 @@ import math
 from sys import stderr
 
 # Excel file containing per-subject personality scores
-pers_scores = os.path.join(os.getcwd(), os.pardir, 'PartIIProject', 'TIVscores', '1016_HCP_TIVscores.xlsx')
+pers_scores = join(os.getcwd(), os.pardir, 'PartIIProject', 'TIVscores', '1016_HCP_TIVscores.xlsx')
 # Output of the learning process losses directory
-gat_model_stats = os.path.join(os.getcwd(), os.pardir, 'PartIIProject', 'learning_process')
+gat_model_stats = join(os.getcwd(), os.pardir, 'PartIIProject', 'learning_process')
 if not os.path.exists(gat_model_stats):
     os.makedirs(gat_model_stats)
 
@@ -32,7 +34,6 @@ def get_NEO5_scores(trait_choice=None):
     subjects = map(str, list(df['Subject']))
     tiv_score_dict = dict(zip(subjects, np.array(tiv_scores).transpose().tolist()))
     return tiv_score_dict
-
 
 # transform an adjacency matrix with edge weights into a binary adj matrix, filtering negative weights
 def get_binary_adj(graph):
@@ -67,9 +68,8 @@ def adj_to_bias(adjs, sizes, nhood=1):
 
 # shuffle the trainign data arrays, but keeping the mappings
 def shuffle_tr_data(unshuf_scores, unshuf_feats, unshuf_biases, unshuf_adjs, chunk_sz):
-    assert chunk_sz == len(unshuf_scores)
 
-    shuffled_data = list(zip(unshuf_scores,
+    shuffled_data = list(zip(unshuf_scores[:chunk_sz],
                              unshuf_feats[:chunk_sz],
                              unshuf_biases[:chunk_sz],
                              unshuf_adjs[:chunk_sz]))

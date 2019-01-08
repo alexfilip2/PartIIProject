@@ -6,24 +6,26 @@ from ToolsFunctional import *
 from ToolsStructural import *
 
 dense = tf.layers.dense
-
-
-def average_feature_aggregator(model_GAT_output, target_score_type):
-    # sum all the node features
-    logits = tf.reduce_mean(model_GAT_output, axis=-1)  # shape of this is [[x_1,x_2,x_3,...,x_hid_units[-1]]]
-    # fed them into a MLP with separate weights for each personality score
-    output = tf.layers.dense(logits, units=target_score_type, use_bias=True)
-    return output
-
-
-def concat_feature_aggregator(model_GAT_output, target_score_type):
-    # concatenate all the node features
-    logits = tf.reshape(model_GAT_output, [1, -1])  # shape of this is [[x_1,x_2,...,x_(n_nodes*hid_units[-1])]
-    output = tf.layers.dense(logits, units=target_score_type, use_bias=True)
-    return output
+checkpts_dir = os.path.join(os.getcwd(), os.pardir, 'PartIIProject', 'GAT_checkpoints')
+if not os.path.exists(checkpts_dir):
+    os.makedirs(checkpts_dir)
 
 
 class MainGAT(BaseGAT):
+
+    def average_feature_aggregator(model_GAT_output, target_score_type):
+        # sum all the node features
+        logits = tf.reduce_mean(model_GAT_output, axis=-1)  # shape of this is [[x_1,x_2,x_3,...,x_hid_units[-1]]]
+        # fed them into a MLP with separate weights for each personality score
+        output = tf.layers.dense(logits, units=target_score_type, use_bias=True)
+        return output
+
+    def concat_feature_aggregator(model_GAT_output, target_score_type):
+        # concatenate all the node features
+        logits = tf.reshape(model_GAT_output, [1, -1])  # shape of this is [[x_1,x_2,...,x_(n_nodes*hid_units[-1])]
+        output = tf.layers.dense(logits, units=target_score_type, use_bias=True)
+        return output
+
     def inference(in_feat_vects, adj_mat, bias_mat, hid_units, n_heads,
                   train_flag, attn_drop, ffd_drop, activation=tf.nn.elu, residual=False,
                   include_weights=False, aggregator=concat_feature_aggregator, target_score_type=5):
@@ -53,7 +55,6 @@ class MainGAT(BaseGAT):
                 The output of the whole model, which is a prediction for the input graph
 
         """
-
         attns = []
         # for the first layer we provide the inputs directly
         for _ in range(n_heads[0]):
@@ -106,6 +107,7 @@ class MainGAT(BaseGAT):
         model_GAT_output = tf.add_n(out) / n_heads[-1]
         # aggregate all the output node features
         output = aggregator(model_GAT_output=model_GAT_output, target_score_type=target_score_type)
+
         print('Shape of the embedding output of the neural network for an inpiut graph is ' + str(output.shape))
         return output
 
@@ -156,3 +158,33 @@ class GAT_hyperparam_config(object):
                                                                     str_batch_sz)
 
         return name
+
+
+def reload_GAT_model(model_GAT_choice, sess, saver):
+    # Checkpoint file for the training of the GAT model
+    current_chkpt_dir = os.path.join(checkpts_dir, str(model_GAT_choice))
+    model_file = os.path.join(current_chkpt_dir, 'trained_model')
+    if not os.path.exists(current_chkpt_dir):
+        os.makedirs(current_chkpt_dir)
+
+    ckpt = tf.train.get_checkpoint_state(current_chkpt_dir)
+    if ckpt is None:
+        epoch_start = 1
+    else:
+        saver.restore(sess, ckpt.model_checkpoint_path)
+        saver.recover_last_checkpoints(ckpt.all_model_checkpoint_paths)
+        if tf.train.checkpoint_exists(model_file):
+            last_epoch_training = model_GAT_choice.nb_epochs
+            print('Re-loading full model %s' % model_GAT_choice)
+        else:
+            last_epoch_training = max([int(ck_file.split('-')[-1]) for ck_file in ckpt.all_model_checkpoint_paths])
+            print('Re-loading training from epoch %d' % last_epoch_training)
+        # restart training from where it was left
+        epoch_start = last_epoch_training + 1
+
+    return epoch_start
+
+def print_GAT_learn_loss(model_GAT_choice, tr_avg_loss, vl_avg_loss):
+    train_losses_file = open(os.path.join(gat_model_stats, 'train_losses' + str(model_GAT_choice)), 'a')
+    print('%.5f %.5f' % (tr_avg_loss, vl_avg_loss), file=train_losses_file)
+    print('Training: loss = %.5f | Val: loss = %.5f' % (tr_avg_loss, vl_avg_loss))

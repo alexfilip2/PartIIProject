@@ -182,21 +182,21 @@ def load_struct_data(model_GAT_choice):
     dict_node_feat = get_struct_node_feat()
     dict_tiv_score = get_NEO5_scores(model_GAT_choice.pers_traits)
 
-    adj_matrices, graph_features, scores = [], [], []
+    adj_matrices, graph_features, pers_scores = [], [], []
     subjects = sorted(list(dict_adj.keys()))
     for subj_id in subjects:
         if subj_id in dict_node_feat.keys() and subj_id in dict_tiv_score.keys():
             adj_matrices.append(dict_adj[subj_id])
             graph_features.append(dict_node_feat[subj_id])
-            scores.append(dict_tiv_score[subj_id])
+            pers_scores.append(dict_tiv_score[subj_id])
 
-    data_sz = len(scores)
 
-    score_train, score_val, score_test = np.split(np.array(scores), [int(data_sz * 0.8), int(data_sz * 0.9)])
+    pers_scores = np.array(pers_scores)
     adj_matrices = model_GAT_choice.filter(model_GAT_choice.limits, np.array(adj_matrices))
     graph_features = np.array(graph_features)
 
-    return adj_matrices, graph_features, score_train, score_val, score_test
+
+    return adj_matrices, graph_features, pers_scores
 
 
 def mat_flatten(mat):
@@ -216,7 +216,7 @@ def load_regress_data(trait_choice):
 
 
 if __name__ == "__main__":
-    edge_weights = [x for x in persist_ew_data() if x !=0]
+    edge_weights = [x for x in persist_ew_data() if x != 0]
     lower_conf = np.percentile(edge_weights, 5)
     upper_conf = np.percentile(edge_weights, 95)
     print(lower_conf)

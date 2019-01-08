@@ -4,41 +4,6 @@ from MainGAT import *
 CHECKPT_PERIOD = 25
 patience = 100
 
-checkpts_dir = os.path.join(os.getcwd(), os.pardir, 'PartIIProject', 'GAT_checkpoints')
-if not os.path.exists(checkpts_dir):
-    os.makedirs(checkpts_dir)
-
-
-def reload_GAT_model(model_GAT_choice, sess, saver):
-    # Checkpoint file for the training of the GAT model
-    current_chkpt_dir = os.path.join(checkpts_dir, str(model_GAT_choice))
-    model_file = os.path.join(current_chkpt_dir, 'trained_model')
-    if not os.path.exists(current_chkpt_dir):
-        os.makedirs(current_chkpt_dir)
-
-    ckpt = tf.train.get_checkpoint_state(current_chkpt_dir)
-    if ckpt is None:
-        epoch_start = 1
-    else:
-        saver.restore(sess, ckpt.model_checkpoint_path)
-        saver.recover_last_checkpoints(ckpt.all_model_checkpoint_paths)
-        if tf.train.checkpoint_exists(model_file):
-            last_epoch_training = model_GAT_choice.nb_epochs
-            print('Re-loading full model %s' % model_GAT_choice)
-        else:
-            last_epoch_training = max([int(ck_file.split('-')[-1]) for ck_file in ckpt.all_model_checkpoint_paths])
-            print('Re-loading training from epoch %d' % last_epoch_training)
-        # restart training from where it was left
-        epoch_start = last_epoch_training + 1
-
-    return epoch_start
-
-
-def print_GAT_learn_loss(model_GAT_choice, tr_avg_loss, vl_avg_loss):
-    train_losses_file = open(os.path.join(gat_model_stats, 'train_losses' + str(model_GAT_choice)), 'a')
-    print('%.5f %.5f' % (tr_avg_loss, vl_avg_loss), file=train_losses_file)
-    print('Training: loss = %.5f | Val: loss = %.5f' % (tr_avg_loss, vl_avg_loss))
-
 
 def create_GAT_model(model_GAT_choice):
     # GAT model
@@ -69,7 +34,7 @@ def create_GAT_model(model_GAT_choice):
     print('model: ' + str(model))
 
     # data for adjancency matrices, node feature vectors and personality scores for each study patient
-    adj_matrices, graphs_features, score_train, score_test, score_val = model_GAT_choice.load_data(model_GAT_choice)
+    adj_matrices, graphs_features, pers_scores = model_GAT_choice.load_data(model_GAT_choice)
     # used in order to implement MASKED ATTENTION by discardining non-neighbours out of nhood hops
     biases = adj_to_bias(adj_matrices, [graph.shape[0] for graph in adj_matrices], nhood=1)
     # nr of nodes for each graph: it is shared among all examples due to the dataset
@@ -114,7 +79,8 @@ def create_GAT_model(model_GAT_choice):
         zero_grads_ops, accum_ops, apply_ops = model.batch_training(loss=loss, lr=lr, l2_coef=l2_coef)
 
         # number of training, validation, test graph examples
-        tr_size, vl_size, ts_size = len(score_train), len(score_val), len(score_test)
+        split_sz = len(pers_scores) // 10
+        tr_size, vl_size, ts_size = split_sz * 8, split_sz, split_sz
         print('The training size is: %d, the validation: %d and the test: %d' % (tr_size, vl_size, ts_size))
 
         # Create interactive session to execute the accumulation of gradients per batch
@@ -139,7 +105,7 @@ def create_GAT_model(model_GAT_choice):
             tr_loss_log = np.zeros(tr_iterations)
 
             # shuffle the training dataset
-            score_in_tr, ftr_in_tr, bias_in_tr, adj_in_tr = shuffle_tr_data(score_train,
+            score_in_tr, ftr_in_tr, bias_in_tr, adj_in_tr = shuffle_tr_data(pers_scores,
                                                                             graphs_features,
                                                                             biases,
                                                                             adj_matrices,
@@ -176,8 +142,7 @@ def create_GAT_model(model_GAT_choice):
             for vl_step in range(tr_size, tr_size + vl_size):
                 (vl_example_loss,) = sess.run([loss], feed_dict={ftr_in: graphs_features[vl_step:vl_step + 1],
                                                                  bias_in: biases[vl_step:vl_step + 1],
-                                                                 score_in: score_val[
-                                                                           vl_step - tr_size:vl_step - tr_size + 1],
+                                                                 score_in: pers_scores[vl_step:vl_step + 1],
                                                                  adj_in: adj_matrices[vl_step:vl_step + 1],
                                                                  is_train: False,
                                                                  attn_drop: 0.0,
@@ -218,8 +183,7 @@ def create_GAT_model(model_GAT_choice):
     for ts_step in range(tr_size + vl_size, tr_size + vl_size + ts_size):
         (ts_example_loss,) = sess.run([loss], feed_dict={ftr_in: graphs_features[ts_step:ts_step + 1],
                                                          bias_in: biases[ts_step:ts_step + 1],
-                                                         score_in: score_test[ts_step - tr_size - vl_size:
-                                                                              ts_step - tr_size - vl_size + 1],
+                                                         score_in: pers_scores[ts_step: ts_step + 1],
                                                          adj_in: adj_matrices[ts_step:ts_step + 1],
                                                          is_train: False,
                                                          attn_drop: 0.0,
@@ -233,9 +197,9 @@ def create_GAT_model(model_GAT_choice):
 
 if __name__ == "__main__":
     hid_units = [16, 8]
-    n_heads = [2, 3]
-    aggregators = [concat_feature_aggregator]
-    include_weights = [False]
+    n_heads = [2, 4]
+    aggregators = [MainGAT.concat_feature_aggregator]
+    include_weights = [True]
     limits = [(183, 263857)]
     pers_traits = [None, ['A']]
     batches = [2]

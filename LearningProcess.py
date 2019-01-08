@@ -53,7 +53,7 @@ def plot_hist_ew(log_scale=10):
     maxfreq = n.max()
     # Set a clean upper y-axis limit.
     plt.ylim(top=np.ceil(maxfreq / 10) * 10 if maxfreq % 10 else maxfreq + 10)
-    plt.savefig(os.path.join(gat_model_stats, 'edge_weight_distribution.png'))
+    plt.savefig(join(gat_model_stats, 'edge_weight_distribution.png'))
     plt.show()
 
 
@@ -70,7 +70,7 @@ def plot_node_degree_hist(log_scale=10):
     maxfreq = n.max()
     # Set a clean upper y-axis limit.
     plt.ylim(top=np.ceil(maxfreq / 10) * 10 if maxfreq % 10 else maxfreq + 10)
-    plt.savefig('node_degrees_filtered.png')
+    plt.savefig(join(gat_model_stats,'node_degrees_filtered.png'))
     plt.show()
 
 
@@ -94,7 +94,7 @@ def plot_pers_scores_distrib():
 if __name__ == "__main__":
     hid_units = [16, 8]
     n_heads = [2, 3]
-    aggregators = [concat_feature_aggregator]
+    aggregators = [MainGAT.concat_feature_aggregator]
     include_weights = [False]
     limits = [(183, 263857)]
     pers_traits = [None, ['A']]
