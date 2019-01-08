@@ -3,12 +3,28 @@ import pickle as pkl
 
 np.set_printoptions(threshold=np.nan)
 
-dir_root_structural_data = os.path.join(os.getcwd(), os.pardir, 'PartIIProject', 'structural_data')
-dir_struct_mat_HCP = os.path.join(dir_root_structural_data, 'PTN matrices HCP')
-structural_feats_excel = os.path.join(dir_root_structural_data, 'Features_all.xlsx')
-dir_proc_struct_data = os.path.join(dir_root_structural_data, 'processed_data')
+dir_root_structural_data = join(os.getcwd(), os.pardir, 'PartIIProject', 'structural_data')
+dir_struct_mat_HCP = join(dir_root_structural_data, 'PTN matrices HCP')
+structural_feats_excel = join(dir_root_structural_data, 'Features_all.xlsx')
+dir_proc_struct_data = join(dir_root_structural_data, 'processed_data')
 if not os.path.exists(dir_proc_struct_data):
     os.makedirs(dir_proc_struct_data)
+
+
+# check if numpy array a is asymmetric matrix
+def check_symmetric(a, tol=1e-8):
+    return np.allclose(a, a.T, atol=tol)
+
+
+def norm_matrix(mat):
+    row_sums = np.array(mat).sum(axis=1)
+    new_matrix = np.array(mat) / row_sums[:, np.newaxis]
+    return [[round(a, 2) for a in row] for row in new_matrix.tolist()]
+
+
+# a method of feature rescaling: rescale the values for each feature to (0,1)
+def rescale_feats(min, max, x):
+    return float(x - min) / float(max - min)
 
 
 # dictionary of node names-brain regions (with features attached) of structural graphs and their ID's among all nodes
@@ -27,21 +43,16 @@ def get_struct_f_names():
     return features_names
 
 
-# a method of feature rescaling: rescale the values for each feature to (0,1)
-def rescale_feats(min, max, x):
-    return float(x - min) / float(max - min)
-
-
 def get_struct_node_feat():
     node_feats_file = os.path.join(dir_proc_struct_data, 'node_feats.pkl')
     if os.path.exists(node_feats_file):
-        print('Loading the serialized node features data...')
+        print('Node features for the structural data already processed, loading them from disk...')
         with open(node_feats_file, 'rb') as handle:
             all_node_feats = pkl.load(handle)
-        print('Node features data was loaded.')
+        print('Node features for the structural data was loaded.')
         return all_node_feats
 
-    print('Creating and serializing node features data...')
+    print('Creating and serializing for the structural data...')
     # DataFrame object containing the data of the 'Data' sheet in the Excel dataset
     df = pd.read_excel(structural_feats_excel, sheet_name='Data')
     # dictionary of string patient id : array of shape (nr_of_nodes, nr_of_features_per_node)
@@ -92,32 +103,21 @@ def get_struct_node_feat():
 
     with open(node_feats_file, 'wb') as handle:
         pkl.dump(all_node_feats, handle, protocol=pkl.HIGHEST_PROTOCOL)
-    print('Node features data was persisted on disk.')
+    print('Node features for the structural data was computed and persisted on disk.')
 
     return all_node_feats
 
 
-# check if numpy array a is asymmetric matrix
-def check_symmetric(a, tol=1e-8):
-    return np.allclose(a, a.T, atol=tol)
-
-
-def norm_matrix(mat):
-    row_sums = np.array(mat).sum(axis=1)
-    new_matrix = np.array(mat) / row_sums[:, np.newaxis]
-    return [[round(a, 2) for a in row] for row in new_matrix.tolist()]
-
-
-def get_struct_adjs():
+def get_structural_adjs():
     adjs_file = os.path.join(dir_proc_struct_data, 'adjs_matrices.pkl')
     if os.path.exists(adjs_file):
-        print('Loading the serialized adjacency matrices data...')
+        print('Loading the serialized adjacency matrices for the structural data...')
         with open(adjs_file, 'rb') as handle:
             adj = pkl.load(handle)
-        print('Adjacency matrices data was loaded.')
+        print('Adjacency matrices for the structural data was loaded.')
         return adj
 
-    print('Creating and serializing adjacency matrices data...')
+    print('Creating and serializing adjacency matrices for structural data...')
     # os.walk includes as the first item the parent directory itself then the rest of sub-directories
     subjects_subdirs = [os.path.join(dir_struct_mat_HCP, subdir) for subdir in next(os.walk(dir_struct_mat_HCP))[1]]
     # the brain region ID's of all nodes that have node features
@@ -139,46 +139,32 @@ def get_struct_adjs():
             i_lower = np.tril_indices(len(graph), -1)
             sym_adj = np.array(graph)
             sym_adj[i_lower] = sym_adj.T[i_lower]
-            if not check_symmetric(sym_adj): print("Making this adjancency matrix symmetric failed", file=stderr)
+            if not check_symmetric(sym_adj): print("Making the adjancency matrix symmetric failed", file=stderr)
             # normalize the rows of the adjacency matrix
 
             adj[subj_id.split('_')[0]] = sym_adj.tolist()
 
     with open(adjs_file, 'wb') as handle:
         pkl.dump(adj, handle, protocol=pkl.HIGHEST_PROTOCOL)
+    print('Adjacency matrices for the structural data was computed and persisted on disk.')
     return adj
 
 
-def persist_ew_data():
-    ew_file = os.path.join(os.getcwd(), os.pardir, 'PartIIProject', 'flatten_edge_weigths.npy')
-    if os.path.exists(ew_file):
-        print('Loading the serialized edge weights data...')
-        edge_weights = np.load(ew_file)
-        print('Edge weights data was loaded.')
-    else:
-        print('Creating and serializing edge weights data...')
-        adjs = list(get_struct_adjs().values())
-        edge_weights = [np.array(mat)[np.triu_indices(len(mat))] for mat in adjs]
-        edge_weights = np.array(edge_weights).flatten()
-        np.save(ew_file, edge_weights)
-        print('Edge weights data was persisted on disk.')
-    return edge_weights
 
-
-def interval_filter(limits, adj_arr):
+def interval_filter(limits, struct_adjs):
     lower_conf = limits[0]
     upper_conf = limits[1]
-    filtered_arr = np.empty(adj_arr.shape)
-    for g_id, g in enumerate(adj_arr):
+    filtered_adjs = np.empty(struct_adjs.shape)
+    for g_id, g in enumerate(struct_adjs):
         for i in range(g.shape[0]):
             for j in range(g.shape[1]):
-                filtered_arr[g_id][i][j] = g[i][j] if (lower_conf <= g[i][j] <= upper_conf) else 0.0
+                filtered_adjs[g_id][i][j] = g[i][j] if (lower_conf <= g[i][j] <= upper_conf) else 0.0
 
-    return filtered_arr
+    return filtered_adjs
 
 
 def load_struct_data(model_GAT_choice):
-    dict_adj = get_struct_adjs()
+    dict_adj = get_structural_adjs()
     dict_node_feat = get_struct_node_feat()
     dict_tiv_score = get_NEO5_scores(model_GAT_choice.pers_traits)
 
@@ -190,11 +176,9 @@ def load_struct_data(model_GAT_choice):
             graph_features.append(dict_node_feat[subj_id])
             pers_scores.append(dict_tiv_score[subj_id])
 
-
     pers_scores = np.array(pers_scores)
     adj_matrices = model_GAT_choice.filter(model_GAT_choice.limits, np.array(adj_matrices))
     graph_features = np.array(graph_features)
-
 
     return adj_matrices, graph_features, pers_scores
 
@@ -204,7 +188,7 @@ def mat_flatten(mat):
 
 
 def load_regress_data(trait_choice):
-    dict_adj = get_struct_adjs()
+    dict_adj = get_structural_adjs()
     dict_tiv_score = get_NEO5_scores(trait_choice)
     adj_matrices, scores = [], []
     for subj_id in sorted(list(dict_adj.keys())):

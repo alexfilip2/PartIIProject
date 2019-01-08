@@ -196,12 +196,12 @@ def create_GAT_model(model_GAT_choice):
 
 
 if __name__ == "__main__":
-    hid_units = [16, 8]
-    n_heads = [2, 4]
+    hid_units = [16, 8, 8]
+    n_heads = [2, 3, 3]
     aggregators = [MainGAT.concat_feature_aggregator]
     include_weights = [True]
     limits = [(183, 263857)]
-    pers_traits = [None, ['A']]
+    pers_traits = [['A'], ['E'], ['N'], ['C'], ['O']]
     batches = [2]
     for aggr, iw, limit, p_traits, batch_size in product(aggregators, include_weights, limits, pers_traits, batches):
         model_GAT_config = GAT_hyperparam_config(hid_units=hid_units,

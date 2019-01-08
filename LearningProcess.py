@@ -1,5 +1,7 @@
 import matplotlib.pyplot as plt
 
+import networkx as nx
+from matplotlib import pyplot, patches
 from SupervisedGAT import *
 
 
@@ -35,9 +37,10 @@ def n_degree_empirical_distrib(hop=10000):
     plt.show()
 
 
-def plot_hist_ew(log_scale=10):
+def plot_edge_weight_hist(log_scale=10, get_adjs_loader=get_structural_adjs):
+    data_type = get_adjs_loader.__name__.split('_')[1]
     # log-scale values of the weights, excluding the 0 edges (self-edges still have weigth 0)
-    edge_weights = np.array([math.log(x, log_scale) for x in persist_ew_data() if x != 0])
+    edge_weights = np.array([math.log(x, log_scale) for x in persist_ew_data(get_adjs_loader) if x != 0])
     lower_conf = np.percentile(edge_weights, 5)
     upper_conf = np.percentile(edge_weights, 95)
     # An "interface" to matplotlib.axes.Axes.hist() method
@@ -48,33 +51,34 @@ def plot_hist_ew(log_scale=10):
     plt.grid(axis='y', alpha=0.75)
     plt.xlabel('Log %d edge weight value' % log_scale)
     plt.ylabel('Frequency')
-    plt.title('Edge Weights Histogram')
+    plt.title('Edge Weights Histogram for %s graphs' % data_type)
     plt.text(23, 45, r'$\mu=15, b=3$')
     maxfreq = n.max()
     # Set a clean upper y-axis limit.
     plt.ylim(top=np.ceil(maxfreq / 10) * 10 if maxfreq % 10 else maxfreq + 10)
-    plt.savefig(join(gat_model_stats, 'edge_weight_distribution.png'))
+    plt.savefig(join(gat_model_stats, 'edge_weight_distrib_%s.png' % data_type))
     plt.show()
 
 
-def plot_node_degree_hist(log_scale=10):
-    adjs = np.array(interval_filter([183, 263857], np.array(list(get_struct_adjs().values()))))
+def plot_node_degree_hist(log_scale=10, get_adjs_loader=get_structural_adjs):
+    data_type = get_adjs_loader.__name__.split('_')[1]
+    adjs = np.array(list(get_adjs_loader().values()))
     binary_adjs = [get_binary_adj(g) for g in adjs]
     degrees = np.array([[np.sum(curr_node_edges) for curr_node_edges in g] for g in binary_adjs]).flatten()
     n, bins, patches = plt.hist(x=degrees, bins='auto', color='#0504aa', alpha=0.7, rwidth=0.85)
     plt.grid(axis='y', alpha=0.75)
     plt.xlabel('Node degree value')
     plt.ylabel('Frequency')
-    plt.title('Node degrees Histogram')
+    plt.title('Node degrees Histogram for %s data' % data_type)
     plt.text(23, 45, r'$\mu=15, b=3$')
     maxfreq = n.max()
     # Set a clean upper y-axis limit.
     plt.ylim(top=np.ceil(maxfreq / 10) * 10 if maxfreq % 10 else maxfreq + 10)
-    plt.savefig(join(gat_model_stats,'node_degrees_filtered.png'))
+    plt.savefig(join(gat_model_stats, 'node_degrees_filtered.png'))
     plt.show()
 
 
-def plot_pers_scores_distrib():
+def plot_pers_scores_hist():
     all_traits = np.array(list(get_NEO5_scores().values())).transpose()
 
     for trait_vals in all_traits:
@@ -90,14 +94,18 @@ def plot_pers_scores_distrib():
         plt.show()
 
 
+def draw_adjacency_heatmap(adjacency_matrix):
+    plt.imshow(adjacency_matrix, cmap='hot', interpolation='nearest')
+    plt.show()
+
 
 if __name__ == "__main__":
-    hid_units = [16, 8]
-    n_heads = [2, 3]
+    hid_units = [16, 8, 8]
+    n_heads = [2, 2, 4]
     aggregators = [MainGAT.concat_feature_aggregator]
-    include_weights = [False]
+    include_weights = [True]
     limits = [(183, 263857)]
-    pers_traits = [None, ['A']]
+    pers_traits = [['A'], ['E'], ['N'], ['C'], ['O']]
     batches = [2]
     for aggr, iw, limit, p_traits, batch_size in product(aggregators, include_weights, limits, pers_traits, batches):
         model_GAT_config = GAT_hyperparam_config(hid_units=hid_units,
@@ -112,5 +120,7 @@ if __name__ == "__main__":
                                                  dataset_type='struct',
                                                  lr=0.0001,
                                                  l2_coef=0.0005)
-        #plt_learn_proc(model_GAT_config)
-    plot_pers_scores_distrib()
+        # plt_learn_proc(model_GAT_config)
+
+    plot_node_degree_hist(get_adjs_loader=get_functional_adjs)
+    plot_node_degree_hist(get_adjs_loader=get_structural_adjs)

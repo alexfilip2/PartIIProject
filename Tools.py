@@ -35,6 +35,7 @@ def get_NEO5_scores(trait_choice=None):
     tiv_score_dict = dict(zip(subjects, np.array(tiv_scores).transpose().tolist()))
     return tiv_score_dict
 
+
 # transform an adjacency matrix with edge weights into a binary adj matrix, filtering negative weights
 def get_binary_adj(graph):
     bin_adj = np.zeros(graph.shape)
@@ -68,7 +69,6 @@ def adj_to_bias(adjs, sizes, nhood=1):
 
 # shuffle the trainign data arrays, but keeping the mappings
 def shuffle_tr_data(unshuf_scores, unshuf_feats, unshuf_biases, unshuf_adjs, chunk_sz):
-
     shuffled_data = list(zip(unshuf_scores[:chunk_sz],
                              unshuf_feats[:chunk_sz],
                              unshuf_biases[:chunk_sz],
@@ -79,6 +79,24 @@ def shuffle_tr_data(unshuf_scores, unshuf_feats, unshuf_biases, unshuf_adjs, chu
     assert len(shuf_score) == len(shuf_feats) == len(shuf_bises) == len(shuf_adjs) == chunk_sz
 
     return shuf_score, shuf_feats, shuf_bises, shuf_adjs
+
+
+def persist_ew_data(get_adjs_loader):
+    data_type = get_adjs_loader.__name__.split('_')[1]
+    dataset_dir = join(os.getcwd(), os.pardir, 'PartIIProject', data_type + '_data')
+    ew_file = join(dataset_dir, 'flatten_edge_weigths_%s.npy' % data_type)
+    if os.path.exists(ew_file):
+        print('Loading the serialized edge weights data...')
+        edge_weights = np.load(ew_file)
+        print('Edge weights data was loaded.')
+    else:
+        print('Creating and serializing edge weights data...')
+        adjs = list(get_adjs_loader().values())
+        edge_weights = [np.array(mat)[np.triu_indices(len(mat))] for mat in adjs]
+        edge_weights = np.array(edge_weights).flatten()
+        np.save(ew_file, edge_weights)
+        print('Edge weights data was persisted on disk.')
+    return edge_weights
 
 
 def shuffle_tr_utest(unshuf_scores, unshuf_feats, unshuf_biases, unshuf_adjs, chunk_sz):
