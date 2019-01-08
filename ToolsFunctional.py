@@ -39,17 +39,56 @@ def get_functional_adjs(ptn_dim=50, sess_file=ptnMAT_d50_ses1):
     return dict_adj
 
 
-# get the NEO5 TIV scores as an array of length 5 vectors, one for each patient in the study
-def get_NEO5_scores():
-    df = pd.ExcelFile(pers_scores).parse('Raw_data')  # you could add index_col=0 if there's an index
-    tiv_scores = []
-    tiv_scores.append(df['NEO.NEOFAC_A'])
-    tiv_scores.append(df['NEO.NEOFAC_O'])
-    tiv_scores.append(df['NEO.NEOFAC_C'])
-    tiv_scores.append(df['NEO.NEOFAC_N'])
-    tiv_scores.append(df['NEO.NEOFAC_E'])
+# a method of feature rescaling: rescale the values for each feature to (0,1)
+def rescale_feats(min, max, x):
+    return float(x - min) / float(max - min)
 
-    return np.array(tiv_scores).transpose()
+
+def get_functional_node_feat():
+    node_feats_file = os.path.join(ptnMAT_colab, 'node_feats.pkl')
+    if os.path.exists(node_feats_file):
+        print('Node features for the functional data already processed, loading them from disk...')
+        with open(node_feats_file, 'rb') as handle:
+            all_node_feats = pkl.load(handle)
+        print('Node features for the functional data was loaded.')
+        return all_node_feats
+
+    print('Creating and serializing for the structural data...')
+    node2vec_emb_dir = join(os.getcwd(), os.pardir, 'PartIIProject', 'node2vec_embeds')
+    all_node_feats = {}
+    feats_limits = {}
+    feat_size = 0
+    for embed in os.listdir(node2vec_emb_dir):
+
+        with open(join(node2vec_emb_dir, embed), 'r') as handle:
+
+            format = handle.readline()
+            nr_nodes = int(format.split()[0])
+            feat_size = int(format.split()[1])
+            graph_feats = np.zeros((nr_nodes, feat_size))
+            for _ in range(nr_nodes):
+                node_str_feat = handle.readline().split()
+                curr_node = int(node_str_feat[0]) - 1
+                for feat_index in range(feat_size):
+                    graph_feats[curr_node][feat_index] = float(node_str_feat[feat_index + 1])
+                    if feat_index not in feats_limits.keys():
+                        feats_limits[feat_index] = [float(node_str_feat[feat_index + 1])]
+                    else:
+                        feats_limits[feat_index].append(float(node_str_feat[feat_index + 1]))
+
+            all_node_feats[embed.split('embeddings')[0]] = graph_feats
+    limits = [(min(feats_limits[feat_index]), max(feats_limits[feat_index])) for feat_index in range(feat_size)]
+    for subj in all_node_feats.keys():
+        for node_vect in all_node_feats[subj]:
+            for feat_index in range(feat_size):
+                node_vect[feat_index] = rescale_feats(limits[feat_index][0],
+                                                      limits[feat_index][1],
+                                                      node_vect[feat_index])
+    with open(node_feats_file, 'wb') as handle:
+        pkl.dump(all_node_feats, handle, protocol=pkl.HIGHEST_PROTOCOL)
+        print('Node features for the functional data was computed and persisted on disk.')
+
+    return all_node_feats
 
 
 def gen_random_features(nb_nodes_graphs):
@@ -61,9 +100,21 @@ def gen_random_features(nb_nodes_graphs):
     return np.array(features)
 
 
-def load_funct_data():
-    adj_matrices = get_functional_adjs(PTN_MAT_DIM, sess_file=ptnMAT_d50_ses1)
-    graph_features = gen_random_features([adj.shape[0] for adj in adj_matrices])
-    pers_scores = get_NEO5_scores()[:adj_matrices.shape[0]]
+def load_funct_data(model_GAT_choice):
+    dict_adj = get_functional_adjs()
+    dict_node_feat = get_functional_node_feat()
+    dict_tiv_score = get_NEO5_scores(model_GAT_choice.pers_traits)
+
+    adj_matrices, graph_features, pers_scores = [], [], []
+    subjects = sorted(list(dict_adj.keys()))
+    for subj_id in subjects:
+        if subj_id in dict_node_feat.keys() and subj_id in dict_tiv_score.keys():
+            adj_matrices.append(dict_adj[subj_id])
+            graph_features.append(dict_node_feat[subj_id])
+            pers_scores.append(dict_tiv_score[subj_id])
+
+    pers_scores = np.array(pers_scores)
+    adj_matrices = np.array(adj_matrices)
+    graph_features = np.array(graph_features)
 
     return adj_matrices, graph_features, pers_scores

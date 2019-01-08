@@ -201,7 +201,7 @@ if __name__ == "__main__":
     aggregators = [MainGAT.concat_feature_aggregator]
     include_weights = [True]
     limits = [(183, 263857)]
-    pers_traits = [['A'], ['E'], ['N'], ['C'], ['O']]
+    pers_traits = [None]
     batches = [2]
     for aggr, iw, limit, p_traits, batch_size in product(aggregators, include_weights, limits, pers_traits, batches):
         model_GAT_config = GAT_hyperparam_config(hid_units=hid_units,
@@ -213,7 +213,7 @@ if __name__ == "__main__":
                                                  pers_traits=p_traits,
                                                  limits=limit,
                                                  batch_sz=batch_size,
-                                                 dataset_type='struct',
+                                                 dataset_type='funct',
                                                  lr=0.0001,
                                                  l2_coef=0.0005)
         create_GAT_model(model_GAT_config)
