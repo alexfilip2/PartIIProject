@@ -11,22 +11,6 @@ if not os.path.exists(dir_proc_struct_data):
     os.makedirs(dir_proc_struct_data)
 
 
-# check if numpy array a is asymmetric matrix
-def check_symmetric(a, tol=1e-8):
-    return np.allclose(a, a.T, atol=tol)
-
-
-def norm_matrix(mat):
-    row_sums = np.array(mat).sum(axis=1)
-    new_matrix = np.array(mat) / row_sums[:, np.newaxis]
-    return [[round(a, 2) for a in row] for row in new_matrix.tolist()]
-
-
-# a method of feature rescaling: rescale the values for each feature to (0,1)
-def rescale_feats(min, max, x):
-    return float(x - min) / float(max - min)
-
-
 # dictionary of node names-brain regions (with features attached) of structural graphs and their ID's among all nodes
 def get_struct_n_names():
     df = pd.read_excel(structural_feats_excel, sheet_name='nodes', index_col=None, header=None)
@@ -43,16 +27,16 @@ def get_struct_f_names():
     return features_names
 
 
-def get_struct_node_feat():
-    node_feats_file = os.path.join(dir_proc_struct_data, 'node_feats.pkl')
-    if os.path.exists(node_feats_file):
+def get_scaled_struct_node_feat():
+    node_feats_binary = join(dir_proc_struct_data, 'node_feats.pkl')
+    if os.path.exists(node_feats_binary):
         print('Node features for the structural data already processed, loading them from disk...')
-        with open(node_feats_file, 'rb') as handle:
+        with open(node_feats_binary, 'rb') as handle:
             all_node_feats = pkl.load(handle)
         print('Node features for the structural data was loaded.')
         return all_node_feats
 
-    print('Creating and serializing for the structural data...')
+    print('Creating and serializing node features data for the structural data...')
     # DataFrame object containing the data of the 'Data' sheet in the Excel dataset
     df = pd.read_excel(structural_feats_excel, sheet_name='Data')
     # dictionary of string patient id : array of shape (nr_of_nodes, nr_of_features_per_node)
@@ -98,10 +82,9 @@ def get_struct_node_feat():
                                                     f_value_limits[f_name]['max'],
                                                     float(graph_data[feat_brainreg_name])))
             current_graph_feats.append(curr_node_feat)
-
         all_node_feats[str(int(graph_data['Subjects']))] = current_graph_feats
 
-    with open(node_feats_file, 'wb') as handle:
+    with open(node_feats_binary, 'wb') as handle:
         pkl.dump(all_node_feats, handle, protocol=pkl.HIGHEST_PROTOCOL)
     print('Node features for the structural data was computed and persisted on disk.')
 
@@ -109,24 +92,24 @@ def get_struct_node_feat():
 
 
 def get_structural_adjs():
-    adjs_file = os.path.join(dir_proc_struct_data, 'adjs_matrices.pkl')
-    if os.path.exists(adjs_file):
+    adjs_binary = join(dir_proc_struct_data, 'adjs_matrices.pkl')
+    if os.path.exists(adjs_binary):
         print('Loading the serialized adjacency matrices for the structural data...')
-        with open(adjs_file, 'rb') as handle:
-            adj = pkl.load(handle)
+        with open(adjs_binary, 'rb') as handle:
+            all_adjs = pkl.load(handle)
         print('Adjacency matrices for the structural data was loaded.')
-        return adj
+        return all_adjs
 
     print('Creating and serializing adjacency matrices for structural data...')
     # os.walk includes as the first item the parent directory itself then the rest of sub-directories
-    subjects_subdirs = [os.path.join(dir_struct_mat_HCP, subdir) for subdir in next(os.walk(dir_struct_mat_HCP))[1]]
+    subjects_subdirs = [join(dir_struct_mat_HCP, subdir) for subdir in next(os.walk(dir_struct_mat_HCP))[1]]
     # the brain region ID's of all nodes that have node features
     filtered_nodes = get_struct_n_names().values()
 
-    adj = {}
+    all_adjs = {}
     for subject_dir in subjects_subdirs:
         for subj_id in os.listdir(subject_dir):
-            with open(os.path.join(subject_dir, subj_id), 'r', encoding='UTF-8') as subj_data:
+            with open(join(subject_dir, subj_id), 'r', encoding='UTF-8') as subj_data:
                 graph = []
                 for row_index, line in enumerate(subj_data, start=1):
                     if row_index not in filtered_nodes: continue
@@ -136,55 +119,48 @@ def get_structural_adjs():
                         adj_row.append(float(edge_weight))
                     graph.append(adj_row)
             # the adjancency matrices are upper diagonal, we make them symmetric
-            i_lower = np.tril_indices(len(graph), -1)
-            sym_adj = np.array(graph)
-            sym_adj[i_lower] = sym_adj.T[i_lower]
-            if not check_symmetric(sym_adj): print("Making the adjancency matrix symmetric failed", file=stderr)
-            # normalize the rows of the adjacency matrix
+            all_adjs[subj_id.split('_')[0]] = make_symmetric(graph)
 
-            adj[subj_id.split('_')[0]] = sym_adj.tolist()
-
-    with open(adjs_file, 'wb') as handle:
-        pkl.dump(adj, handle, protocol=pkl.HIGHEST_PROTOCOL)
+    with open(adjs_binary, 'wb') as handle:
+        pkl.dump(all_adjs, handle, protocol=pkl.HIGHEST_PROTOCOL)
     print('Adjacency matrices for the structural data was computed and persisted on disk.')
-    return adj
-
-
-
-def interval_filter(limits, struct_adjs):
-    lower_conf = limits[0]
-    upper_conf = limits[1]
-    filtered_adjs = np.empty(struct_adjs.shape)
-    for g_id, g in enumerate(struct_adjs):
-        for i in range(g.shape[0]):
-            for j in range(g.shape[1]):
-                filtered_adjs[g_id][i][j] = g[i][j] if (lower_conf <= g[i][j] <= upper_conf) else 0.0
-
-    return filtered_adjs
+    return all_adjs
 
 
 def load_struct_data(model_GAT_choice):
+    dataset_binary = join(dir_proc_struct_data, 'dataset.pkl')
+    if os.path.exists(dataset_binary):
+        print('Loading the serialized data for the structural graphs...')
+        with open(dataset_binary, 'rb') as handle:
+            data = pkl.load(handle)
+        print('Data set for the structural graphs was loaded.')
+        return data['data'], data['subjs']
+
     dict_adj = get_structural_adjs()
-    dict_node_feat = get_struct_node_feat()
+    dict_node_feat = get_scaled_struct_node_feat()
     dict_tiv_score = get_NEO5_scores(model_GAT_choice.pers_traits)
 
-    adj_matrices, graph_features, pers_scores = [], [], []
-    subjects = sorted(list(dict_adj.keys()))
-    for subj_id in subjects:
+    dict_dataset = {}
+    all_subjects = sorted(list(dict_adj.keys()))
+    available_subjs = []
+    for subj_id in all_subjects:
         if subj_id in dict_node_feat.keys() and subj_id in dict_tiv_score.keys():
-            adj_matrices.append(dict_adj[subj_id])
-            graph_features.append(dict_node_feat[subj_id])
-            pers_scores.append(dict_tiv_score[subj_id])
+            dict_dataset[subj_id] = {}
+            unexp_adj = norm_rows_adj(model_GAT_choice.filter(model_GAT_choice.limits, np.array(dict_adj[subj_id])))
+            if np.isnan(unexp_adj).any():
+                print(unexp_adj)
+                quit()
+            dict_dataset[subj_id]['feat'] = exp_dims(np.array(dict_node_feat[subj_id]), axis=0)
+            dict_dataset[subj_id]['adj'] = exp_dims(unexp_adj, axis=0)
+            dict_dataset[subj_id]['bias'] = exp_dims(adj_to_bias(unexp_adj, nhood=1), axis=0)
+            dict_dataset[subj_id]['score'] = exp_dims(np.array(dict_tiv_score[subj_id]), axis=0)
+            available_subjs.append(subj_id)
 
-    pers_scores = np.array(pers_scores)
-    adj_matrices = model_GAT_choice.filter(model_GAT_choice.limits, np.array(adj_matrices))
-    graph_features = np.array(graph_features)
+    with open(dataset_binary, 'wb') as handle:
+        pkl.dump({'data': dict_dataset, 'subjs': sorted(available_subjs)}, handle, protocol=pkl.HIGHEST_PROTOCOL)
+    print('Data set for the structural graphs was computed and persisted on disk.')
 
-    return adj_matrices, graph_features, pers_scores
-
-
-def mat_flatten(mat):
-    return np.squeeze(np.matrix(mat).flatten())
+    return dict_dataset, sorted(available_subjs)
 
 
 def load_regress_data(trait_choice):
@@ -197,11 +173,3 @@ def load_regress_data(trait_choice):
             scores.append(dict_tiv_score[subj_id])
 
     return np.array(adj_matrices), np.array(scores)
-
-
-if __name__ == "__main__":
-    edge_weights = [x for x in persist_ew_data() if x != 0]
-    lower_conf = np.percentile(edge_weights, 5)
-    upper_conf = np.percentile(edge_weights, 95)
-    print(lower_conf)
-    print(upper_conf)

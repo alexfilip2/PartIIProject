@@ -32,7 +32,7 @@ class BaseGAT:
 
         return train_op
 
-    def batch_training(loss, lr, l2_coef):
+    def batch_training(self, loss, u_loss, e_loss, lr, l2_coef):
         """ Defines the training operation of the entire GAT neural network model
 
                     Parameters
@@ -64,9 +64,9 @@ class BaseGAT:
         # 2) Operation to initialize accum_vars to zero (reinitialize the gradients)
         zero_grads_ops = [tv.assign(tf.zeros_like(tv)) for tv in accum_vars]
         # 3) Operation to compute the gradients for one minibatch
-        # regularization loss of the parameters
+        # regularization loss of the parameters, exclusive and uniform losses for the robustness of attention network
         l2_l = tf.add_n([tf.nn.l2_loss(v) for v in tvs if v.name not in ['bias', 'gamma', 'b', 'g', 'beta']]) * l2_coef
-        gvs = opt.compute_gradients(loss + l2_l)
+        gvs = opt.compute_gradients(tf.add_n([loss, l2_l, u_loss, e_loss]))
         # 4) Operation to accumulate the gradients in accum_vars
         accum_ops = [accum_vars[i].assign_add(gv[0]) for i, gv in enumerate(gvs)]
         # 5) Operation to perform the update (apply gradients)

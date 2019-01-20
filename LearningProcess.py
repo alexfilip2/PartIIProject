@@ -100,12 +100,12 @@ def draw_adjacency_heatmap(adjacency_matrix):
 
 
 if __name__ == "__main__":
-    hid_units = [16, 8, 8]
-    n_heads = [2, 2, 4]
+    hid_units = [20, 20, 10]
+    n_heads = [4, 4 ,6]
     aggregators = [MainGAT.concat_feature_aggregator]
     include_weights = [True]
-    limits = [(183, 263857)]
-    pers_traits = [['A'], ['E'], ['N'], ['C'], ['O']]
+    limits = [(10000, 6000000)]
+    pers_traits = [['A']]
     batches = [2]
     for aggr, iw, limit, p_traits, batch_size in product(aggregators, include_weights, limits, pers_traits, batches):
         model_GAT_config = GAT_hyperparam_config(hid_units=hid_units,
@@ -118,9 +118,8 @@ if __name__ == "__main__":
                                                  limits=limit,
                                                  batch_sz=batch_size,
                                                  dataset_type='struct',
-                                                 lr=0.0001,
+                                                 lr=0.00002,
                                                  l2_coef=0.0005)
-        # plt_learn_proc(model_GAT_config)
+        plt_learn_proc(model_GAT_config)
 
-    plot_node_degree_hist(get_adjs_loader=get_functional_adjs)
-    plot_node_degree_hist(get_adjs_loader=get_structural_adjs)
+

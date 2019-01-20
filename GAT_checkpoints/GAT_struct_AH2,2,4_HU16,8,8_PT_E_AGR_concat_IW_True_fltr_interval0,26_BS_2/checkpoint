@@ -1,6 +1,0 @@
-model_checkpoint_path: "C:\\Users\\user\\PycharmProjects\\PartIIProject\\..\\PartIIProject\\GAT_checkpoints\\GAT_struct_AH2,2,4_HU16,8,8_PT_E_AGR_concat_IW_True_fltr_interval0,26_BS_2\\trained_model"
-all_model_checkpoint_paths: "C:\\Users\\user\\PycharmProjects\\PartIIProject\\..\\PartIIProject\\GAT_checkpoints\\GAT_struct_AH2,2,4_HU16,8,8_PT_E_AGR_concat_IW_True_fltr_interval0,26_BS_2\\checkpoint-925"
-all_model_checkpoint_paths: "C:\\Users\\user\\PycharmProjects\\PartIIProject\\..\\PartIIProject\\GAT_checkpoints\\GAT_struct_AH2,2,4_HU16,8,8_PT_E_AGR_concat_IW_True_fltr_interval0,26_BS_2\\checkpoint-950"
-all_model_checkpoint_paths: "C:\\Users\\user\\PycharmProjects\\PartIIProject\\..\\PartIIProject\\GAT_checkpoints\\GAT_struct_AH2,2,4_HU16,8,8_PT_E_AGR_concat_IW_True_fltr_interval0,26_BS_2\\checkpoint-975"
-all_model_checkpoint_paths: "C:\\Users\\user\\PycharmProjects\\PartIIProject\\..\\PartIIProject\\GAT_checkpoints\\GAT_struct_AH2,2,4_HU16,8,8_PT_E_AGR_concat_IW_True_fltr_interval0,26_BS_2\\checkpoint-1000"
-all_model_checkpoint_paths: "C:\\Users\\user\\PycharmProjects\\PartIIProject\\..\\PartIIProject\\GAT_checkpoints\\GAT_struct_AH2,2,4_HU16,8,8_PT_E_AGR_concat_IW_True_fltr_interval0,26_BS_2\\trained_model"

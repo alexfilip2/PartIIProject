@@ -39,11 +39,6 @@ def get_functional_adjs(ptn_dim=50, sess_file=ptnMAT_d50_ses1):
     return dict_adj
 
 
-# a method of feature rescaling: rescale the values for each feature to (0,1)
-def rescale_feats(min, max, x):
-    return float(x - min) / float(max - min)
-
-
 def get_functional_node_feat():
     node_feats_file = os.path.join(ptnMAT_colab, 'node_feats.pkl')
     if os.path.exists(node_feats_file):
@@ -91,30 +86,33 @@ def get_functional_node_feat():
     return all_node_feats
 
 
-def gen_random_features(nb_nodes_graphs):
-    features = []
-    feat_vect = [random.uniform(0, 1) for _ in range(10)]
-    for nb_nodes in nb_nodes_graphs:
-        graph_feats = [feat_vect for _ in range(nb_nodes)]
-        features.append(graph_feats)
-    return np.array(features)
-
-
 def load_funct_data(model_GAT_choice):
+    dataset_binary = join(ptnMAT_colab, 'dataset.pkl')
+    if os.path.exists(dataset_binary):
+        print('Loading the serialized data for the functional graphs...')
+        with open(dataset_binary, 'rb') as handle:
+            data = pkl.load(handle)
+        print('Data set for the functional graphs was loaded.')
+        return data['data'], data['subjs']
+
     dict_adj = get_functional_adjs()
     dict_node_feat = get_functional_node_feat()
     dict_tiv_score = get_NEO5_scores(model_GAT_choice.pers_traits)
 
-    adj_matrices, graph_features, pers_scores = [], [], []
+    dict_dataset = {}
+    available_subjs = []
     subjects = sorted(list(dict_adj.keys()))
     for subj_id in subjects:
         if subj_id in dict_node_feat.keys() and subj_id in dict_tiv_score.keys():
-            adj_matrices.append(dict_adj[subj_id])
-            graph_features.append(dict_node_feat[subj_id])
-            pers_scores.append(dict_tiv_score[subj_id])
+            dict_dataset[subj_id] = {}
+            dict_dataset[subj_id]['feat'] = exp_dims(np.array(dict_node_feat[subj_id]), axis=0)
+            dict_dataset[subj_id]['adj'] = exp_dims(np.array(dict_adj[subj_id]), axis=0)
+            dict_dataset[subj_id]['bias'] = exp_dims(adj_to_bias(np.array(dict_adj[subj_id]), nhood=1), axis=0)
+            dict_dataset[subj_id]['score'] = exp_dims(np.array(dict_tiv_score[subj_id]), axis=0)
+            available_subjs.append(subj_id)
 
-    pers_scores = np.array(pers_scores)
-    adj_matrices = np.array(adj_matrices)
-    graph_features = np.array(graph_features)
+    with open(dataset_binary, 'wb') as handle:
+        pkl.dump({'data': dict_dataset, 'subjs': sorted(available_subjs)}, handle, protocol=pkl.HIGHEST_PROTOCOL)
+    print('Data set for the functional graphs was computed and persisted on disk.')
 
-    return adj_matrices, graph_features, pers_scores
+    return dict_dataset, available_subjs

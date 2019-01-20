@@ -13,20 +13,38 @@ if not os.path.exists(checkpts_dir):
 
 class MainGAT(BaseGAT):
 
-    def average_feature_aggregator(model_GAT_output, target_score_type):
+    def average_feature_aggregator(self, model_GAT_output, target_score_type, attn_drop, ffd_drop):
         # sum all the node features
         logits = tf.reduce_mean(model_GAT_output, axis=-1)  # shape of this is [[x_1,x_2,x_3,...,x_hid_units[-1]]]
         # fed them into a MLP with separate weights for each personality score
         output = tf.layers.dense(logits, units=target_score_type, use_bias=True)
         return output
 
-    def concat_feature_aggregator(model_GAT_output, target_score_type):
+    def concat_feature_aggregator(self, model_GAT_output, target_score_type, attn_drop, ffd_drop):
         # concatenate all the node features
         logits = tf.reshape(model_GAT_output, [1, -1])  # shape of this is [[x_1,x_2,...,x_(n_nodes*hid_units[-1])]
         output = tf.layers.dense(logits, units=target_score_type, use_bias=True)
         return output
 
-    def inference(in_feat_vects, adj_mat, bias_mat, hid_units, n_heads,
+    def master_node_aggregator(self, model_GAT_output, target_score_type, attn_drop, ffd_drop):
+        adj_mat, bias_mat = attach_master(model_GAT_output.shape[1])
+        master_feat = np.zeros((1, 1, model_GAT_output.shape[-1]))
+        extended_feats = tf.concat([model_GAT_output, master_feat], axis=1)
+        (out, _, _) = attn_layer.attn_head(input_feat_seq=extended_feats,
+                                           out_size=target_score_type,
+                                           adj_mat=adj_mat,
+                                           bias_mat=lambda x: x,
+                                           activation=tf.nn.elu,
+                                           include_weights=False,
+                                           input_drop=ffd_drop,
+                                           coefficient_drop=attn_drop,
+                                           residual=False)
+
+        output = tf.squeeze(tf.slice(input_=out, begin=[1,  model_GAT_output.shape[1],0], size=[1, 1, target_score_type]), axis=0)
+        print(output.shape)
+        return output
+
+    def inference(self, in_feat_vects, adj_mat, bias_mat, hid_units, n_heads,
                   train_flag, attn_drop, ffd_drop, activation=tf.nn.elu, residual=False,
                   include_weights=False, aggregator=concat_feature_aggregator, target_score_type=5):
         """  Links multiple layers of stacked GAT attention heads
@@ -53,20 +71,24 @@ class MainGAT(BaseGAT):
             -------
             output: tensor of shape (1,target_score_type)
                 The output of the whole model, which is a prediction for the input graph
-
         """
         attns = []
+        attn_heads_uloss = []
+        attn_heads_eloss =[]
         # for the first layer we provide the inputs directly
         for _ in range(n_heads[0]):
-            attns.append(attn_layer.attn_head(input_feat_seq=in_feat_vects,
-                                              out_size=hid_units[0],
-                                              adj_mat=adj_mat,
-                                              bias_mat=bias_mat,
-                                              activation=activation,
-                                              include_weights=include_weights,
-                                              input_drop=ffd_drop,
-                                              coefficient_drop=attn_drop,
-                                              residual=False))
+            attn_head_out, attn_unif_loss, attn_excl_loss = attn_layer.attn_head(input_feat_seq=in_feat_vects,
+                                                                                 out_size=hid_units[0],
+                                                                                 adj_mat=adj_mat,
+                                                                                 bias_mat=bias_mat,
+                                                                                 activation=activation,
+                                                                                 include_weights=include_weights,
+                                                                                 input_drop=ffd_drop,
+                                                                                 coefficient_drop=attn_drop,
+                                                                                 residual=False)
+            attns.append(attn_head_out)
+            attn_heads_uloss.append(attn_unif_loss)
+            attn_heads_eloss.append(attn_excl_loss)
 
         # foe each node j we concatenate hj' obtained from each attention head, length of h_1 is still nr of nodes
         h_1 = tf.concat(attns, axis=-1)
@@ -76,15 +98,18 @@ class MainGAT(BaseGAT):
 
             attns = []
             for _ in range(n_heads[i]):
-                attns.append(attn_layer.attn_head(input_feat_seq=h_1,
-                                                  out_size=hid_units[i],
-                                                  adj_mat=adj_mat,
-                                                  bias_mat=bias_mat,
-                                                  activation=activation,
-                                                  include_weights=include_weights,
-                                                  input_drop=ffd_drop,
-                                                  coefficient_drop=attn_drop,
-                                                  residual=residual))
+                attn_head_out, attn_unif_loss, attn_excl_loss = attn_layer.attn_head(input_feat_seq=h_1,
+                                                                                     out_size=hid_units[i],
+                                                                                     adj_mat=adj_mat,
+                                                                                     bias_mat=bias_mat,
+                                                                                     activation=activation,
+                                                                                     include_weights=include_weights,
+                                                                                     input_drop=ffd_drop,
+                                                                                     coefficient_drop=attn_drop,
+                                                                                     residual=residual)
+                attns.append(attn_head_out)
+                attn_heads_uloss.append(attn_unif_loss)
+                attn_heads_eloss.append(attn_excl_loss)
 
             # this is the input tensor for the next layer
             h_1 = tf.concat(attns, axis=-1)
@@ -93,23 +118,30 @@ class MainGAT(BaseGAT):
         # the output layer of the neural network architecture (node classification is implemented here)
         # the F' is nb_classes
         for i in range(n_heads[-1]):
-            out.append(attn_layer.attn_head(input_feat_seq=h_1,
-                                            out_size=hid_units[-1],
-                                            adj_mat=adj_mat,
-                                            bias_mat=bias_mat,
-                                            activation=lambda x: x,
-                                            include_weights=include_weights,
-                                            input_drop=ffd_drop,
-                                            coefficient_drop=attn_drop,
-                                            residual=False))
+            attn_head_out, attn_unif_loss, attn_excl_loss = attn_layer.attn_head(input_feat_seq=h_1,
+                                                                                 out_size=hid_units[-1],
+                                                                                 adj_mat=adj_mat,
+                                                                                 bias_mat=bias_mat,
+                                                                                 activation=lambda x: x,
+                                                                                 include_weights=include_weights,
+                                                                                 input_drop=ffd_drop,
+                                                                                 coefficient_drop=attn_drop,
+                                                                                 residual=False)
+            out.append(attn_head_out)
+            attn_heads_uloss.append(attn_unif_loss)
+            attn_heads_eloss.append(attn_excl_loss)
 
         # average the outputs of the output attention heads for the final prediction (concatenation is not possible)
         model_GAT_output = tf.add_n(out) / n_heads[-1]
         # aggregate all the output node features
-        output = aggregator(model_GAT_output=model_GAT_output, target_score_type=target_score_type)
+        output = aggregator(self,model_GAT_output=model_GAT_output, target_score_type=target_score_type, attn_drop=attn_drop,
+                            ffd_drop=ffd_drop)
+        # aggregate all the attention head losses
+        model_unif_loss = tf.reduce_mean(attn_heads_uloss, axis=-1)
+        model_excl_loss = tf.reduce_mean(attn_heads_eloss, axis=-1)
 
-        print('Shape of the embedding output of the neural network for an inpiut graph is ' + str(output.shape))
-        return output
+        print('Shape of the embedding output of the neural network for an input graph is ' + str(output.shape))
+        return output, model_unif_loss, model_excl_loss
 
 
 # class embodying the hyperparameter choice of a GAT model
@@ -183,6 +215,7 @@ def reload_GAT_model(model_GAT_choice, sess, saver):
         epoch_start = last_epoch_training + 1
 
     return epoch_start
+
 
 def print_GAT_learn_loss(model_GAT_choice, tr_avg_loss, vl_avg_loss):
     train_losses_file = open(os.path.join(gat_model_stats, 'train_losses' + str(model_GAT_choice)), 'a')
