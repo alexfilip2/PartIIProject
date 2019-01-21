@@ -85,7 +85,7 @@ def attn_head(input_feat_seq, out_size, adj_mat, bias_mat,
         # degrees = tf.Print(degrees, [degrees], message="This is degrees: ", summarize=64)
 
         # the UNIFORM LOSS of the current attention head
-        loss_unif_attn = tf.reduce_mean(tf.abs(tf.to_float(tf.subtract(non_zero_alpha, degrees))))
+        loss_unif_attn = tf.reduce_mean(tf.to_float(tf.subtract(non_zero_alpha, degrees)))
         # loss_unif_attn = tf.Print(loss_unif_attn, [loss_unif_attn], message="This is loss_unif_attn for this a_head: ")
 
         # the EXCLUSIVE LOSS of the current attention head

@@ -66,14 +66,14 @@ def adj_to_bias(adj: np.ndarray, nhood: int = 1) -> np.ndarray:
     return -1e9 * (1.0 - mt)
 
 
-# creates master node adjacency matrix
+# creates master node adjacency matrix attaching it as the last node
 def attach_master(nb_nodes):
     mast_mat = np.zeros((nb_nodes + 1, nb_nodes + 1))
     for i in range(nb_nodes + 1):
-        mast_mat[0][i] = 1.0
-        mast_mat[i][0] = 1.0
+        mast_mat[nb_nodes][i] = 1.0
+        mast_mat[i][nb_nodes] = 1.0
 
-    return exp_dims(mast_mat, axis=0), exp_dims(adj_to_bias(mast_mat), axis=0)
+    return exp_dims(mast_mat, axis=0), exp_dims(mast_mat, axis=0)
 
 
 # zero all the matrix entries that are not in the specified range value

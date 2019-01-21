@@ -30,18 +30,20 @@ class MainGAT(BaseGAT):
         adj_mat, bias_mat = attach_master(model_GAT_output.shape[1])
         master_feat = np.zeros((1, 1, model_GAT_output.shape[-1]))
         extended_feats = tf.concat([model_GAT_output, master_feat], axis=1)
+
         (out, _, _) = attn_layer.attn_head(input_feat_seq=extended_feats,
                                            out_size=target_score_type,
                                            adj_mat=adj_mat,
-                                           bias_mat=lambda x: x,
-                                           activation=tf.nn.elu,
+                                           bias_mat=bias_mat,
+                                           activation=lambda x:x,
                                            include_weights=False,
                                            input_drop=ffd_drop,
                                            coefficient_drop=attn_drop,
                                            residual=False)
-
-        output = tf.squeeze(tf.slice(input_=out, begin=[1,  model_GAT_output.shape[1],0], size=[1, 1, target_score_type]), axis=0)
-        print(output.shape)
+        out = tf.Print(out, [out], message="This is extended_feats: ", first_n=10, summarize=2000)
+        output = tf.squeeze(
+            tf.slice(input_=out, begin=[0, int(model_GAT_output.shape[1]), 0], size=[1, 1, target_score_type]), axis=0)
+        output = tf.Print(output, [output], message="This is output vector: ", first_n=10, summarize=2000)
         return output
 
     def inference(self, in_feat_vects, adj_mat, bias_mat, hid_units, n_heads,
@@ -74,7 +76,7 @@ class MainGAT(BaseGAT):
         """
         attns = []
         attn_heads_uloss = []
-        attn_heads_eloss =[]
+        attn_heads_eloss = []
         # for the first layer we provide the inputs directly
         for _ in range(n_heads[0]):
             attn_head_out, attn_unif_loss, attn_excl_loss = attn_layer.attn_head(input_feat_seq=in_feat_vects,
@@ -134,7 +136,8 @@ class MainGAT(BaseGAT):
         # average the outputs of the output attention heads for the final prediction (concatenation is not possible)
         model_GAT_output = tf.add_n(out) / n_heads[-1]
         # aggregate all the output node features
-        output = aggregator(self,model_GAT_output=model_GAT_output, target_score_type=target_score_type, attn_drop=attn_drop,
+        output = aggregator(self, model_GAT_output=model_GAT_output, target_score_type=target_score_type,
+                            attn_drop=attn_drop,
                             ffd_drop=ffd_drop)
         # aggregate all the attention head losses
         model_unif_loss = tf.reduce_mean(attn_heads_uloss, axis=-1)
