@@ -73,7 +73,7 @@ def attach_master(nb_nodes):
         mast_mat[nb_nodes][i] = 1.0
         mast_mat[i][nb_nodes] = 1.0
 
-    return exp_dims(mast_mat, axis=0), exp_dims(mast_mat, axis=0)
+    return exp_dims(mast_mat, axis=0), exp_dims(adj_to_bias(mast_mat), axis=0)
 
 
 # zero all the matrix entries that are not in the specified range value

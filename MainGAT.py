@@ -35,7 +35,7 @@ class MainGAT(BaseGAT):
                                            out_size=target_score_type,
                                            adj_mat=adj_mat,
                                            bias_mat=bias_mat,
-                                           activation=lambda x:x,
+                                           activation= tf.nn.relu,
                                            include_weights=False,
                                            input_drop=ffd_drop,
                                            coefficient_drop=attn_drop,

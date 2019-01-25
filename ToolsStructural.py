@@ -127,7 +127,7 @@ def get_structural_adjs():
     return all_adjs
 
 
-def load_struct_data(model_GAT_choice):
+def load_struct_data(model_GAT_choice=None):
     dataset_binary = join(dir_proc_struct_data, 'dataset.pkl')
     if os.path.exists(dataset_binary):
         print('Loading the serialized data for the structural graphs...')
@@ -164,12 +164,12 @@ def load_struct_data(model_GAT_choice):
 
 
 def load_regress_data(trait_choice):
-    dict_adj = get_structural_adjs()
-    dict_tiv_score = get_NEO5_scores(trait_choice)
+    data, subjs = load_struct_data()
     adj_matrices, scores = [], []
-    for subj_id in sorted(list(dict_adj.keys())):
-        if subj_id in dict_tiv_score.keys():
-            adj_matrices.append(mat_flatten(dict_adj[subj_id]).tolist()[0])
-            scores.append(dict_tiv_score[subj_id])
+    traits = np.array(sorted(['NEO.NEOFAC_A', 'NEO.NEOFAC_O', 'NEO.NEOFAC_C', 'NEO.NEOFAC_N', 'NEO.NEOFAC_E']))
+    (trait_index,) = np.where(traits == trait_choice)
+    for subj_id in sorted(subjs):
+        adj_matrices.append(mat_flatten(data[subj_id]['adj']).tolist())
+        scores.append(data[subj_id]['score'][0][trait_index])
 
-    return np.array(adj_matrices), np.array(scores)
+    return np.squeeze(np.array(adj_matrices), axis=1), np.squeeze(np.array(scores), axis=1)

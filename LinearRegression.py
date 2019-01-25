@@ -2,36 +2,36 @@ from ToolsStructural import *
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
-
+import neonrvm
 # Sperate train and test data
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error
 from sklearn import svm
 
-adjs, scores = load_regress_data(['NEO.NEOFAC_A'])
-print(adjs.shape)
-print(scores.shape)
-X_train, X_test, y_train, y_test = train_test_split(adjs, scores, test_size=0.2, random_state=0)
+adjs, scores = load_regress_data(['NEO.NEOFAC_C'])
+print("The lenght of the dataset is %d" % adjs.shape[0])
+adjs_train, adjs_test, scores_train, scores_test = train_test_split(adjs, scores, test_size=0.2, random_state=0)
+
 
 model = LinearRegression()
 # 2. Use fit
-model.fit(X_train, y_train)
+model.fit(adjs_train, scores_train)
 # 3. Check the score
-print(model.score(X_test, y_test))
+print(model.score(adjs_test, scores_test))
 
-y_pred = model.predict(X_test)
+scores_pred = model.predict(X=adjs_test)
 
-print(mean_squared_error(y_pred, np.squeeze(y_test)))
+print(mean_squared_error(scores_pred, scores_test))
 
 clf = svm.SVR()
-clf.fit(X_train, np.squeeze(y_train))
+clf.fit(adjs_train, scores_train)
 
-y_pred = clf.predict(X_test)
+scores_pred = clf.predict(adjs_test)
 
-print(mean_squared_error(y_pred, np.squeeze(y_test)))
+print(mean_squared_error(scores_pred, scores_test))
 
-
+'''
 def build_model():
     model = keras.Sequential([
         layers.Dense(64, activation=tf.nn.relu, input_shape=[X_train.shape[-1]]),
@@ -92,4 +92,4 @@ def plot_history(hist):
 
 loss, mae, mse = model.evaluate(X_test, np.squeeze(y_test), verbose=0)
 
-print("Testing set Mean Abs Error: {:5.2f} MPG".format(mse))
+print("Testing set Mean Abs Error: {:5.2f} MPG".format(mse))'''
