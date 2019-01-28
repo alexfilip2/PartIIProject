@@ -107,11 +107,11 @@ def mat_flatten(mat):
 
 # make an upper triangluar matrix symmetric
 def make_symmetric(a: list) -> list:
-    i_lower = np.tril_indices(len(a), -1)
-    sym_adj = np.array(a)
-    sym_adj[i_lower] = sym_adj.T[i_lower]
-    if not check_symmetric(sym_adj): print("Making the adjancency matrix symmetric failed", file=stderr)
-    return list(sym_adj.tolist())
+    for i in range(len(a)):
+        for j in range(i):
+            a[i][j] = a[j][i]
+
+    return a
 
 
 # check if numpy array a is asymmetric matrix

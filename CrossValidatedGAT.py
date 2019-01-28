@@ -14,40 +14,29 @@ class CrossValidatedGAT(MainGAT):
     def default_params(cls):
         return {
             'num_epochs': 10000,
-            'patience': 100,
+            'patience': 50,
             'learning_rate': 0.0001,
             'l2_coefficient': 0.0005,
-            'hidden_units': [16, 8],
-            'attention_heads': [3, 2],
+            'hidden_units': [20, 20, 10],
+            'attention_heads': [3, 3, 2],
             'batch_size': 2,
-            'readout_aggregator': super().concat_feature_aggregator,
+            'readout_aggregator': super().master_node_aggregator,
             'include_ew': True,
             'edgeWeights_filter': interval_filter,
-            'filter_limits': (183, 263857),
+            'filter_limits': (10000, 6000000),
             'non_linearity': tf.nn.elu,
             'pers_traits_selection': ['NEO.NEOFAC_A', 'NEO.NEOFAC_O', 'NEO.NEOFAC_C', 'NEO.NEOFAC_N', 'NEO.NEOFAC_E'],
             'load_specific_data': load_struct_data,
             'residual': False,
             'random_seed': 123,
-            'train_file': 'molecules_train.json',
-            'valid_file': 'molecules_valid.json'
         }
 
     def __init__(self, args):
         self.args = args
         params = self.default_params()
         self.params = params
-        # Load data:
-        # data for adjancency matrices, node feature vectors, biases for masked attention and personality scores
-        self.data, self.subjects = self.params['load_specific_data']()
-        # nr of nodes for each graph: it is shared among all examples due to the dataset
-        self.nb_nodes = self.data[self.subjects[0]]['adj'].shape[-1]
-        # the initial length F of each node feature vector: for every graph, node feat.vecs. have the same length
-        self.ft_size = self.data[self.subjects[0]]['feat'].shape[-1]
-        # how many of the big-five personality traits the model is targeting at once
-        self.outGAT_sz_target = len(self.params['pers_traits_selection'])
 
-        # Build the actual model
+        # Build the model skeleton
         config = tf.ConfigProto()
         config.gpu_options.allow_growth = True
         self.graph = tf.Graph()
@@ -57,6 +46,7 @@ class CrossValidatedGAT(MainGAT):
             tf.set_random_seed(params['random_seed'])
             self.placeholders = {}
             self.ops = {}
+            self.load_CV_data()
             self.make_model()
             # Restore/initialize variables:
             if args is not None:
@@ -71,18 +61,29 @@ class CrossValidatedGAT(MainGAT):
 
             self.train()
 
-    def load_data(self, file_name):
-        full_path = os.path.join(self.data_dir, file_name)
+    def load_CV_data(self):
+        # Load data:
+        # data for adjancency matrices, node feature vectors, biases for masked attention and personality scores
+        self.data, self.subjects = self.params['load_specific_data'](self.params['pers_traits_selection'],
+                                                                     self.params['edgeWeights_filter'],
+                                                                     self.params['filter_limits'])
+        # nr of nodes for each graph: it is shared among all examples due to the dataset
+        self.nb_nodes = self.data[self.subjects[0]]['adj'].shape[-1]
+        # the initial length F of each node feature vector: for every graph, node feat.vecs. have the same length
+        self.ft_size = self.data[self.subjects[0]]['feat'].shape[-1]
+        # how many of the big-five personality traits the model is targeting at once
+        self.outGAT_sz_target = len(self.params['pers_traits_selection'])
 
-        print("Loading data from %s" % full_path)
-        with open(full_path, 'r') as f:
-            data = json.load(f)
+    def split_CV(self, eval_fold_in, eval_fold_out, k_outer=10, k_inner=10, ):
+        outer_fold_size = len(self.subjects) / k_outer
+        self.outer_train = np.concatenate((self.subjects[:outer_fold_size * eval_fold_out],
+                                           self.subjects[:outer_fold_size * (eval_fold_out + 1)]))
+        self.outer_test = self.subjects[outer_fold_size * eval_fold_out:outer_fold_size * (eval_fold_out + 1)]
+        inner_fold_size = len(self.outer_train) / k_inner
+        self.inner_train = np.concatenate((self.outer_train[:inner_fold_size * eval_fold_in],
+                                           self.outer_train[:inner_fold_size * (eval_fold_in + 1)]))
 
-        restrict = self.args.get("--restrict_data")
-        if restrict is not None and restrict > 0:
-            data = data[:restrict]
-
-        return data
+        self.inner_test = self.outer_train[inner_fold_size * eval_fold_in:inner_fold_size * (eval_fold_in + 1)]
 
     def make_model(self):
         with tf.variable_scope('input'):
@@ -145,7 +146,7 @@ class CrossValidatedGAT(MainGAT):
                                               self.placeholders['attn_drop']: attn_drop,
                                               self.placeholders['ffd_drop']: ffd_drop})
 
-    def batch_train_step(self, iteration, examples_sbj):
+    def batch_train_step(self, iteration, train_subjs):
 
         batch_avg_loss = 0.0
         # Make sure gradients are set to 0 before entering minibatch loop
@@ -153,13 +154,13 @@ class CrossValidatedGAT(MainGAT):
         # Loop over minibatches and execute accumulate-gradient operation
         for batch_step in range(self.params['batch_size']):
             index = batch_step + iteration * self.params['batch_size']
-            self.feed_forward_op(self.ops['accum_ops'], index, examples_sbj, is_train=True, attn_drop=0.6, ffd_drop=0.6)
+            self.feed_forward_op(self.ops['accum_ops'], index, train_subjs, is_train=True, attn_drop=0.6, ffd_drop=0.6)
         # Done looping over minibatches. Now apply gradients.
         self.sess.run(self.ops['apply_ops'])
         # Calculate the validation loss after every single batch training
         for batch_step in range(self.params['batch_size']):
             index = batch_step + iteration * self.params['batch_size']
-            (tr_example_loss,) = self.feed_forward_op(self.ops['loss'], index, examples_sbj, is_train=True,
+            (tr_example_loss,) = self.feed_forward_op(self.ops['loss'], index, train_subjs, is_train=True,
                                                       attn_drop=0.6,
                                                       ffd_drop=0.6)
             batch_avg_loss += tr_example_loss
@@ -180,7 +181,7 @@ class CrossValidatedGAT(MainGAT):
         # shuffle the training dataset
         shuf_subjs = shuffle_tr_data(self.subjects, tr_size)
         for iteration in range(tr_iterations):
-            tr_loss_log[iteration] = self.batch_train_step(iteration=iteration, examples_sbj=shuf_subjs)
+            tr_loss_log[iteration] = self.batch_train_step(iteration=iteration, train_subjs=shuf_subjs)
 
         return np.sum(tr_loss_log) / tr_iterations
 
@@ -191,13 +192,20 @@ class CrossValidatedGAT(MainGAT):
         vl_avg_loss = 0
         for vl_step in range(tr_size, tr_size + vl_size):
             (vl_example_loss,) = self.feed_forward_op(self.ops['loss'], index=vl_step, examples_sbj=self.subjects,
-                                                   is_train=False, attn_drop=0.0, ffd_drop=0.0)
+                                                      is_train=False, attn_drop=0.0, ffd_drop=0.0)
             vl_avg_loss += vl_example_loss
 
         vl_avg_loss /= vl_size
         return vl_avg_loss
 
     def train(self):
+        # record the minimum validation loss encountered until current epoch
+        vlss_mn = np.inf
+        # store the validation loss of previous epoch
+        vlss_early_model = np.inf
+        # record the number of consecutive epochs when the loss doesn't improve
+        curr_step = 0
+
         for epoch in range((self.params['num_epochs'])):
             total_time_start = time.time()
             epoch_tr_loss = self.run_epoch_training()
@@ -206,7 +214,19 @@ class CrossValidatedGAT(MainGAT):
             print('Training: loss = %.5f | Val: loss = %.5f | Elapsed time %.5f' % (
                 epoch_tr_loss, epoch_val_loss, epoch_time))
 
-    def save_model(self, path: str) -> None:
+            # wait for the validation loss to settle before the specified number of training iterations
+            if epoch_val_loss <= vlss_mn:
+                vlss_early_model = epoch_val_loss
+                vlss_mn = np.min((epoch_val_loss, vlss_mn))
+                curr_step = 0
+            else:
+                curr_step += 1
+                if curr_step == self.params['patience']:
+                    print('Early stop! Min loss: ', vlss_mn)
+                    print('Early stop model validation loss: ', vlss_early_model)
+                    break
+
+    def save_model(self, last_epoch: int, path: str) -> None:
         weights_to_save = {}
         for variable in self.sess.graph.get_collection(tf.GraphKeys.GLOBAL_VARIABLES):
             assert variable.name not in weights_to_save
@@ -214,7 +234,8 @@ class CrossValidatedGAT(MainGAT):
 
         data_to_save = {
             "params": self.params,
-            "weights": weights_to_save
+            "weights": weights_to_save,
+            "epoch": last_epoch
         }
 
         with open(path, 'wb') as out_file:

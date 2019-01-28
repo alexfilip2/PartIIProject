@@ -66,10 +66,10 @@ class BaseGAT:
         # 3) Operation to compute the gradients for one minibatch
         # regularization loss of the parameters, exclusive and uniform losses for the robustness of attention network
         l2_l = tf.add_n([tf.nn.l2_loss(v) for v in tvs if v.name not in ['bias', 'gamma', 'b', 'g', 'beta']]) * l2_coef
-        gvs = opt.compute_gradients(tf.add_n([loss, l2_l, u_loss, e_loss]))
+        gvs = opt.compute_gradients(tf.add_n([loss, l2_l, u_loss * 0.0005, e_loss * 0.0005]))
         # 4) Operation to accumulate the gradients in accum_vars
         accum_ops = [accum_vars[i].assign_add(gv[0]) for i, gv in enumerate(gvs)]
         # 5) Operation to perform the update (apply gradients)
-        apply_ops = opt.apply_gradients([(accum_vars[i], tv) for i, tv in enumerate(tf.trainable_variables())])
+        apply_ops = opt.apply_gradients([(accum_vars[i], tv) for i, tv in enumerate(tvs)])
 
         return zero_grads_ops, accum_ops, apply_ops

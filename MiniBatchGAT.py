@@ -7,20 +7,21 @@ patience = 25
 def create_GAT_model(model_GAT_choice):
     # GAT model
     model = MainGAT()
+    params = model_GAT_choice.params
     # GAT hyper-parameters
-    batch_sz = model_GAT_choice.batch_sz  # batch training size
-    nb_epochs = model_GAT_choice.nb_epochs  # number of learning iterations over the trainign dataset
-    lr = model_GAT_choice.lr  # learning rate
-    l2_coef = model_GAT_choice.l2_coef  # weight decay
-    hid_units = model_GAT_choice.hid_units  # numbers of features produced by each attention head per network layer
-    n_heads = model_GAT_choice.n_heads  # number of attention heads on each layer
-    residual = False
-    nonlinearity = tf.nn.elu
-    aggregator = model_GAT_choice.aggregator
-    include_weights = model_GAT_choice.include_weights
+    batch_sz = params['batch_size']  # batch training size
+    nb_epochs = params['num_epochs']  # number of learning iterations over the trainign dataset
+    lr = params['learning_rate']  # learning rate
+    l2_coef = params['l2_coefficient']  # weight decay
+    hid_units = params['hidden_units']  # numbers of features produced by each attention head per network layer
+    n_heads = params['attention_heads']  # number of attention heads on each layer
+    residual = params['residual']
+    nonlinearity = params['non_linearity']
+    aggregator = params['readout_aggregator']
+    include_weights = params['include_ew']
 
     print('Name of the current GAT model is %s' % model_GAT_choice)
-    print('Dataset: ' + model_GAT_choice.dataset_type + ' HCP graphs')
+    print('Dataset:' + ' HCP graphs')
     print('----- Opt. hyperparams -----')
     print('lr: ' + str(lr))
     print('l2_coef: ' + str(l2_coef))
@@ -33,16 +34,16 @@ def create_GAT_model(model_GAT_choice):
     print('model: ' + str(model))
 
     # data for adjancency matrices, node feature vectors, biases for masked attention and personality scores
-    data, subjects = model_GAT_choice.load_data(model_GAT_choice)
+    data, subjects = params['load_specific_data'](params)
     # nr of nodes for each graph: it is shared among all examples due to the dataset
     nb_nodes = data[subjects[0]]['adj'].shape[-1]
     # the initial length F of each node feature vector: for every graph, node feat.vecs. have the same length
     ft_size = data[subjects[0]]['feat'].shape[-1]
     # how many of the big-five personality traits the model is targeting at once
-    outGAT_sz_target = len(model_GAT_choice.pers_traits)
+    outGAT_sz_target = len(params['pers_traits_selection'])
     # checkpoint directory storing the progress of the current model
     current_chkpt_dir = join(checkpts_dir, str(model_GAT_choice))
-
+    subjects = shuffle_tr_data(subjects, len(subjects))
     # create a TensofFlow session, the context of evaluation for the Tensor objects
     with tf.Graph().as_default():
         with tf.name_scope('input'):
@@ -80,8 +81,8 @@ def create_GAT_model(model_GAT_choice):
                                                                     l2_coef=l2_coef)
 
         # number of training, validation, test graph examples
-        split_sz = len(subjects) // 10
-        tr_size, vl_size, ts_size = split_sz * 8, split_sz, split_sz
+        split_sz = len(subjects) // 6
+        tr_size, vl_size, ts_size = split_sz * 4, split_sz, split_sz
         print('The training size is: %d, the validation: %d and the test: %d' % (tr_size, vl_size, ts_size))
 
         # Create interactive session to execute the accumulation of gradients per batch
@@ -146,7 +147,7 @@ def create_GAT_model(model_GAT_choice):
                 tr_eloss_log[iteration] /= batch_sz
                 tr_uloss_log[iteration] /= batch_sz
 
-            vl_avg_loss = 0
+            vl_avg_loss = 0.0
             for vl_step in range(tr_size, tr_size + vl_size):
                 (vl_example_loss,) = sess.run([loss], feed_dict={ftr_in: data[subjects[vl_step]]['feat'],
                                                                  bias_in: data[subjects[vl_step]]['bias'],
@@ -159,7 +160,7 @@ def create_GAT_model(model_GAT_choice):
                 vl_avg_loss += vl_example_loss
             vl_avg_loss /= vl_size
 
-            tr_avg_loss, tr_avg_uloss_log, tr_avg_eloss_log = map(lambda x: np.sum(x) / (tr_size // batch_sz),
+            tr_avg_loss, tr_avg_uloss_log, tr_avg_eloss_log = map(lambda x: np.sum(x) / tr_iterations,
                                                                   [tr_loss_log, tr_uloss_log, tr_eloss_log])
 
             print('Unifrom loss: %.5f| Exclusive loss: %.5f' % (tr_avg_uloss_log, tr_avg_eloss_log))
@@ -208,24 +209,23 @@ def create_GAT_model(model_GAT_choice):
 
 
 if __name__ == "__main__":
-    hid_units = [40, 20]
-    n_heads = [3, 2]
+    hid_units = [20, 20, 10]
+    n_heads = [3, 3, 2]
     aggregators = [MainGAT.concat_feature_aggregator]
     include_weights = [True]
-    limits = [(10000, 6000000)]
-    pers_traits = [None]
-    batches = [1]
-    for aggr, iw, limit, p_traits, batch_size in product(aggregators, include_weights, limits, pers_traits, batches):
-        model_GAT_config = GAT_hyperparam_config(hid_units=hid_units,
-                                                 n_heads=n_heads,
-                                                 nb_epochs=10000,
-                                                 aggregator=aggr,
-                                                 include_weights=iw,
-                                                 filter_name='interval',
-                                                 pers_traits=p_traits,
-                                                 limits=limit,
-                                                 batch_sz=batch_size,
-                                                 dataset_type='struct',
-                                                 lr=0.0001,
-                                                 l2_coef=0.0005)
-        create_GAT_model(model_GAT_config)
+    pers_traits = [['NEO.NEOFAC_A', 'NEO.NEOFAC_O', 'NEO.NEOFAC_C', 'NEO.NEOFAC_N', 'NEO.NEOFAC_E']]
+    batches = [2]
+    for aggr, iw, p_traits, batch_size in product(aggregators, include_weights, pers_traits, batches):
+        dict_param = {
+            'hidden_units': hid_units,
+            'attention_heads': n_heads,
+            'include_ew': iw,
+            'readout_aggregator': aggr,
+            'load_specific_data': load_struct_data,
+            'pers_traits_selection': p_traits,
+            'batch_size': batch_size,
+            'edgeWeights_filter': None,
+            'learning_rate': 0.0001,
+        }
+
+        create_GAT_model(GAT_hyperparam_config(dict_param))

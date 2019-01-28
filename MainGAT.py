@@ -17,13 +17,13 @@ class MainGAT(BaseGAT):
         # sum all the node features
         logits = tf.reduce_mean(model_GAT_output, axis=-1)  # shape of this is [[x_1,x_2,x_3,...,x_hid_units[-1]]]
         # fed them into a MLP with separate weights for each personality score
-        output = tf.layers.dense(logits, units=target_score_type, use_bias=True)
+        output = tf.layers.dense(logits, units=target_score_type, use_bias=False)
         return output
 
     def concat_feature_aggregator(self, model_GAT_output, target_score_type, attn_drop, ffd_drop):
         # concatenate all the node features
         logits = tf.reshape(model_GAT_output, [1, -1])  # shape of this is [[x_1,x_2,...,x_(n_nodes*hid_units[-1])]
-        output = tf.layers.dense(logits, units=target_score_type, use_bias=True)
+        output = tf.layers.dense(logits, units=target_score_type, use_bias=False)
         return output
 
     def master_node_aggregator(self, model_GAT_output, target_score_type, attn_drop, ffd_drop):
@@ -35,15 +35,15 @@ class MainGAT(BaseGAT):
                                            out_size=target_score_type,
                                            adj_mat=adj_mat,
                                            bias_mat=bias_mat,
-                                           activation= tf.nn.relu,
+                                           activation=tf.nn.relu,
                                            include_weights=False,
                                            input_drop=ffd_drop,
                                            coefficient_drop=attn_drop,
                                            residual=False)
-        out = tf.Print(out, [out], message="This is extended_feats: ", first_n=10, summarize=2000)
+        # out = tf.Print(out, [out], message="This is extended_feats: ", first_n=10, summarize=2000)
         output = tf.squeeze(
             tf.slice(input_=out, begin=[0, int(model_GAT_output.shape[1]), 0], size=[1, 1, target_score_type]), axis=0)
-        output = tf.Print(output, [output], message="This is output vector: ", first_n=10, summarize=2000)
+        # output = tf.Print(output, [output], message="This is output vector: ", first_n=10, summarize=2000)
         return output
 
     def inference(self, in_feat_vects, adj_mat, bias_mat, hid_units, n_heads,
@@ -150,52 +150,45 @@ class MainGAT(BaseGAT):
 # class embodying the hyperparameter choice of a GAT model
 class GAT_hyperparam_config(object):
 
-    def __init__(self, hid_units, n_heads, nb_epochs, aggregator, include_weights, limits, batch_sz=1,
-                 filter_name='interval',
-                 pers_traits=None, dataset_type='struct', lr=0.0001, l2_coef=0.0005):
-        self.hid_units = hid_units
-        self.n_heads = n_heads
-        self.nb_epochs = nb_epochs
-        self.aggregator = aggregator
-        self.include_weights = include_weights
-        self.batch_sz = batch_sz
-        self.filter_name = filter_name
-        if filter_name == 'interval':
-            self.filter = interval_filter
-            self.limits = limits
-        else:
-            self.filter = lambda x: x
-            self.limits = []
-        if pers_traits is None:
-            self.pers_traits = ['NEO.NEOFAC_A', 'NEO.NEOFAC_O', 'NEO.NEOFAC_C', 'NEO.NEOFAC_N', 'NEO.NEOFAC_E']
-        else:
-            self.pers_traits = ['NEO.NEOFAC_' + trait for trait in pers_traits]
-        self.load_data = load_struct_data if dataset_type == 'struct' else load_funct_data
-        self.dataset_type = dataset_type
-        self.lr = lr
-        self.l2_coef = l2_coef
+    def __init__(self, updated_params=None):
+        self.params = {
+            'hidden_units': [20, 20, 10],
+            'attention_heads': [3, 3, 2],
+            'include_ew': True,
+            'readout_aggregator': MainGAT.master_node_aggregator,
+            'num_epochs': 10000,
+            'load_specific_data': load_struct_data,
+            'pers_traits_selection': ['NEO.NEOFAC_A', 'NEO.NEOFAC_O', 'NEO.NEOFAC_C', 'NEO.NEOFAC_N', 'NEO.NEOFAC_E'],
+            'batch_size': 2,
+            'edgeWeights_filter': None,
+            'patience': 50,
+            'learning_rate': 0.0001,
+            'l2_coefficient': 0.0005,
+            'residual': False,
+            'non_linearity': tf.nn.elu,
+            'random_seed': 123,
+        }
+        self.update(update_hyper=updated_params)
 
     def __str__(self):
-        str_traits = "".join([pers.split('NEO.NEOFAC_')[1] for pers in self.pers_traits])
-        str_attn_heads = ",".join(map(str, self.n_heads))
-        str_hid_units = ",".join(map(str, self.hid_units))
-        str_aggregator = self.aggregator.__name__.split('_')[0]
-        str_filter_limits = ",".join([str(int(x / 10000)) for x in self.limits])
-        str_batch_sz = '' if self.batch_sz == 1 else '_BS_' + str(self.batch_sz)
-        name = 'GAT_%s_AH%s_HU%s_PT_%s_AGR_%s_IW_%r_fltr_%s%s%s' % (self.dataset_type,
-                                                                    str_attn_heads,
-                                                                    str_hid_units,
-                                                                    str_traits,
-                                                                    str_aggregator,
-                                                                    self.include_weights,
-                                                                    self.filter_name,
-                                                                    str_filter_limits,
-                                                                    str_batch_sz)
+        str_traits = 'PT_' + "".join([pers.split('NEO.NEOFAC_')[1] for pers in self.params['pers_traits_selection']])
+        str_attn_heads = 'AH_' + ",".join(map(str, self.params['attention_heads']))
+        str_hid_units = 'HU_' + ",".join(map(str, self.params['hidden_units']))
+        str_aggregator = 'AGR_' + self.params['readout_aggregator'].__name__.split('_')[0]
+        str_limits = 'EL_' + ('None' if self.params['edgeWeights_filter'] is None else str(self.params['ew_limits']))
+        str_batch_sz = '_BS_' + str(self.params['batch_size'])
+        str_dataset = 'GAT_' + self.params['load_specific_data'].__name__.split('_')[1]
+        str_include_ew = 'IW_' + str(self.params['include_ew'])
 
-        return name
+        return '_'.join([str_dataset, str_attn_heads, str_hid_units, str_traits, str_aggregator, str_include_ew,
+                         str_limits, str_batch_sz])
+
+    def update(self, update_hyper):
+        if update_hyper is not None:
+            self.params.update(update_hyper)
 
 
-def reload_GAT_model(model_GAT_choice, sess, saver):
+def reload_GAT_model(model_GAT_choice: GAT_hyperparam_config, sess, saver):
     # Checkpoint file for the training of the GAT model
     current_chkpt_dir = os.path.join(checkpts_dir, str(model_GAT_choice))
     model_file = os.path.join(current_chkpt_dir, 'trained_model')
@@ -209,7 +202,7 @@ def reload_GAT_model(model_GAT_choice, sess, saver):
         saver.restore(sess, ckpt.model_checkpoint_path)
         saver.recover_last_checkpoints(ckpt.all_model_checkpoint_paths)
         if tf.train.checkpoint_exists(model_file):
-            last_epoch_training = model_GAT_choice.nb_epochs
+            last_epoch_training = model_GAT_choice.params['num_epochs']
             print('Re-loading full model %s' % model_GAT_choice)
         else:
             last_epoch_training = max([int(ck_file.split('-')[-1]) for ck_file in ckpt.all_model_checkpoint_paths])

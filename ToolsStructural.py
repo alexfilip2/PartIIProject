@@ -99,13 +99,12 @@ def get_structural_adjs():
             all_adjs = pkl.load(handle)
         print('Adjacency matrices for the structural data was loaded.')
         return all_adjs
-
     print('Creating and serializing adjacency matrices for structural data...')
+
     # os.walk includes as the first item the parent directory itself then the rest of sub-directories
     subjects_subdirs = [join(dir_struct_mat_HCP, subdir) for subdir in next(os.walk(dir_struct_mat_HCP))[1]]
     # the brain region ID's of all nodes that have node features
     filtered_nodes = get_struct_n_names().values()
-
     all_adjs = {}
     for subject_dir in subjects_subdirs:
         for subj_id in os.listdir(subject_dir):
@@ -127,8 +126,12 @@ def get_structural_adjs():
     return all_adjs
 
 
-def load_struct_data(model_GAT_choice=None):
-    dataset_binary = join(dir_proc_struct_data, 'dataset.pkl')
+def load_struct_data(hyparams):
+    str_traits = ''.join([trait.split('NEO.NEOFAC_')[-1] for trait in hyparams['pers_traits_selection']])
+    str_limits = "" if hyparams['edgeWeights_filter'] is None else str(hyparams['ew_limits'])
+    binary_prefix = '%s_%s.pkl' % (str_traits, str_limits)
+
+    dataset_binary = join(dir_proc_struct_data, binary_prefix)
     if os.path.exists(dataset_binary):
         print('Loading the serialized data for the structural graphs...')
         with open(dataset_binary, 'rb') as handle:
@@ -138,7 +141,7 @@ def load_struct_data(model_GAT_choice=None):
 
     dict_adj = get_structural_adjs()
     dict_node_feat = get_scaled_struct_node_feat()
-    dict_tiv_score = get_NEO5_scores(model_GAT_choice.pers_traits)
+    dict_tiv_score = get_NEO5_scores(hyparams['pers_traits_selection'])
 
     dict_dataset = {}
     all_subjects = sorted(list(dict_adj.keys()))
@@ -146,7 +149,11 @@ def load_struct_data(model_GAT_choice=None):
     for subj_id in all_subjects:
         if subj_id in dict_node_feat.keys() and subj_id in dict_tiv_score.keys():
             dict_dataset[subj_id] = {}
-            unexp_adj = norm_rows_adj(model_GAT_choice.filter(model_GAT_choice.limits, np.array(dict_adj[subj_id])))
+            if hyparams['edgeWeights_filter'] is None:
+                unexp_adj = norm_rows_adj((np.array(dict_adj[subj_id])))
+            else:
+                unexp_adj = norm_rows_adj(
+                    hyparams['edgeWeights_filter'](hyparams['ew_limits'], (np.array(dict_adj[subj_id]))))
             if np.isnan(unexp_adj).any():
                 print(unexp_adj)
                 quit()
