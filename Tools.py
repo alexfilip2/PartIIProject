@@ -1,7 +1,6 @@
 import numpy as np
 from numpy import expand_dims as exp_dims
 
-np.set_printoptions(threshold=np.nan)
 import os
 from os.path import join as join
 import pickle as pkl
@@ -100,11 +99,6 @@ def norm_rows_adj(adj_mat: np.ndarray) -> np.ndarray:
     return norm_adj
 
 
-# roll the entire matrix in the form of an array
-def mat_flatten(mat):
-    return np.squeeze(np.matrix(mat).flatten())
-
-
 # make an upper triangluar matrix symmetric
 def make_symmetric(a: list) -> list:
     for i in range(len(a)):
@@ -125,6 +119,7 @@ def rescale_feats(min, max, x):
     return float(x - min) / float(max - min)
 
 
+# shuffle the training subject keys
 # shuffle the training subject keys
 def shuffle_tr_data(unshuf_subjs: list, tr_size: int) -> list:
     shuffled_subjs = np.array(unshuf_subjs)[:tr_size].tolist()

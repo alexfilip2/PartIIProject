@@ -1,7 +1,6 @@
 from Tools import *
 import pickle as pkl
 
-np.set_printoptions(threshold=np.nan)
 
 dir_root_structural_data = join(os.getcwd(), os.pardir, 'PartIIProject', 'structural_data')
 dir_struct_mat_HCP = join(dir_root_structural_data, 'PTN matrices HCP')
@@ -78,9 +77,13 @@ def get_scaled_struct_node_feat():
             curr_node_feat = []
             for f_name in present_feats:
                 feat_brainreg_name = 'fs' + n_name + '_' + f_name
-                curr_node_feat.append(rescale_feats(f_value_limits[f_name]['min'],
-                                                    f_value_limits[f_name]['max'],
-                                                    float(graph_data[feat_brainreg_name])))
+                scaled_feat = rescale_feats(f_value_limits[f_name]['min'],
+                                            f_value_limits[f_name]['max'],
+                                            float(graph_data[feat_brainreg_name]))
+                curr_node_feat.append(scaled_feat)
+                if scaled_feat < 0.0:
+                    print("negative node features")
+                    quit()
             current_graph_feats.append(curr_node_feat)
         all_node_feats[str(int(graph_data['Subjects']))] = current_graph_feats
 
@@ -171,12 +174,14 @@ def load_struct_data(hyparams):
 
 
 def load_regress_data(trait_choice):
-    data, subjs = load_struct_data()
+    hyparams = {'ew_limits': None,
+                'edgeWeights_filter': None,
+                'pers_traits_selection': trait_choice
+                }
+    data, subjs = load_struct_data(hyparams)
     adj_matrices, scores = [], []
-    traits = np.array(sorted(['NEO.NEOFAC_A', 'NEO.NEOFAC_O', 'NEO.NEOFAC_C', 'NEO.NEOFAC_N', 'NEO.NEOFAC_E']))
-    (trait_index,) = np.where(traits == trait_choice)
-    for subj_id in sorted(subjs):
-        adj_matrices.append(mat_flatten(data[subj_id]['adj']).tolist())
-        scores.append(data[subj_id]['score'][0][trait_index])
 
-    return np.squeeze(np.array(adj_matrices), axis=1), np.squeeze(np.array(scores), axis=1)
+    for subj_id in sorted(subjs):
+        adj_matrices.append(data[subj_id]['adj'].flatten().tolist())
+        scores.append(data[subj_id]['score'].flatten()[0])
+    return np.array(adj_matrices), np.array(scores)

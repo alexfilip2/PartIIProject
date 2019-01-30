@@ -54,19 +54,22 @@ def attn_head(input_feat_seq, out_size, adj_mat, bias_mat,
         # compute the final coefficients alpha_ij  by applying ReLu, masked attention and normalize across neighbours
         alpha_coefs = tf.nn.softmax(tf.nn.leaky_relu(logits) + bias_mat)
 
-        # integrate the edge weights w_ij of the graph to the e_ij coefficients
+        # integrate the edge weights w_ij of the graph to the alpha_ij coefficients
         if include_weights:
-            alpha_coefs = tf.multiply(alpha_coefs, adj_mat)
+            final_alpha_coefs = tf.multiply(alpha_coefs, adj_mat)
+        else:
+            final_alpha_coefs = alpha_coefs
             # alpha_coefs = tf.Print(alpha_coefs, [], message="alpha coeff: ", first_n=100, summarize=300)
 
         # apply DROPOUT to the resulted coefficients
         if coefficient_drop != 0.0:
-            alpha_coefs = tf.nn.dropout(alpha_coefs, 1.0 - coefficient_drop)
+            final_alpha_coefs = tf.nn.dropout(final_alpha_coefs, 1.0 - coefficient_drop)
+
         if input_drop != 0.0:
             seq_fts = tf.nn.dropout(seq_fts, 1.0 - input_drop)
 
         # compute h_i', the new feat. vec. for node i obtained from the attention aggregation of neighbour features
-        vals = tf.matmul(alpha_coefs, seq_fts)
+        vals = tf.matmul(final_alpha_coefs, seq_fts)
         # add a learnable bias
         ret = tf.contrib.layers.bias_add(vals)
 
@@ -78,19 +81,15 @@ def attn_head(input_feat_seq, out_size, adj_mat, bias_mat,
                 seq_fts = ret + input_feat_seq
 
         # calculate how many neighbours of each node contribute to the aggregation (non-zero alpha)
-        non_zero_alpha = tf.count_nonzero(alpha_coefs, axis=-1)
-        # non_zero_alpha = tf.Print(non_zero_alpha, [non_zero_alpha], message="This non_zero_alpha: ", summarize=64)
+        non_zero_alpha = tf.count_nonzero(final_alpha_coefs, axis=-1)
         # calculate the number of neighbours of each node
         degrees = tf.count_nonzero(adj_mat, axis=-1)
-        # degrees = tf.Print(degrees, [degrees], message="This is degrees: ", summarize=64)
 
         # the UNIFORM LOSS of the current attention head
         loss_unif_attn = tf.reduce_mean(tf.to_float(tf.subtract(non_zero_alpha, degrees)))
-        # loss_unif_attn = tf.Print(loss_unif_attn, [loss_unif_attn], message="This is loss_unif_attn for this a_head: ")
 
         # the EXCLUSIVE LOSS of the current attention head
-        loss_excl_attn = tf.reduce_mean(tf.reduce_sum(tf.abs(alpha_coefs), axis=-1))
-        # loss_excl_attn = tf.Print(loss_excl_attn, [loss_excl_attn], message="This is loss_excl_attn for this a_head: ")
+        loss_excl_attn = tf.reduce_mean(tf.reduce_sum(tf.abs(final_alpha_coefs), axis=-1))
 
         # apply activation of the attention head to the output features
         return activation(ret), loss_unif_attn, loss_excl_attn

@@ -30,7 +30,7 @@ def get_functional_adjs(ptn_dim=50, sess_file=ptnMAT_d50_ses1):
             for index, edge_weight in enumerate(line.split()):
                 graph[int(index / ptn_dim)][int(index % ptn_dim)] = float(edge_weight) if float(
                     edge_weight) > 0 else 0.0
-            dict_adj[subj_ids[line_nr]] = np.array(graph)
+            dict_adj[subj_ids[line_nr]] = norm_rows_adj(np.array(graph))
 
     with open(adjs_file, 'wb') as handle:
         pkl.dump(dict_adj, handle, protocol=pkl.HIGHEST_PROTOCOL)
@@ -86,7 +86,7 @@ def get_functional_node_feat():
     return all_node_feats
 
 
-def load_funct_data(model_GAT_choice):
+def load_funct_data(hyparams):
     dataset_binary = join(ptnMAT_colab, 'dataset.pkl')
     if os.path.exists(dataset_binary):
         print('Loading the serialized data for the functional graphs...')
@@ -97,7 +97,7 @@ def load_funct_data(model_GAT_choice):
 
     dict_adj = get_functional_adjs()
     dict_node_feat = get_functional_node_feat()
-    dict_tiv_score = get_NEO5_scores(model_GAT_choice.pers_traits)
+    dict_tiv_score = get_NEO5_scores(hyparams['pers_traits_selection'])
 
     dict_dataset = {}
     available_subjs = []

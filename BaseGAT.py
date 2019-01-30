@@ -70,6 +70,6 @@ class BaseGAT:
         # 4) Operation to accumulate the gradients in accum_vars
         accum_ops = [accum_vars[i].assign_add(gv[0]) for i, gv in enumerate(gvs)]
         # 5) Operation to perform the update (apply gradients)
-        apply_ops = opt.apply_gradients([(accum_vars[i], tv) for i, tv in enumerate(tvs)])
+        apply_ops = opt.apply_gradients([(accum_vars[i], tv) for i, tv in enumerate(tf.trainable_variables())])
 
         return zero_grads_ops, accum_ops, apply_ops

@@ -1,7 +1,7 @@
 from MainGAT import *
 
 CHECKPT_PERIOD = 25
-patience = 25
+
 
 
 def create_GAT_model(model_GAT_choice):
@@ -164,7 +164,7 @@ def create_GAT_model(model_GAT_choice):
                                                                   [tr_loss_log, tr_uloss_log, tr_eloss_log])
 
             print('Unifrom loss: %.5f| Exclusive loss: %.5f' % (tr_avg_uloss_log, tr_avg_eloss_log))
-            print_GAT_learn_loss(model_GAT_choice, tr_avg_loss=tr_avg_loss, vl_avg_loss=vl_avg_loss)
+            log_GAT_learn_loss(model_GAT_choice, tr_avg_loss=tr_avg_loss, vl_avg_loss=vl_avg_loss)
 
             checkpt_file = os.path.join(current_chkpt_dir, 'checkpoint')
             if epoch % CHECKPT_PERIOD == 0:
@@ -178,7 +178,7 @@ def create_GAT_model(model_GAT_choice):
                 curr_step = 0
             else:
                 curr_step += 1
-                if curr_step == patience:
+                if curr_step == params['patience']:
                     print('Early stop! Min loss: ', vlss_mn)
                     print('Early stop model validation loss: ', vlss_early_model)
                     break

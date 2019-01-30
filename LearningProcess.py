@@ -2,21 +2,24 @@ import matplotlib.pyplot as plt
 
 import networkx as nx
 from matplotlib import pyplot, patches
-from SupervisedGAT import *
+from CrossValidatedGAT import *
 
 
-def plt_learn_proc(model_GAT_config):
-    train_losses_file = os.path.join(gat_model_stats, 'train_losses' + str(model_GAT_config))
-    tr_loss, vl_loss = [], []
-    with open(train_losses_file, 'r') as tr_loss_handle:
-        for index, line in enumerate(tr_loss_handle, 1):
-            tr_loss.append(float(line.split()[0]))
-            vl_loss.append(float(line.split()[1]))
+def plt_learn_proc(model_GAT_config: GAT_hyperparam_config) -> None:
+    print("Restoring training logs from file %s." % model_GAT_config.logs_file())
+    with open(model_GAT_config.logs_file(), 'rb') as in_file:
+        logs = pickle.load(in_file)['logs']
+    tr_loss, vl_loss = [],[]
+    for epoch in range(1, model_GAT_config.params['num_epochs']):
+        if epoch in logs.keys():
+            tr_loss.append(logs[epoch]['tr_loss'])
+            vl_loss.append(logs[epoch]['val_loss'])
+        else:
+            break
     # Create data
-    df = pd.DataFrame({'epoch': list(range(1, index + 1)), 'train': np.array(tr_loss), 'val': np.array(vl_loss)})
-
-    plt.plot('epoch', 'train', data=df, color='green', label='training loss')
-    plt.plot('epoch', 'val', data=df, color='red', label='validation loss')
+    df = pd.DataFrame({'epoch': list(range(1, len(vl_loss)+1)), 'train': np.array(tr_loss), 'val': np.array(vl_loss)})
+    plt.plot('epoch', 'train', data=df, color='blue', label='training loss')
+    plt.plot('epoch', 'val', data=df, color='orange', label='validation loss')
     plt.title(str(model_GAT_config))
     plt.xlabel('epoch')
     plt.ylabel('MSE loss')
@@ -26,7 +29,7 @@ def plt_learn_proc(model_GAT_config):
 
 
 def n_degree_empirical_distrib(hop=10000):
-    edge_weights = list(map(int, persist_ew_data()))
+    edge_weights = list(map(int, persist_ew_data(get_adjs_loader=get_structural_adjs())))
     y_ratio, x_limit = [], []
     for limit in range(1, max(edge_weights), hop):
         filter_weights = [ew for ew in edge_weights if ew < limit]
@@ -100,27 +103,22 @@ def draw_adjacency_heatmap(adjacency_matrix):
 
 
 if __name__ == "__main__":
-    hid_units = [40, 20, 10]
+    hid_units = [20, 20, 5]
     n_heads = [3, 3, 2]
-    aggregators = [MainGAT.concat_feature_aggregator]
-    include_weights = [True]
-    limits = [(10000, 6000000)]
-    pers_traits = [['A']]
-    batches = [1]
-    for aggr, iw, limit, p_traits, batch_size in product(aggregators, include_weights, limits, pers_traits, batches):
-        model_GAT_config = GAT_hyperparam_config(hid_units=hid_units,
-                                                 n_heads=n_heads,
-                                                 nb_epochs=10000,
-                                                 aggregator=aggr,
-                                                 include_weights=iw,
-                                                 filter_name='interval',
-                                                 pers_traits=p_traits,
-                                                 limits=limit,
-                                                 batch_sz=batch_size,
-                                                 dataset_type='struct',
-                                                 lr=0.00001,
-                                                 l2_coef=0.0005)
-        plt_learn_proc(model_GAT_config)
-
-
-
+    aggregators = [MainGAT.average_feature_aggregator]
+    include_weights = [False]
+    pers_traits = [['NEO.NEOFAC_A', 'NEO.NEOFAC_O', 'NEO.NEOFAC_C', 'NEO.NEOFAC_N', 'NEO.NEOFAC_E']]
+    batches = [2]
+    for aggr, iw, p_traits, batch_size in product(aggregators, include_weights, pers_traits, batches):
+        dict_param = {
+            'hidden_units': hid_units,
+            'attention_heads': n_heads,
+            'include_ew': iw,
+            'readout_aggregator': aggr,
+            'load_specific_data': load_struct_data,
+            'pers_traits_selection': p_traits,
+            'batch_size': batch_size,
+            'edgeWeights_filter': None,
+            'learning_rate': 0.0001,
+        }
+        plt_learn_proc(GAT_hyperparam_config(dict_param))
