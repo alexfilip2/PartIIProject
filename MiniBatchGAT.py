@@ -3,7 +3,6 @@ from MainGAT import *
 CHECKPT_PERIOD = 25
 
 
-
 def create_GAT_model(model_GAT_choice):
     # GAT model
     model = MainGAT()
@@ -61,7 +60,6 @@ def create_GAT_model(model_GAT_choice):
                                                            hid_units=hid_units,
                                                            n_heads=n_heads,
                                                            target_score_type=outGAT_sz_target,
-                                                           train_flag=is_train,
                                                            aggregator=aggregator,
                                                            include_weights=include_weights,
                                                            residual=residual,
@@ -91,8 +89,6 @@ def create_GAT_model(model_GAT_choice):
         tf.set_random_seed(1234)
         tf.group(tf.global_variables_initializer(), tf.local_variables_initializer()).run()
 
-        # reload the GAT model from the last checkpoint
-        epoch_start = reload_GAT_model(model_GAT_choice=model_GAT_choice, sess=sess, saver=saver)
         # record the minimum validation loss encountered until current epoch
         vlss_mn = np.inf
         # store the validation loss of previous epoch
@@ -102,7 +98,7 @@ def create_GAT_model(model_GAT_choice):
 
         # Train loop
         # nb_epochs - number of epochs for training: the number of iteration of gradient descent to optimize
-        for epoch in range(epoch_start, nb_epochs + 1):
+        for epoch in range(1, nb_epochs + 1):
             # number of iterations of the training set when batch-training
             tr_iterations = tr_size // batch_sz
             # Array for logging the training loss, the uniform loss, the exclusive loss
@@ -163,8 +159,9 @@ def create_GAT_model(model_GAT_choice):
             tr_avg_loss, tr_avg_uloss_log, tr_avg_eloss_log = map(lambda x: np.sum(x) / tr_iterations,
                                                                   [tr_loss_log, tr_uloss_log, tr_eloss_log])
 
-            print('Unifrom loss: %.5f| Exclusive loss: %.5f' % (tr_avg_uloss_log, tr_avg_eloss_log))
-            log_GAT_learn_loss(model_GAT_choice, tr_avg_loss=tr_avg_loss, vl_avg_loss=vl_avg_loss)
+            print('Training: loss = %.5f | Val: loss = %.5f | '
+                  'Unifrom loss: %.5f| Exclusive loss: %.5f' % (
+                  tr_avg_loss, vl_avg_loss, tr_avg_uloss_log, tr_avg_eloss_log))
 
             checkpt_file = os.path.join(current_chkpt_dir, 'checkpoint')
             if epoch % CHECKPT_PERIOD == 0:
@@ -212,8 +209,8 @@ if __name__ == "__main__":
     hid_units = [20, 20, 10]
     n_heads = [3, 3, 2]
     aggregators = [MainGAT.concat_feature_aggregator]
-    include_weights = [True]
-    pers_traits = [['NEO.NEOFAC_A', 'NEO.NEOFAC_O', 'NEO.NEOFAC_C', 'NEO.NEOFAC_N', 'NEO.NEOFAC_E']]
+    include_weights = [False]
+    pers_traits = [['NEO.NEOFAC_A']]
     batches = [2]
     for aggr, iw, p_traits, batch_size in product(aggregators, include_weights, pers_traits, batches):
         dict_param = {

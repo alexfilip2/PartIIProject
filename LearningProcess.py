@@ -103,22 +103,30 @@ def draw_adjacency_heatmap(adjacency_matrix):
 
 
 if __name__ == "__main__":
-    hid_units = [20, 20, 5]
-    n_heads = [3, 3, 2]
-    aggregators = [MainGAT.average_feature_aggregator]
-    include_weights = [False]
+    hu_choices = [[20, 20, 20], [40, 20, 10], [40, 40, 40], [80, 40, 20], [10, 10, 10]]
+    ah_choices = [[3, 3, 2], [2, 2, 2], [3, 2, 1]]
+    aggr_choices = [MainGAT.concat_feature_aggregator, MainGAT.master_node_aggregator,
+                    MainGAT.average_feature_aggregator]
+    include_weights = [True, False]
     pers_traits = [['NEO.NEOFAC_A', 'NEO.NEOFAC_O', 'NEO.NEOFAC_C', 'NEO.NEOFAC_N', 'NEO.NEOFAC_E']]
-    batches = [2]
-    for aggr, iw, p_traits, batch_size in product(aggregators, include_weights, pers_traits, batches):
-        dict_param = {
-            'hidden_units': hid_units,
-            'attention_heads': n_heads,
-            'include_ew': iw,
-            'readout_aggregator': aggr,
-            'load_specific_data': load_struct_data,
-            'pers_traits_selection': p_traits,
-            'batch_size': batch_size,
-            'edgeWeights_filter': None,
-            'learning_rate': 0.0001,
-        }
-        plt_learn_proc(GAT_hyperparam_config(dict_param))
+    batch_chocies = [2, 4, 8]
+    for hu, ah, agg, iw, p_traits, batch_size in product(hu_choices, ah_choices, aggr_choices, include_weights,
+                                                         pers_traits, batch_chocies):
+        for eval_fold_out in range(5):
+            for eavl_fold_in in range(5):
+                dict_param = {
+                    'hidden_units': hu,
+                    'attention_heads': ah,
+                    'include_ew': iw,
+                    'readout_aggregator': agg,
+                    'load_specific_data': load_struct_data,
+                    'pers_traits_selection': p_traits,
+                    'batch_size': batch_size,
+                    'eval_fold_in': eavl_fold_in,
+                    'eval_fold_out': eval_fold_out,
+                    'k_outer': 5,
+                    'k_inner': 5,
+                    'nested_CV_level': 'inner'
+
+                }
+                plt_learn_proc(GAT_hyperparam_config(dict_param))

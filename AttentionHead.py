@@ -3,8 +3,8 @@ import tensorflow as tf
 conv1d = tf.layers.conv1d
 
 
-def attn_head(input_feat_seq, out_size, adj_mat, bias_mat,
-              activation, include_weights=False, input_drop=0.0, coefficient_drop=0.0, residual=False):
+def attn_head(input_feat_seq, out_size, adj_mat, bias_mat, activation, include_weights=False,
+              input_drop=0.0, coefficient_drop=0.0, residual=False):
     """ Builds a single attention head (layer) of the GAT architecture
 
         Parameters
@@ -47,10 +47,8 @@ def attn_head(input_feat_seq, out_size, adj_mat, bias_mat,
         f_1 = tf.layers.conv1d(seq_fts, 1, 1)
         # applies the other half of a as a partial dot product
         f_2 = tf.layers.conv1d(seq_fts, 1, 1)
-
         # logits - the matrix of the e_ij attention coefficients (e_ij and e_ji have different values)
         logits = f_1 + tf.transpose(f_2, [0, 2, 1])
-
         # compute the final coefficients alpha_ij  by applying ReLu, masked attention and normalize across neighbours
         alpha_coefs = tf.nn.softmax(tf.nn.leaky_relu(logits) + bias_mat)
 
@@ -70,6 +68,7 @@ def attn_head(input_feat_seq, out_size, adj_mat, bias_mat,
 
         # compute h_i', the new feat. vec. for node i obtained from the attention aggregation of neighbour features
         vals = tf.matmul(final_alpha_coefs, seq_fts)
+
         # add a learnable bias
         ret = tf.contrib.layers.bias_add(vals)
 

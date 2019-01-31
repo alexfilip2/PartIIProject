@@ -1,13 +1,6 @@
-import tensorflow as tf
 import time
-import os
-import json
-import numpy as np
 import pickle
-import random
 import multiprocessing
-
-
 
 from MainGAT import *
 
@@ -78,24 +71,20 @@ class CrossValidatedGAT(MainGAT):
             self.placeholders['bias_in'] = tf.placeholder(dtype=tf.float32, shape=(1, self.nb_nodes, self.nb_nodes))
             self.placeholders['score_in'] = tf.placeholder(dtype=tf.float32, shape=(1, self.outGAT_sz_target))
             self.placeholders['adj_in'] = tf.placeholder(dtype=tf.float32, shape=(1, self.nb_nodes, self.nb_nodes))
-            self.placeholders['attn_drop'] = tf.placeholder(dtype=tf.float32, shape=())
-            self.placeholders['ffd_drop'] = tf.placeholder(dtype=tf.float32, shape=())
-            self.placeholders['is_train'] = tf.placeholder(dtype=tf.bool, shape=())
-
+            self.placeholders['include_ew'] = tf.placeholder(dtype=tf.bool, shape=())
             prediction, self.ops['unif_loss'], self.ops['excl_loss'] = \
-                MainGAT.inference(self, in_feat_vects=self.placeholders['ftr_in'],
-                                  adj_mat=self.placeholders['adj_in'],
-                                  bias_mat=self.placeholders['bias_in'],
-                                  hid_units=self.params['hidden_units'],
-                                  n_heads=self.params['attention_heads'],
-                                  target_score_type=self.outGAT_sz_target,
-                                  train_flag=self.placeholders['is_train'],
-                                  aggregator=self.params['readout_aggregator'],
-                                  include_weights=self.params['include_ew'],
-                                  residual=self.params['residual'],
-                                  activation=self.params['non_linearity'],
-                                  attn_drop=self.placeholders['attn_drop'],
-                                  ffd_drop=self.placeholders['ffd_drop'])
+                MainGAT.inference_keras(self, in_feat_vects=self.placeholders['ftr_in'],
+                                        adj_mat=self.placeholders['adj_in'],
+                                        bias_mat=self.placeholders['bias_in'],
+                                        hid_units=self.params['hidden_units'],
+                                        n_heads=self.params['attention_heads'],
+                                        target_score_type=self.outGAT_sz_target,
+                                        aggregator=self.params['readout_aggregator'],
+                                        include_weights=self.placeholders['include_ew'],
+                                        residual=self.params['residual'],
+                                        activation=self.params['non_linearity'],
+                                        attn_drop=self.params['attn_drop'],
+                                        ffd_drop=self.params['ffd_drop'])
 
             self.ops['loss'] = tf.losses.mean_squared_error(labels=self.placeholders['score_in'],
                                                             predictions=prediction)
@@ -108,15 +97,18 @@ class CrossValidatedGAT(MainGAT):
                 lr=self.params['learning_rate'],
                 l2_coef=self.params['l2_coefficient'])
 
-    def feed_forward_op(self, ops, subj_key, is_train, attn_drop, ffd_drop):
+    def feed_forward_op(self, ops, subj_key, is_train):
+        if is_train:
+            self.params['attn_drop'] = self.params['ffd_drop'] = 0.6
+        else:
+            self.params['attn_drop'] = self.params['ffd_drop'] = 0.0
+
         subj_data = self.data[subj_key]
         return self.sess.run(ops, feed_dict={self.placeholders['ftr_in']: subj_data['feat'],
                                              self.placeholders['bias_in']: subj_data['bias'],
                                              self.placeholders['score_in']: subj_data['score'],
                                              self.placeholders['adj_in']: subj_data['adj'],
-                                             self.placeholders['is_train']: is_train,
-                                             self.placeholders['attn_drop']: attn_drop,
-                                             self.placeholders['ffd_drop']: ffd_drop})
+                                             self.placeholders['include_ew']: self.params['include_ew']})
 
     def batch_train_step(self, iteration, train_subjs):
         batch_avg_loss, batch_avg_uloss, batch_avg_eloss = 0.0, 0.0, 0.0
@@ -125,26 +117,22 @@ class CrossValidatedGAT(MainGAT):
         # Loop over minibatches and execute accumulate-gradient operation
         for batch_step in range(self.params['batch_size']):
             index = batch_step + iteration * self.params['batch_size']
-            self.feed_forward_op([self.ops['accum_ops']],
-                                 subj_key=train_subjs[index],
-                                 is_train=True,
-                                 attn_drop=0.6,
-                                 ffd_drop=0.6)
+            self.feed_forward_op(ops=[self.ops['accum_ops']], subj_key=train_subjs[index], is_train=True)
+
         # Done looping over minibatches. Now apply gradients.
         self.sess.run(self.ops['apply_ops'])
+
         # Calculate the validation loss after every single batch training
         for batch_step in range(self.params['batch_size']):
             index = batch_step + iteration * self.params['batch_size']
-            (tr_example_loss, u_loss, e_loss) = self.feed_forward_op([self.ops['loss'],
-                                                                      self.ops['unif_loss'],
-                                                                      self.ops['excl_loss']],
-                                                                     subj_key=train_subjs[index],
-                                                                     is_train=True,
-                                                                     attn_drop=0.6,
-                                                                     ffd_drop=0.6)
-            batch_avg_loss += tr_example_loss
-            batch_avg_uloss += u_loss
-            batch_avg_eloss += e_loss
+            (expl_loss, expl_u_loss, expl_e_loss) = self.feed_forward_op(ops=[self.ops['loss'],
+                                                                              self.ops['unif_loss'],
+                                                                              self.ops['excl_loss']],
+                                                                         subj_key=train_subjs[index],
+                                                                         is_train=True)
+            batch_avg_loss += expl_loss
+            batch_avg_uloss += expl_u_loss
+            batch_avg_eloss += expl_e_loss
 
         return map(lambda x: x / self.params['batch_size'], [batch_avg_loss, batch_avg_uloss, batch_avg_eloss])
 
@@ -174,9 +162,8 @@ class CrossValidatedGAT(MainGAT):
         tr_size, vl_size = split_sz * (k_split - 1), split_sz
         vl_avg_loss = 0.0
         for vl_step in range(tr_size, tr_size + vl_size):
-            (vl_example_loss,) = self.feed_forward_op([self.ops['loss']], subj_key=training_set[vl_step],
-                                                      is_train=False, attn_drop=0.0, ffd_drop=0.0)
-            vl_avg_loss += vl_example_loss
+            (vl_expl_loss,) = self.feed_forward_op([self.ops['loss']], subj_key=training_set[vl_step], is_train=False)
+            vl_avg_loss += vl_expl_loss
 
         vl_avg_loss /= vl_size
         return vl_avg_loss
@@ -191,8 +178,7 @@ class CrossValidatedGAT(MainGAT):
         ts_size = len(test_set)
         ts_avg_loss = 0.0
         for vl_step in range(ts_size):
-            (vl_example_loss,) = self.feed_forward_op([self.ops['loss']], subj_key=test_set[vl_step],
-                                                      is_train=False, attn_drop=0.0, ffd_drop=0.0)
+            (vl_example_loss,) = self.feed_forward_op([self.ops['loss']], subj_key=test_set[vl_step], is_train=False)
             ts_avg_loss += vl_example_loss
 
         ts_avg_loss /= ts_size
@@ -200,7 +186,8 @@ class CrossValidatedGAT(MainGAT):
         self.sess.close()
 
     def train(self):
-        if self.trained_flag: return
+        if self.trained_flag:
+            return
         # choose the correct training set of subjects
         if self.params['nested_CV_level'] == 'inner':
             training_set = self.inner_train
@@ -235,6 +222,7 @@ class CrossValidatedGAT(MainGAT):
             print('Training: loss = %.5f | Val: loss = %.5f | '
                   'Unifrom loss: %.5f| Exclusive loss: %.5f | '
                   'Elapsed epoch time: %.5f' % (epoch_tr_loss, epoch_val_loss, epoch_uloss, epoch_eloss, epoch_time))
+
             if epoch % self.params['CHECKPT_PERIOD'] == 0:
                 self.save_model(last_epoch=epoch, fully_trained=False)
 
@@ -318,10 +306,9 @@ class CrossValidatedGAT(MainGAT):
 def cross_validation_GAT():
     hu_choices = [[20, 20, 20], [40, 20, 10], [40, 40, 40], [80, 40, 20], [10, 10, 10]]
     ah_choices = [[3, 3, 2], [2, 2, 2], [3, 2, 1]]
-    aggr_choices = [MainGAT.concat_feature_aggregator, MainGAT.master_node_aggregator,
-                    MainGAT.average_feature_aggregator]
-    include_weights = [True, False]
-    pers_traits = [['NEO.NEOFAC_A', 'NEO.NEOFAC_O', 'NEO.NEOFAC_C', 'NEO.NEOFAC_N', 'NEO.NEOFAC_E']]
+    aggr_choices = [MainGAT.average_feature_aggregator]
+    include_weights = [True]
+    pers_traits = [['NEO.NEOFAC_A']]
     batch_chocies = [2, 4, 8]
     for hu, ah, agg, iw, p_traits, batch_size in product(hu_choices, ah_choices, aggr_choices, include_weights,
                                                          pers_traits, batch_chocies):
