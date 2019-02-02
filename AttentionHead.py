@@ -53,11 +53,9 @@ def attn_head(input_feat_seq, out_size, adj_mat, bias_mat, activation, include_w
         alpha_coefs = tf.nn.softmax(tf.nn.leaky_relu(logits) + bias_mat)
 
         # integrate the edge weights w_ij of the graph to the alpha_ij coefficients
-        if include_weights:
-            final_alpha_coefs = tf.multiply(alpha_coefs, adj_mat)
-        else:
-            final_alpha_coefs = alpha_coefs
-            # alpha_coefs = tf.Print(alpha_coefs, [], message="alpha coeff: ", first_n=100, summarize=300)
+        final_alpha_coefs = tf.cond(tf.squeeze(include_weights), true_fn=lambda: tf.multiply(alpha_coefs, adj_mat),
+                                    false_fn=lambda: alpha_coefs)
+        # alpha_coefs = tf.Print(alpha_coefs, [], message="alpha coeff: ", first_n=100, summarize=300)
 
         # apply DROPOUT to the resulted coefficients
         if coefficient_drop != 0.0:

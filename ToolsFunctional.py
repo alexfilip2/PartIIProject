@@ -1,16 +1,17 @@
 from Tools import *
+from Node2Vec import *
 
-PTN_MAT_DIM = 50
 ptnMAT_colab = join(os.getcwd(), os.pardir, 'PartIIProject', 'functional_data')
-ptnMAT_d50_dir = join(ptnMAT_colab, '3T_HCP1200_MSMAll_d50_ts2')
+dir_proc_funct_data = join(ptnMAT_colab, 'processed_data')
+if not os.path.exists(dir_proc_funct_data):
+    os.makedirs(dir_proc_funct_data)
 
-ptnMAT_d50_ses1 = join(ptnMAT_d50_dir, 'netmats1.txt')
-ptnMAT_d50_ses2 = join(ptnMAT_d50_dir, 'netmats2.txt')
+ptnMAT_dim_sess_file = join(ptnMAT_colab, '3T_HCP1200_MSMAll_d%d_ts2', 'netmats%d.txt')
 subj_id_file = join(ptnMAT_colab, 'subjectIDs.txt')
 
 
-def get_functional_adjs(ptn_dim=50, sess_file=ptnMAT_d50_ses1):
-    adjs_file = os.path.join(ptnMAT_colab, 'adjs_matrices.pkl')
+def get_functional_adjs(matrices_dim=50, session_id=1):
+    adjs_file = os.path.join(dir_proc_funct_data, 'adjs_matrices_dim%d_sess%d.pkl' % (matrices_dim, session_id))
     if os.path.exists(adjs_file):
         print('Loading the serialized adjacency matrices for the functional data...')
         with open(adjs_file, 'rb') as handle:
@@ -24,11 +25,11 @@ def get_functional_adjs(ptn_dim=50, sess_file=ptnMAT_d50_ses1):
         for line in data:
             subj_ids.append(line.split()[0])
     dict_adj = {}
-    with open(sess_file, 'r', encoding='UTF-8') as data:
+    with open(ptnMAT_dim_sess_file % (matrices_dim, session_id), 'r', encoding='UTF-8') as data:
         for line_nr, line in enumerate(data):
-            graph = [[0 for x in range(ptn_dim)] for y in range(ptn_dim)]
+            graph = [[0 for x in range(matrices_dim)] for y in range(matrices_dim)]
             for index, edge_weight in enumerate(line.split()):
-                graph[int(index / ptn_dim)][int(index % ptn_dim)] = float(edge_weight) if float(
+                graph[index // matrices_dim][index % matrices_dim] = float(edge_weight) if float(
                     edge_weight) > 0 else 0.0
             dict_adj[subj_ids[line_nr]] = norm_rows_adj(np.array(graph))
 
@@ -39,8 +40,8 @@ def get_functional_adjs(ptn_dim=50, sess_file=ptnMAT_d50_ses1):
     return dict_adj
 
 
-def get_functional_node_feat():
-    node_feats_file = os.path.join(ptnMAT_colab, 'node_feats.pkl')
+def get_functional_node_feat(matrices_dim=50, session_id=1):
+    node_feats_file = os.path.join(dir_proc_funct_data, 'node_feats_dim%d_sess%d.pkl' % (matrices_dim, session_id))
     if os.path.exists(node_feats_file):
         print('Node features for the functional data already processed, loading them from disk...')
         with open(node_feats_file, 'rb') as handle:
@@ -48,15 +49,16 @@ def get_functional_node_feat():
         print('Node features for the functional data was loaded.')
         return all_node_feats
 
-    print('Creating and serializing for the structural data...')
-    node2vec_emb_dir = join(os.getcwd(), os.pardir, 'PartIIProject', 'node2vec_embeds')
+    print('Creating and serializing node features for the functional data...')
+    node2vec_emb_dir = join(os.getcwd(), os.pardir, 'PartIIProject', 'node2vec_embeds',
+                            'emb_dim%d_sess%d' % (matrices_dim, session_id))
+    if not os.path.exists(node2vec_emb_dir):
+        create_node_embedding(matrices_dim=matrices_dim, session_id=session_id)
     all_node_feats = {}
     feats_limits = {}
     feat_size = 0
     for embed in os.listdir(node2vec_emb_dir):
-
         with open(join(node2vec_emb_dir, embed), 'r') as handle:
-
             format = handle.readline()
             nr_nodes = int(format.split()[0])
             feat_size = int(format.split()[1])
@@ -72,6 +74,7 @@ def get_functional_node_feat():
                         feats_limits[feat_index].append(float(node_str_feat[feat_index + 1]))
 
             all_node_feats[embed.split('embeddings')[0]] = graph_feats
+
     limits = [(min(feats_limits[feat_index]), max(feats_limits[feat_index])) for feat_index in range(feat_size)]
     for subj in all_node_feats.keys():
         for node_vect in all_node_feats[subj]:
@@ -87,7 +90,10 @@ def get_functional_node_feat():
 
 
 def load_funct_data(hyparams):
-    dataset_binary = join(ptnMAT_colab, 'dataset.pkl')
+    str_traits = ''.join([trait.split('NEO.NEOFAC_')[-1] for trait in hyparams['pers_traits_selection']])
+    binary_prefix = '%s_d%d_s%d.pkl' % (str_traits, hyparams['functional_dim'], hyparams['scan_session'])
+
+    dataset_binary = join(dir_proc_funct_data, binary_prefix)
     if os.path.exists(dataset_binary):
         print('Loading the serialized data for the functional graphs...')
         with open(dataset_binary, 'rb') as handle:

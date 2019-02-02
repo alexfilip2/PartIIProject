@@ -1,37 +1,13 @@
 from MainGAT import *
-
+from GAT_hyperparam_config import GAT_hyperparam_config
 CHECKPT_PERIOD = 25
 
 
 def create_GAT_model(model_GAT_choice):
     # GAT model
     model = MainGAT()
+
     params = model_GAT_choice.params
-    # GAT hyper-parameters
-    batch_sz = params['batch_size']  # batch training size
-    nb_epochs = params['num_epochs']  # number of learning iterations over the trainign dataset
-    lr = params['learning_rate']  # learning rate
-    l2_coef = params['l2_coefficient']  # weight decay
-    hid_units = params['hidden_units']  # numbers of features produced by each attention head per network layer
-    n_heads = params['attention_heads']  # number of attention heads on each layer
-    residual = params['residual']
-    nonlinearity = params['non_linearity']
-    aggregator = params['readout_aggregator']
-    include_weights = params['include_ew']
-
-    print('Name of the current GAT model is %s' % model_GAT_choice)
-    print('Dataset:' + ' HCP graphs')
-    print('----- Opt. hyperparams -----')
-    print('lr: ' + str(lr))
-    print('l2_coef: ' + str(l2_coef))
-    print('----- Archi. hyperparams -----')
-    print('nb. layers: ' + str(len(hid_units)))
-    print('nb. units per layer: ' + str(hid_units))
-    print('nb. attention heads: ' + str(n_heads))
-    print('residual: ' + str(residual))
-    print('nonlinearity: ' + str(nonlinearity))
-    print('model: ' + str(model))
-
     # data for adjancency matrices, node feature vectors, biases for masked attention and personality scores
     data, subjects = params['load_specific_data'](params)
     # nr of nodes for each graph: it is shared among all examples due to the dataset
@@ -40,8 +16,7 @@ def create_GAT_model(model_GAT_choice):
     ft_size = data[subjects[0]]['feat'].shape[-1]
     # how many of the big-five personality traits the model is targeting at once
     outGAT_sz_target = len(params['pers_traits_selection'])
-    # checkpoint directory storing the progress of the current model
-    current_chkpt_dir = join(checkpts_dir, str(model_GAT_choice))
+
     subjects = shuffle_tr_data(subjects, len(subjects))
     # create a TensofFlow session, the context of evaluation for the Tensor objects
     with tf.Graph().as_default():
@@ -50,22 +25,20 @@ def create_GAT_model(model_GAT_choice):
             bias_in = tf.placeholder(dtype=tf.float32, shape=(1, nb_nodes, nb_nodes))
             score_in = tf.placeholder(dtype=tf.float32, shape=(1, outGAT_sz_target))
             adj_in = tf.placeholder(dtype=tf.float32, shape=(1, nb_nodes, nb_nodes))
-            attn_drop = tf.placeholder(dtype=tf.float32, shape=())
-            ffd_drop = tf.placeholder(dtype=tf.float32, shape=())
-            is_train = tf.placeholder(dtype=tf.bool, shape=())
+            include_ew = tf.placeholder(dtype=tf.bool, shape=())
 
-        prediction, unif_loss, excl_loss = model.inference(in_feat_vects=ftr_in,
+        prediction, unif_loss, excl_loss = model.inference_keras(in_feat_vects=ftr_in,
                                                            adj_mat=adj_in,
                                                            bias_mat=bias_in,
-                                                           hid_units=hid_units,
-                                                           n_heads=n_heads,
+                                                           include_weights=include_ew,
+                                                           hid_units=params['hidden_units'],
+                                                           n_heads=params['attention_heads'],
                                                            target_score_type=outGAT_sz_target,
-                                                           aggregator=aggregator,
-                                                           include_weights=include_weights,
-                                                           residual=residual,
-                                                           activation=nonlinearity,
-                                                           attn_drop=attn_drop,
-                                                           ffd_drop=ffd_drop)
+                                                           aggregator=params['readout_aggregator'],
+                                                           residual=params['residual'],
+                                                           activation=params['non_linearity'],
+                                                           attn_drop=params['attn_drop'],
+                                                           ffd_drop=params['ffd_drop'])
 
         loss = tf.losses.mean_squared_error(labels=score_in, predictions=prediction)
         # create tf session saver
@@ -75,8 +48,8 @@ def create_GAT_model(model_GAT_choice):
         zero_grads_ops, accum_ops, apply_ops = model.batch_training(loss=loss,
                                                                     u_loss=unif_loss,
                                                                     e_loss=excl_loss,
-                                                                    lr=lr,
-                                                                    l2_coef=l2_coef)
+                                                                    lr=params['learning_rate'],
+                                                                    l2_coef=params['l2_coefficient'])
 
         # number of training, validation, test graph examples
         split_sz = len(subjects) // 6
@@ -98,9 +71,9 @@ def create_GAT_model(model_GAT_choice):
 
         # Train loop
         # nb_epochs - number of epochs for training: the number of iteration of gradient descent to optimize
-        for epoch in range(1, nb_epochs + 1):
+        for epoch in range(1, params['num_epochs'] + 1):
             # number of iterations of the training set when batch-training
-            tr_iterations = tr_size // batch_sz
+            tr_iterations = tr_size // params['batch_size']
             # Array for logging the training loss, the uniform loss, the exclusive loss
             tr_loss_log = np.zeros(tr_iterations)
             tr_uloss_log = np.zeros(tr_iterations)
@@ -110,48 +83,46 @@ def create_GAT_model(model_GAT_choice):
             shuf_subjs = shuffle_tr_data(subjects, tr_size)
 
             for iteration in range(tr_iterations):
+                params['attn_drop'] = 0.6
+                params['ffd_drop'] = 0.6
                 # Make sure gradients are set to 0 before entering minibatch loop
                 sess.run(zero_grads_ops)
                 # Loop over minibatches and execute accumulate-gradient operation
-                for batch_step in range(batch_sz):
-                    index = batch_step + iteration * batch_sz
+                for batch_step in range(params['batch_size']):
+                    index = batch_step + iteration * params['batch_size']
                     sess.run([accum_ops], feed_dict={ftr_in: data[shuf_subjs[index]]['feat'],
                                                      bias_in: data[shuf_subjs[index]]['bias'],
                                                      score_in: data[shuf_subjs[index]]['score'],
                                                      adj_in: data[shuf_subjs[index]]['adj'],
-                                                     is_train: True,
-                                                     attn_drop: 0.6,
-                                                     ffd_drop: 0.6})
+                                                     include_ew: params['include_ew']})
                 # Done looping over minibatches. Now apply gradients.
                 sess.run(apply_ops)
                 # Calculate the validation loss after every single batch training
-                for batch_step in range(batch_sz):
-                    index = batch_step + iteration * batch_sz
+                for batch_step in range(params['batch_size']):
+                    index = batch_step + iteration * params['batch_size']
                     (tr_example_loss, u_loss, e_loss) = sess.run([loss, unif_loss, excl_loss],
                                                                  feed_dict={ftr_in: data[shuf_subjs[index]]['feat'],
                                                                             bias_in: data[shuf_subjs[index]]['bias'],
                                                                             score_in: data[shuf_subjs[index]]['score'],
                                                                             adj_in: data[shuf_subjs[index]]['adj'],
-                                                                            is_train: True,
-                                                                            attn_drop: 0.6,
-                                                                            ffd_drop: 0.6})
+                                                                            include_ew: params['include_ew']})
                     tr_uloss_log[iteration] += u_loss
                     tr_eloss_log[iteration] += e_loss
                     tr_loss_log[iteration] += tr_example_loss
 
-                tr_loss_log[iteration] /= batch_sz
-                tr_eloss_log[iteration] /= batch_sz
-                tr_uloss_log[iteration] /= batch_sz
+                tr_loss_log[iteration] /= params['batch_size']
+                tr_eloss_log[iteration] /= params['batch_size']
+                tr_uloss_log[iteration] /= params['batch_size']
 
             vl_avg_loss = 0.0
+            params['attn_drop'] = 0.0
+            params['ffd_drop'] = 0.0
             for vl_step in range(tr_size, tr_size + vl_size):
                 (vl_example_loss,) = sess.run([loss], feed_dict={ftr_in: data[subjects[vl_step]]['feat'],
                                                                  bias_in: data[subjects[vl_step]]['bias'],
                                                                  score_in: data[subjects[vl_step]]['score'],
                                                                  adj_in: data[subjects[vl_step]]['adj'],
-                                                                 is_train: False,
-                                                                 attn_drop: 0.0,
-                                                                 ffd_drop: 0.0})
+                                                                 include_ew: params['include_ew']})
 
                 vl_avg_loss += vl_example_loss
             vl_avg_loss /= vl_size
@@ -161,9 +132,9 @@ def create_GAT_model(model_GAT_choice):
 
             print('Training: loss = %.5f | Val: loss = %.5f | '
                   'Unifrom loss: %.5f| Exclusive loss: %.5f' % (
-                  tr_avg_loss, vl_avg_loss, tr_avg_uloss_log, tr_avg_eloss_log))
+                      tr_avg_loss, vl_avg_loss, tr_avg_uloss_log, tr_avg_eloss_log))
 
-            checkpt_file = os.path.join(current_chkpt_dir, 'checkpoint')
+            checkpt_file = model_GAT_choice.checkpt_file() + '_tester'
             if epoch % CHECKPT_PERIOD == 0:
                 save_path = saver.save(sess, checkpt_file, global_step=epoch)
                 print("Training progress after %d epochs saved in path: %s" % (epoch, save_path))
@@ -180,7 +151,7 @@ def create_GAT_model(model_GAT_choice):
                     print('Early stop model validation loss: ', vlss_early_model)
                     break
 
-    model_file = os.path.join(current_chkpt_dir, 'trained_model')
+    model_file = model_GAT_choice.checkpt_file() + '_tester_fullytrained'
     if not tf.train.checkpoint_exists(model_file):
         save_path = saver.save(sess, model_file)
         print("Fully trained model saved in path: %s" % save_path)
@@ -194,10 +165,7 @@ def create_GAT_model(model_GAT_choice):
         (ts_example_loss,) = sess.run([loss], feed_dict={ftr_in: data[subjects[ts_step]]['feat'],
                                                          bias_in: data[subjects[ts_step]]['bias'],
                                                          score_in: data[subjects[ts_step]]['score'],
-                                                         adj_in: data[subjects[ts_step]]['adj'],
-                                                         is_train: False,
-                                                         attn_drop: 0.0,
-                                                         ffd_drop: 0.0})
+                                                         adj_in: data[subjects[ts_step]]['adj']})
         ts_avg_loss += ts_example_loss
 
     print('Test loss:', ts_avg_loss / ts_size)
@@ -209,7 +177,7 @@ if __name__ == "__main__":
     hid_units = [20, 20, 10]
     n_heads = [3, 3, 2]
     aggregators = [MainGAT.concat_feature_aggregator]
-    include_weights = [False]
+    include_weights = [True]
     pers_traits = [['NEO.NEOFAC_A']]
     batches = [2]
     for aggr, iw, p_traits, batch_size in product(aggregators, include_weights, pers_traits, batches):

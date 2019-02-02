@@ -7,8 +7,10 @@ if not os.path.exists(node2vec_emb_dir):
     os.makedirs(node2vec_emb_dir)
 
 
-def create_node_embedding(ptn_dim=50):
-    dict_funct_adjs = get_functional_adjs(ptn_dim)
+def create_node_embedding(matrices_dim=50, session_id=1):
+    node2vec_emb_dir = join(os.getcwd(), os.pardir, 'PartIIProject', 'node2vec_embeds',
+                            'emb_dim%d_sess%d' % (matrices_dim, session_id))
+    dict_funct_adjs = get_functional_adjs(matrices_dim)
     # Create a graph
     for subj_id in dict_funct_adjs.keys():
         graph = nx.from_numpy_matrix(A=get_binary_adj(dict_funct_adjs[subj_id]))
@@ -18,7 +20,7 @@ def create_node_embedding(ptn_dim=50):
         EMBEDDING_MODEL_FILENAME = './embeddings.model'
 
         # Precompute probabilities and generate walks - **ON WINDOWS ONLY WORKS WITH workers=1**
-        node2vec = Node2Vec(graph, dimensions=8, walk_length=ptn_dim, num_walks=100, workers=4)
+        node2vec = Node2Vec(graph, dimensions=8, walk_length=matrices_dim, num_walks=100, workers=4)
         # Use temp_folder for big graphs
 
         # Embed nodes
@@ -31,6 +33,3 @@ def create_node_embedding(ptn_dim=50):
         # Save model for later use
         model.save(EMBEDDING_MODEL_FILENAME)
 
-
-if __name__ == "__main__":
-    create_node_embedding()

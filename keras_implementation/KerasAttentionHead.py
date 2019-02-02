@@ -129,7 +129,9 @@ class GraphAttention(Layer):
             # Apply softmax to get attention coefficients
             dense = K.softmax(dense)  # (N x N)
 
-            dense = tf.cond(tf.squeeze(include_weights),true_fn= lambda: Multiply()([dense,tf.cast(A,dtype=tf.float32)]), false_fn= lambda: dense)
+            dense = tf.cond(tf.squeeze(include_weights),
+                            true_fn=lambda: Multiply()([dense, tf.cast(A, dtype=tf.float32)]),
+                            false_fn=lambda: dense)
 
             # Apply dropout to features and attention coefficients
             dropout_attn = Dropout(rate=self.dropout_rate)(dense)  # (N x N)
