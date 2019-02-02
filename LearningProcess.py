@@ -129,4 +129,5 @@ if __name__ == "__main__":
                     'nested_CV_level': 'inner'
 
                 }
-                plt_learn_proc(GAT_hyperparam_config(dict_param))
+                #plt_learn_proc(GAT_hyperparam_config(dict_param))
+    plot_pers_scores_hist()
