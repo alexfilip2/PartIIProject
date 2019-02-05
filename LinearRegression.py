@@ -8,7 +8,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error
 from sklearn import svm
 
-adjs, scores = load_regress_data(['NEO.NEOFAC_C'])
+adjs, scores = load_regress_data(['NEO.NEOFAC_N'])
 print("The lenght of the dataset is %d" % adjs.shape[0])
 adjs_train, adjs_test, scores_train, scores_test = train_test_split(adjs, scores, test_size=0.2, random_state=0)
 

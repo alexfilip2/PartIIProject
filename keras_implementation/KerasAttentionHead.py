@@ -2,7 +2,7 @@ from __future__ import absolute_import
 import tensorflow as tf
 from keras import activations, constraints, initializers, regularizers
 from keras import backend as K
-from keras.layers import Layer, Dropout, LeakyReLU, Multiply, Subtract
+from keras.layers import Layer, Dropout, LeakyReLU, Multiply
 
 
 class GraphAttention(Layer):
@@ -25,10 +25,11 @@ class GraphAttention(Layer):
                  bias_constraint=None,
                  attn_kernel_constraint=None,
                  **kwargs):
+        super(GraphAttention, self).__init__(**kwargs)
         if attn_heads_reduction not in {'concat', 'average'}:
             raise ValueError('Possbile reduction methods: concat, average')
 
-        self.F_ = F_  # Number of output features (F' in the paper)
+        self.F_ = F_  # Dimensionality of new node features: (F in the paper
         self.attn_heads = attn_heads  # Number of attention heads (K in the paper)
         self.attn_heads_reduction = attn_heads_reduction  # Eq. 5 and 6 in the paper
         self.dropout_rate = dropout_rate  # Internal dropout rate
@@ -61,9 +62,9 @@ class GraphAttention(Layer):
             # Output will have shape (..., F')
             self.output_dim = self.F_
 
-        super(GraphAttention, self).__init__(**kwargs)
-
-    def build(self, F):
+    def build(self, input_shape):
+        assert len(input_shape) >= 2
+        F = input_shape[-1]
 
         # Initialize weights for each attention head
         for head in range(self.attn_heads):
@@ -99,7 +100,7 @@ class GraphAttention(Layer):
         self.built = True
 
     def call(self, inputs, **kwargs):
-        X, A, mask, include_weights = inputs
+        input_node_feats, adjacency_mat, attn_mask, include_weights = inputs
         # X: Node features (N x F)
         # A: Adjacency matrix (N x N)
         # mask : Bias matrix (N x N)
@@ -110,7 +111,7 @@ class GraphAttention(Layer):
             attention_kernel = self.attn_kernels[head]  # Attention kernel a in the paper (2F' x 1)
 
             # Compute inputs to attention network
-            features = K.dot(X, kernel)  # (N x F')
+            features = K.dot(input_node_feats, kernel)  # (N x F')
 
             # Compute feature combinations
             # Note: [[a_1], [a_2]]^T [[Wh_i], [Wh_2]] = [a_1]^T [Wh_i] + [a_2]^T [Wh_j]
@@ -124,13 +125,13 @@ class GraphAttention(Layer):
             dense = LeakyReLU(alpha=0.2)(dense)
 
             # Mask values before activation (Vaswani et al., 2017)
-            dense += mask
+            dense += attn_mask
 
             # Apply softmax to get attention coefficients
             dense = K.softmax(dense)  # (N x N)
 
             dense = tf.cond(tf.squeeze(include_weights),
-                            true_fn=lambda: Multiply()([dense, tf.cast(A, dtype=tf.float32)]),
+                            true_fn=lambda: Multiply()([dense, tf.cast(adjacency_mat, dtype=tf.float32)]),
                             false_fn=lambda: dense)
 
             # Apply dropout to features and attention coefficients
@@ -146,7 +147,7 @@ class GraphAttention(Layer):
             # calculate how many neighbours of each node contribute to the aggregation (non-zero alpha)
             non_zero_alpha = tf.count_nonzero(dense, axis=-1)
             # calculate the number of neighbours of each node
-            degrees = tf.count_nonzero(A, axis=-1)
+            degrees = tf.count_nonzero(adjacency_mat, axis=-1)
 
             # the UNIFORM LOSS of the current attention head
             loss_unif_attn = tf.reduce_mean(tf.to_float(tf.subtract(non_zero_alpha, degrees)))

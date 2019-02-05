@@ -1,7 +1,6 @@
 from Tools import *
 import pickle as pkl
 
-
 dir_root_structural_data = join(os.getcwd(), os.pardir, 'PartIIProject', 'structural_data')
 dir_struct_mat_HCP = join(dir_root_structural_data, 'PTN matrices HCP')
 structural_feats_excel = join(dir_root_structural_data, 'Features_all.xlsx')
@@ -157,6 +156,7 @@ def load_struct_data(hyparams):
             else:
                 unexp_adj = norm_rows_adj(
                     hyparams['edgeWeights_filter'](hyparams['ew_limits'], (np.array(dict_adj[subj_id]))))
+            unexp_adj += np.eye(unexp_adj.shape[0])
             if np.isnan(unexp_adj).any():
                 print(unexp_adj)
                 quit()

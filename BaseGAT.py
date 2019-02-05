@@ -40,8 +40,7 @@ class BaseGAT(object):
                                      attn_heads_reduction='average',
                                      dropout_rate=kwargs['attn_drop'],
                                      activation=lambda x: x)
-        feats_len_input = int(extended_feats.shape[-1])
-        input_layer.build(F=feats_len_input)
+        input_layer.build(input_shape=extended_feats.get_shape().as_list())
         out, _, _ = input_layer.call(inputs=[extended_feats, adj_mat, bias_mat, tf.constant(False)])
         # take the resulted features of the master node
         out = tf.slice(input_=out, begin=[init_nb_nodes, 0], size=[1, kwargs['target_score_type']])
@@ -119,9 +118,7 @@ class BaseGAT(object):
 
         out = []
         # the output layer of the neural network architecture (node classification is implemented here)
-        # the F' is nb_classes
-
-        if aggregator is self.average_feature_aggregator:
+        if aggregator is BaseGAT.average_feature_aggregator:
             hid_units[-1] = target_score_type
         for i in range(n_heads[-1]):
             attn_head_out, attn_unif_loss, attn_excl_loss = attn_layer.attn_head(input_feat_seq=h_1,
@@ -153,9 +150,7 @@ class BaseGAT(object):
                         attn_drop, ffd_drop, include_weights, activation=tf.nn.elu, residual=False
                         , aggregator=concat_feature_aggregator, target_score_type=5):
 
-        adj_mat = tf.squeeze(adj_mat, axis=0)
-        bias_mat = tf.squeeze(bias_mat, axis=0)
-        in_feat_vects = tf.squeeze(in_feat_vects, axis=0)
+        adj_mat, bias_mat, in_feat_vects = map(lambda x: tf.squeeze(x, axis=0), [adj_mat, bias_mat, in_feat_vects])
         # change the length of the final features produced if just plain averaging is used
         if aggregator is BaseGAT.average_feature_aggregator:
             hid_units[-1] = target_score_type
@@ -166,8 +161,7 @@ class BaseGAT(object):
                                      attn_heads_reduction='concat',
                                      dropout_rate=attn_drop,
                                      activation=activation)
-        feats_len_input = int(in_feat_vects.shape[-1])
-        input_layer.build(F=feats_len_input)
+        input_layer.build(input_shape=in_feat_vects.get_shape().as_list())
         out, arch_uloss, arch_eloss = input_layer.call(inputs=[in_feat_vects, adj_mat, bias_mat, include_weights])
 
         # hidden GAT layers
@@ -177,8 +171,7 @@ class BaseGAT(object):
                                         attn_heads_reduction='concat',
                                         dropout_rate=attn_drop,
                                         activation=activation)
-            feats_len_input = int(out.shape[-1])
-            i_th_layer.build(F=feats_len_input)
+            i_th_layer.build(input_shape=out.get_shape().as_list())
             out, layer_uloss, layer_eloss = i_th_layer.call(inputs=[out, adj_mat, bias_mat, include_weights])
             arch_uloss = tf.add(arch_uloss, layer_uloss)
             arch_eloss = tf.add(arch_eloss, layer_eloss)
@@ -189,12 +182,12 @@ class BaseGAT(object):
                                       attn_heads_reduction='average',
                                       dropout_rate=attn_drop,
                                       activation=lambda x: x)
-        feats_len_input = int(out.shape[-1])
-        output_layer.build(F=feats_len_input)
+        output_layer.build(input_shape=out.get_shape().as_list())
         gat_output, output_uloss, output_eloss = output_layer.call(inputs=[out, adj_mat, bias_mat, include_weights])
 
-        arch_uloss = tf.divide(tf.add(arch_uloss, output_uloss), np.sum(np.array(n_heads)))
-        arch_eloss = tf.divide(tf.add(arch_eloss, output_eloss), np.sum(np.array(n_heads)))
+        nb_attn_heads = np.sum(np.array(n_heads))
+        arch_uloss = tf.divide(tf.add(arch_uloss, output_uloss), nb_attn_heads)
+        arch_eloss = tf.divide(tf.add(arch_eloss, output_eloss), nb_attn_heads)
 
         # aggregate all the output node features
         output = aggregator(self, model_GAT_output=tf.expand_dims(gat_output, axis=0),

@@ -53,7 +53,17 @@ class CrossValidatedGAT(MainGAT):
         # the number of the big-five personality traits the model is targeting at once
         self.outGAT_sz_target = len(self.params['pers_traits_selection'])
 
-    def sorted_stratification(self, unbalanced_subj, k_split, eval_fold):
+    def sorted_stratification(self, unbalanced_subj, k_split, eval_fold, id):
+        sorted_id = sorted(id.items(), key=operator.itemgetter(0))
+        sorted_id = [x[1] for x in sorted_id]
+        strat_split_file = '_'.join(list(map(str, sorted_id)))
+        strat_split_file = os.path.join(self.config.proc_data_dir(), strat_split_file)
+        if os.path.exists(strat_split_file):
+            stratified_subj = np.load(strat_split_file)
+            test_fold = stratified_subj[eval_fold]
+            training = np.concatenate(np.delete(stratified_subj, obj=eval_fold, axis=0))
+            return test_fold, training
+
         from random import randint
         sorted_subjs_by_score = sorted(unbalanced_subj, key=lambda x: self.data[x]['score'][0][0])
         stratified_subj = []
@@ -68,10 +78,13 @@ class CrossValidatedGAT(MainGAT):
                 stratified_subj[fold].append(window[random_index_window])
                 del window[random_index_window]
                 scores_left_window -= 1
+
         for rest in range(len(sorted_subjs_by_score) // k_split * k_split, len(sorted_subjs_by_score)):
             stratified_subj[randint(0, k_split - 1)].append(sorted_subjs_by_score[rest])
 
         stratified_subj = np.array(stratified_subj)
+        np.save(strat_split_file, stratified_subj)
+
         test_fold = stratified_subj[eval_fold]
         training = np.concatenate(np.delete(stratified_subj, obj=eval_fold, axis=0))
         return test_fold, training
@@ -84,19 +97,37 @@ class CrossValidatedGAT(MainGAT):
         k_outer = self.params['k_outer']  # the number of outer folds
         k_inner = self.params['k_inner']  # the number of inner folds
         # prepare the outer split
+        stratif_identif = {'k_outer': k_outer,
+                           'fold_usage': 'test',
+                           'nested_CV_level': 'outer'}
         self.outer_test, out_training = self.sorted_stratification(unbalanced_subj=self.subjects, k_split=k_outer,
-                                                                   eval_fold=eval_fold_out)
+                                                                   eval_fold=eval_fold_out, id=stratif_identif)
+        stratif_identif = {'k_outer': k_outer,
+                           'eval_fold_out': eval_fold_out,
+                           'fold_usage': 'val',
+                           'nested_CV_level': 'outer'}
         self.outer_validation, self.outer_train = self.sorted_stratification(unbalanced_subj=out_training,
                                                                              k_split=k_outer,
-                                                                             eval_fold=-1)
+                                                                             eval_fold=-1, id=stratif_identif)
 
         # prepare the inner split
+        stratif_identif = {'k_outer': k_outer,
+                           'k_inner': k_inner,
+                           'eval_fold_out': eval_fold_out,
+                           'fold_usage': 'test',
+                           'nested_CV_level': 'inner'}
         self.inner_test, in_training = self.sorted_stratification(unbalanced_subj=out_training, k_split=k_inner,
-                                                                  eval_fold=eval_fold_in)
+                                                                  eval_fold=eval_fold_in, id=stratif_identif)
+        stratif_identif = {'k_outer': k_outer,
+                           'k_inner': k_inner,
+                           'eval_fold_in': eval_fold_in,
+                           'eval_fold_out': eval_fold_out,
+                           'fold_usage': 'val',
+                           'nested_CV_level': 'inner'}
 
         self.inner_validation, self.inner_train = self.sorted_stratification(unbalanced_subj=in_training,
                                                                              k_split=k_inner,
-                                                                             eval_fold=-1)
+                                                                             eval_fold=-1, id=stratif_identif)
 
         assert set(self.inner_train).isdisjoint(set(self.inner_test))
         assert set(self.outer_train).isdisjoint(set(self.outer_test))
@@ -340,10 +371,9 @@ class CrossValidatedGAT(MainGAT):
 def cross_validation_GAT():
     hu_choices = [[20, 20, 10]]
     ah_choices = [[3, 3, 2]]
-    aggr_choices = [MainGAT.concat_feature_aggregator, MainGAT.master_node_aggregator,
-                    MainGAT.average_feature_aggregator]
+    aggr_choices = [MainGAT.concat_feature_aggregator]
     include_weights = [True]
-    pers_traits = [['NEO.NEOFAC_N']]
+    pers_traits = [['NEO.NEOFAC_A']]
     batch_chocies = [2]
     load_choices = [load_struct_data, load_funct_data]
     for load, hu, ah, agg, iw, p_traits, batch_size in product(load_choices, hu_choices, ah_choices, aggr_choices,

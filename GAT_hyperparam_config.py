@@ -62,6 +62,12 @@ class GAT_hyperparam_config(object):
     def checkpt_file(self):
         return os.path.join(self.checkpts_dir, 'checkpoint_' + str(self))
 
+    def proc_data_dir(self):
+        if self.params['load_specific_data'] is load_struct_data:
+            return dir_proc_struct_data
+        else:
+            return dir_proc_funct_data
+
     def logs_file(self):
         return os.path.join(self.checkpts_dir, 'logs_' + str(self))
 
