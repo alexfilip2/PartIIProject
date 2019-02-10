@@ -160,10 +160,10 @@ def load_struct_data(hyparams):
             if np.isnan(unexp_adj).any():
                 print(unexp_adj)
                 quit()
-            dict_dataset[subj_id]['feat'] = exp_dims(np.array(dict_node_feat[subj_id]), axis=0)
-            dict_dataset[subj_id]['adj'] = exp_dims(unexp_adj, axis=0)
-            dict_dataset[subj_id]['bias'] = exp_dims(adj_to_bias(unexp_adj, nhood=1), axis=0)
-            dict_dataset[subj_id]['score'] = exp_dims(np.array(dict_tiv_score[subj_id]), axis=0)
+            dict_dataset[subj_id]['feat'] =np.array(dict_node_feat[subj_id])
+            dict_dataset[subj_id]['adj'] = unexp_adj
+            dict_dataset[subj_id]['bias'] = adj_to_bias(unexp_adj, nhood=1)
+            dict_dataset[subj_id]['score'] = np.array(dict_tiv_score[subj_id])
             available_subjs.append(subj_id)
 
     with open(dataset_binary, 'wb') as handle:

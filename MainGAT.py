@@ -3,7 +3,7 @@ from BaseGAT import *
 
 class MainGAT(BaseGAT):
 
-    def training(loss, lr, l2_coef):
+    def training(self, loss, u_loss, e_loss, lr, l2_coef):
         """ Defines the training operation of the entire GAT neural network model
 
                 Parameters
@@ -28,7 +28,7 @@ class MainGAT(BaseGAT):
         # Create optimizer
         opt = tf.train.AdamOptimizer(learning_rate=lr)
         # Training tensorflow Operation for batches of size 1
-        train_op = opt.minimize(loss + lossL2)
+        train_op = opt.minimize(tf.add_n([loss, lossL2, u_loss * 0.0005, e_loss * 0.0005]))
 
         return train_op
 

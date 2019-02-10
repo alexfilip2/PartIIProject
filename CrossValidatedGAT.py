@@ -53,13 +53,13 @@ class CrossValidatedGAT(MainGAT):
         # the number of the big-five personality traits the model is targeting at once
         self.outGAT_sz_target = len(self.params['pers_traits_selection'])
 
-    def sorted_stratification(self, unbalanced_subj, k_split, eval_fold, id):
-        sorted_id = sorted(id.items(), key=operator.itemgetter(0))
-        sorted_id = [x[1] for x in sorted_id]
-        strat_split_file = '_'.join(list(map(str, sorted_id)))
-        strat_split_file = os.path.join(self.config.proc_data_dir(), strat_split_file)
-        if os.path.exists(strat_split_file):
-            stratified_subj = np.load(strat_split_file)
+    def sorted_stratification(self, unbalanced_subj, k_split, eval_fold, id_dict):
+        sorted_id = [x[1] for x in sorted(id_dict.items(), key=operator.itemgetter(0))]
+        target_trait = self.params['pers_traits_selection'][0]
+        strat_split_file = os.path.join(self.config.proc_data_dir(), '_'.join(list(map(str, sorted_id))) + target_trait)
+        if os.path.exists(strat_split_file + '.npy'):
+            print('Reload the split of sorted stratification for the model %s' % self.config)
+            stratified_subj = np.load(strat_split_file + '.npy')
             test_fold = stratified_subj[eval_fold]
             training = np.concatenate(np.delete(stratified_subj, obj=eval_fold, axis=0))
             return test_fold, training
@@ -79,8 +79,9 @@ class CrossValidatedGAT(MainGAT):
                 del window[random_index_window]
                 scores_left_window -= 1
 
+        dump_fold_rest = randint(0, k_split - 1)
         for rest in range(len(sorted_subjs_by_score) // k_split * k_split, len(sorted_subjs_by_score)):
-            stratified_subj[randint(0, k_split - 1)].append(sorted_subjs_by_score[rest])
+            stratified_subj[dump_fold_rest].append(sorted_subjs_by_score[rest])
 
         stratified_subj = np.array(stratified_subj)
         np.save(strat_split_file, stratified_subj)
@@ -101,14 +102,14 @@ class CrossValidatedGAT(MainGAT):
                            'fold_usage': 'test',
                            'nested_CV_level': 'outer'}
         self.outer_test, out_training = self.sorted_stratification(unbalanced_subj=self.subjects, k_split=k_outer,
-                                                                   eval_fold=eval_fold_out, id=stratif_identif)
+                                                                   eval_fold=eval_fold_out, id_dict=stratif_identif)
         stratif_identif = {'k_outer': k_outer,
                            'eval_fold_out': eval_fold_out,
                            'fold_usage': 'val',
                            'nested_CV_level': 'outer'}
         self.outer_validation, self.outer_train = self.sorted_stratification(unbalanced_subj=out_training,
                                                                              k_split=k_outer,
-                                                                             eval_fold=-1, id=stratif_identif)
+                                                                             eval_fold=-1, id_dict=stratif_identif)
 
         # prepare the inner split
         stratif_identif = {'k_outer': k_outer,
@@ -117,7 +118,7 @@ class CrossValidatedGAT(MainGAT):
                            'fold_usage': 'test',
                            'nested_CV_level': 'inner'}
         self.inner_test, in_training = self.sorted_stratification(unbalanced_subj=out_training, k_split=k_inner,
-                                                                  eval_fold=eval_fold_in, id=stratif_identif)
+                                                                  eval_fold=eval_fold_in, id_dict=stratif_identif)
         stratif_identif = {'k_outer': k_outer,
                            'k_inner': k_inner,
                            'eval_fold_in': eval_fold_in,
@@ -127,17 +128,17 @@ class CrossValidatedGAT(MainGAT):
 
         self.inner_validation, self.inner_train = self.sorted_stratification(unbalanced_subj=in_training,
                                                                              k_split=k_inner,
-                                                                             eval_fold=-1, id=stratif_identif)
+                                                                             eval_fold=-1, id_dict=stratif_identif)
 
         assert set(self.inner_train).isdisjoint(set(self.inner_test))
         assert set(self.outer_train).isdisjoint(set(self.outer_test))
 
     def make_model(self):
         with tf.variable_scope('input'):
-            self.placeholders['ftr_in'] = tf.placeholder(dtype=tf.float32, shape=(1, self.nb_nodes, self.ft_size))
-            self.placeholders['bias_in'] = tf.placeholder(dtype=tf.float32, shape=(1, self.nb_nodes, self.nb_nodes))
-            self.placeholders['score_in'] = tf.placeholder(dtype=tf.float32, shape=(1, self.outGAT_sz_target))
-            self.placeholders['adj_in'] = tf.placeholder(dtype=tf.float32, shape=(1, self.nb_nodes, self.nb_nodes))
+            self.placeholders['ftr_in'] = tf.placeholder(dtype=tf.float32, shape=[1, self.nb_nodes, self.ft_size])
+            self.placeholders['bias_in'] = tf.placeholder(dtype=tf.float32, shape=[1, self.nb_nodes, self.nb_nodes])
+            self.placeholders['score_in'] = tf.placeholder(dtype=tf.float32, shape=[1, self.outGAT_sz_target])
+            self.placeholders['adj_in'] = tf.placeholder(dtype=tf.float32, shape=[1, self.nb_nodes, self.nb_nodes])
             self.placeholders['include_ew'] = tf.placeholder(dtype=tf.bool, shape=())
             prediction, self.ops['unif_loss'], self.ops['excl_loss'] = \
                 MainGAT.inference_keras(self, in_feat_vects=self.placeholders['ftr_in'],
@@ -169,15 +170,14 @@ class CrossValidatedGAT(MainGAT):
             self.params['attn_drop'] = self.params['ffd_drop'] = 0.0
 
         subj_data = self.data[subj_key]
-        return self.sess.run(ops, feed_dict={self.placeholders['ftr_in']: subj_data['feat'],
-                                             self.placeholders['bias_in']: subj_data['bias'],
-                                             self.placeholders['score_in']: subj_data['score'],
-                                             self.placeholders['adj_in']: subj_data['adj'],
+        return self.sess.run(ops, feed_dict={self.placeholders['ftr_in']: [subj_data['feat']],
+                                             self.placeholders['bias_in']: [subj_data['bias']],
+                                             self.placeholders['score_in']: [subj_data['score']],
+                                             self.placeholders['adj_in']: [subj_data['adj']],
                                              self.placeholders['include_ew']: self.params['include_ew']})
 
     # run one batch of training: update the weights of GAT and calculate the loss of the batch of examples
     def batch_train_step(self, iteration, train_subjs):
-        batch_sum_loss, batch_sum_uloss, batch_sum_eloss = 0.0, 0.0, 0.0
         # reset gradients to 0 before entering minibatch training loop
         self.sess.run(self.ops['zero_grads_ops'])
         # loop over the mini-batch and execute accumulate-gradient operation
@@ -190,39 +190,29 @@ class CrossValidatedGAT(MainGAT):
         # after finished looping over the batch, apply gradients
         self.sess.run(self.ops['apply_ops'])
 
-        # Calculate the validation loss after every single batch training
-        for batch_step in range(self.params['batch_size']):
-            index = batch_step + iteration * self.params['batch_size']
-            if index >= len(train_subjs):
-                break
-            (expl_loss, expl_u_loss, expl_e_loss) = self.feed_forward_op(ops=[self.ops['loss'],
-                                                                              self.ops['unif_loss'],
-                                                                              self.ops['excl_loss']],
-                                                                         subj_key=train_subjs[index],
-                                                                         is_train=True)
-            batch_sum_loss += expl_loss
-            batch_sum_uloss += expl_u_loss
-            batch_sum_eloss += expl_e_loss
-
-        return batch_sum_loss, batch_sum_uloss, batch_sum_eloss
-
     # run one batch of training: on training_set which comes from a k_split of the dataset (inner or outer)
     def run_epoch_training(self, training_set):
         # Train loop
         tr_size = len(training_set)
         # number of iterations of the training set on batch-training
         tr_iterations = tr_size // self.params['batch_size']
-        # Array for logging the training loss, the uniform loss, the exclusive loss
-        tr_loss_log = np.zeros(tr_iterations + 1)
-        tr_uloss_log = np.zeros(tr_iterations + 1)
-        tr_eloss_log = np.zeros(tr_iterations + 1)
+
         # shuffle the training dataset
         shuf_subjs = shuffle_tr_data(training_set, tr_size)
         for iteration in range(tr_iterations + 1):
-            tr_loss_log[iteration], tr_uloss_log[iteration], tr_eloss_log[iteration] = self.batch_train_step(
-                iteration=iteration, train_subjs=shuf_subjs)
+            self.batch_train_step(iteration=iteration, train_subjs=shuf_subjs)
 
-        return map(lambda x: np.sum(x) / tr_size, [tr_loss_log, tr_uloss_log, tr_eloss_log])
+        tr_avg_loss, avg_eloss, avg_uloss = 0.0, 0.0, 0.0
+        for tr_step in range(tr_size):
+            (tr_expl_loss, expl_uloss, expl_eloss) = self.feed_forward_op([self.ops['loss'], self.ops['unif_loss'],
+                                                                           self.ops['excl_loss']],
+                                                                          subj_key=training_set[tr_step],
+                                                                          is_train=False)
+            tr_avg_loss += tr_expl_loss
+            avg_eloss += expl_eloss
+            avg_uloss += expl_uloss
+
+        return map(lambda x: x / tr_size, [tr_avg_loss, avg_uloss, avg_eloss])
 
     def run_epoch_validation(self, validation_set):
         # number of training, validation, test graph examples
@@ -302,7 +292,7 @@ class CrossValidatedGAT(MainGAT):
 
         ts_avg_loss /= ts_size
         print('Test: loss = %.5f for the model %s' % (ts_avg_loss, self.config))
-        # self.sess.close()
+        self.sess.close()
 
     def save_model(self, last_epoch: int, fully_trained: bool = False) -> None:
         weights_to_save = {}
@@ -326,8 +316,7 @@ class CrossValidatedGAT(MainGAT):
             pickle.dump(logs_to_save, out_log_file, pickle.HIGHEST_PROTOCOL)
 
     def initialize_model(self) -> None:
-        init_op = tf.group(tf.global_variables_initializer(),
-                           tf.local_variables_initializer())
+        init_op = tf.group(tf.global_variables_initializer(), tf.local_variables_initializer())
         self.sess.run(init_op)
         self.last_epoch = 1
         self.trained_flag = False
@@ -362,43 +351,45 @@ class CrossValidatedGAT(MainGAT):
             for var_name in data_to_load['weights']:
                 if var_name not in used_vars:
                     print('Saved weights for %s not used by model.' % var_name)
-            restore_ops.append(tf.variables_initializer(variables_to_initialize))
+                    restore_ops.append(tf.variables_initializer(variables_to_initialize))
+
             self.sess.run(restore_ops)
 
         self.last_epoch = data_to_load['last_epoch']
 
 
 def cross_validation_GAT():
-    hu_choices = [[20, 20, 10]]
+    hu_choices = [[30, 20, 10]]
     ah_choices = [[3, 3, 2]]
-    aggr_choices = [MainGAT.concat_feature_aggregator]
+    aggr_choices = [MainGAT.master_node_aggregator, MainGAT.concat_feature_aggregator,
+                    MainGAT.average_feature_aggregator
+                    ]
     include_weights = [True]
-    pers_traits = [['NEO.NEOFAC_A']]
+    pers_traits = [['NEO.NEOFAC_A'], ['NEO.NEOFAC_O'], ['NEO.NEOFAC_C'], ['NEO.NEOFAC_N'], ['NEO.NEOFAC_E']]
     batch_chocies = [2]
-    load_choices = [load_struct_data, load_funct_data]
+    load_choices = [load_struct_data]
     for load, hu, ah, agg, iw, p_traits, batch_size in product(load_choices, hu_choices, ah_choices, aggr_choices,
                                                                include_weights,
                                                                pers_traits, batch_chocies):
-        for eval_fold_out in range(5):
-            for eval_fold_in in range(5):
-                dict_param = {
-                    'hidden_units': hu,
-                    'attention_heads': ah,
-                    'include_ew': iw,
-                    'readout_aggregator': agg,
-                    'load_specific_data': load,
-                    'pers_traits_selection': p_traits,
-                    'batch_size': batch_size,
-                    'eval_fold_in': eval_fold_in,
-                    'eval_fold_out': eval_fold_out,
-                    'k_outer': 5,
-                    'k_inner': 5,
-                    'nested_CV_level': 'outer'
+        for eval_in in range(5):
+            dict_param = {
+                'hidden_units': hu,
+                'attention_heads': ah,
+                'include_ew': iw,
+                'readout_aggregator': agg,
+                'load_specific_data': load,
+                'pers_traits_selection': p_traits,
+                'batch_size': batch_size,
+                'eval_fold_in': eval_in,
+                'eval_fold_out': 4,
+                'k_outer': 5,
+                'k_inner': 5,
+                'nested_CV_level': 'inner'
 
-                }
-                model = CrossValidatedGAT(args=GAT_hyperparam_config(dict_param))
-                model.train()
-                model.test()
+            }
+            model = CrossValidatedGAT(args=GAT_hyperparam_config(dict_param))
+            model.train()
+            model.test()
 
 
 if __name__ == "__main__":
