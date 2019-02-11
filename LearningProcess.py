@@ -98,7 +98,8 @@ def plot_pers_scores_hist():
 
 
 def draw_adjacency_heatmap(adjacency_matrix):
-    plt.imshow(adjacency_matrix, cmap='hot', interpolation='nearest')
+    im = plt.imshow(adjacency_matrix, cmap='YlGn', interpolation='nearest', )
+    plt.colorbar(im)
     plt.show()
 
 
@@ -130,4 +131,4 @@ if __name__ == "__main__":
 
                 }
                 #plt_learn_proc(GAT_hyperparam_config(dict_param))
-    plot_pers_scores_hist()
+    draw_adjacency_heatmap(list(get_structural_adjs().values())[0])

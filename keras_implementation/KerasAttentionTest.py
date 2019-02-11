@@ -2,7 +2,7 @@ from __future__ import absolute_import
 import tensorflow as tf
 from keras import activations, constraints, initializers, regularizers
 from keras import backend as K
-from keras.layers import Layer, Dropout, LeakyReLU, Multiply, Lambda
+from keras.layers import Layer, Dropout, LeakyReLU, Multiply
 
 tf.enable_eager_execution()
 
@@ -103,9 +103,10 @@ class GraphAttention(Layer):
 
     def call(self, inputs, **kwargs):
         input_node_feats, adjacency_mat, attn_mask, is_train = inputs
-        # X: Node features (? x N x F)
-        # A: Adjacency matrix (? x N x N)
-        # mask : Bias matrix (? x N x N)
+        # input_node_feats: Node features (? x N x F)
+        # adjacency_mat: Adjacency matrix (? x N x N)
+        # attn_mask : Bias matrix (? x N x N)
+        # is_train: bool - specifies if dropout is active/inactive
         outputs = []
         layer_ulosses, layer_elosses = [], []
         for head in range(self.attn_heads):
@@ -113,17 +114,15 @@ class GraphAttention(Layer):
             attention_kernel = self.attn_kernels[head]  # Attention kernel a in the paper (2F' x 1)
 
             # Compute inputs to attention network
-            features = K.dot(input_node_feats, kernel)  # (N x F')
+            features = K.dot(input_node_feats, kernel)  # (? x N x F')
 
             # Compute feature combinations
             # Note: [[a_1], [a_2]]^T [[Wh_i], [Wh_2]] = [a_1]^T [Wh_i] + [a_2]^T [Wh_j]
-            attn_for_self = K.dot(features, attention_kernel[0])  # (N x 1), [a_1]^T [Wh_i]
-            attn_for_neighs = K.dot(features, attention_kernel[1])  # (N x 1), [a_2]^T [Wh_j]
+            attn_for_self = K.dot(features, attention_kernel[0])  # (? x N x 1), [a_1]^T [Wh_i]
+            attn_for_neighs = K.dot(features, attention_kernel[1])  # (? x N x 1), [a_2]^T [Wh_j]
 
             # Attention head a(Wh_i, Wh_j) = a^T [[Wh_i], [Wh_j]]
-            dense = attn_for_self + tf.transpose(attn_for_neighs, perm=[0, 2, 1])  # (N x N) via broadcasting
-
-            # dense = Lambda(broadcast_sub_tensors)([attn_for_self, attn_for_neighs])
+            dense = attn_for_self + tf.transpose(attn_for_neighs, perm=[0, 2, 1])  # (? x N x N) via broadcasting
 
             # Add nonlinearty
             dense = LeakyReLU(alpha=0.2)(dense)
@@ -132,17 +131,17 @@ class GraphAttention(Layer):
             dense += attn_mask
 
             # Apply softmax to get attention coefficients
-            dense = K.softmax(dense)  # (N x N)
+            dense = K.softmax(dense)  # (? x N x N)
 
+            # Include edge weights (at tensorflow Graph construction time)
             if kwargs['include_ew']:
-                dense = Multiply()([dense, tf.cast(adjacency_mat, dtype=tf.float32)])
+                dense = Multiply()([dense, adjacency_mat])
             else:
                 dense = dense
 
             # Apply dropout to features and attention coefficients
-
             dropout_attn = tf.cond(is_train,
-                                   true_fn=lambda: Dropout(rate=0.6).call(dense),
+                                   true_fn=lambda: Dropout(rate=self.dropout_rate).call(dense),
                                    false_fn=lambda: Dropout(rate=0.0).call(dense))
 
             dropout_feat = tf.cond(is_train,
@@ -150,22 +149,23 @@ class GraphAttention(Layer):
                                    false_fn=lambda: Dropout(rate=0.0).call(features))
 
             # Linear combination with neighbors' features
-
-            node_features = K.batch_dot(dropout_attn, dropout_feat)
+            node_features = K.batch_dot(dropout_attn, dropout_feat)  # (? x N x F')
 
             if self.use_bias:
                 node_features = K.bias_add(node_features, self.biases[head])
 
             # calculate how many neighbours of each node contribute to the aggregation (non-zero alpha)
             non_zero_alpha = tf.count_nonzero(dense, axis=-1)
+
             # calculate the number of neighbours of each node
             degrees = tf.count_nonzero(adjacency_mat, axis=-1)
 
             # the UNIFORM LOSS of the current attention head
-            loss_unif_attn = tf.reduce_mean(tf.to_float(tf.subtract(non_zero_alpha, degrees)))
+            loss_unif_attn = tf.reduce_mean(tf.to_float(tf.subtract(non_zero_alpha, degrees)), axis=1)  # (?,)
 
             # the EXCLUSIVE LOSS of the current attention head
-            loss_excl_attn = tf.reduce_mean(tf.reduce_sum(tf.abs(dense), axis=-1))
+            loss_excl_attn = tf.reduce_mean(tf.reduce_sum(tf.abs(dense), axis=-1), axis=1)  # (?,)
+
             # Add output of attention head to final output
             outputs.append(node_features)
             layer_ulosses.append(loss_unif_attn)
@@ -176,7 +176,9 @@ class GraphAttention(Layer):
             output = K.concatenate(outputs)  # (N x KF')
         else:
             output = K.mean(K.stack(outputs), axis=0)  # N x F')
-        return self.activation(output), K.sum(layer_ulosses), K.sum(layer_elosses)
+        layer_ulosses = K.sum(layer_ulosses)  # total u-loss for all the heads of the layer for ? input graphs
+        layer_elosses = K.sum(layer_elosses)  # total e-loss for all the heads of the layer for ? input graphs
+        return self.activation(output), layer_ulosses, layer_elosses
 
 
 def compute_output_shape(self, input_shape):

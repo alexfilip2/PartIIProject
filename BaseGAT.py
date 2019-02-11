@@ -27,15 +27,15 @@ class BaseGAT(object):
         return out
 
     def master_node_aggregator(self, model_GAT_output, **kwargs):
-        # model_GAT_output: (1,N,F')
+        # model_GAT_output: (?,N,F')
         init_nb_nodes = int(model_GAT_output.shape[1])
-        print(model_GAT_output.shape)
-        master_feats = np.zeros((model_GAT_output.shape[0], 1, model_GAT_output.shape[-1]))
-        extended_feats = tf.concat([model_GAT_output, master_feats], axis=1)
-        # extended_feats: (1,N+1,F')
+        dyn_batch_nr = tf.shape(model_GAT_output)[0]
+        master_feats = tf.zeros([1, model_GAT_output.shape[-1]])
+        master_feats_tilled = tf.expand_dims(tf.tile(master_feats, tf.stack([dyn_batch_nr, 1])), axis=1)
+        extended_feats = tf.concat([model_GAT_output, master_feats_tilled], axis=1)  # extended_feats: (1,N+1,F')
         adj_mat, bias_mat = attach_master(init_nb_nodes)
-        adj_mat = np.repeat(adj_mat, model_GAT_output.shape[0], axis=0)
-        bias_mat = np.repeat(bias_mat, model_GAT_output.shape[0], axis=0)
+        adj_mat = tf.cast(tf.tile(adj_mat, [dyn_batch_nr, 1, 1]), dtype=tf.float32)
+        bias_mat = tf.cast(tf.tile(bias_mat, [dyn_batch_nr, 1, 1]), dtype=tf.float32)
 
         # master GAT layer
         input_layer = GraphAttention(F_=kwargs['target_score_type'],
@@ -47,15 +47,12 @@ class BaseGAT(object):
         input_layer.build(input_shape=extended_feats.get_shape().as_list())
         out, _, _ = input_layer.call(inputs=[extended_feats, adj_mat, bias_mat, kwargs['is_train']],
                                      include_ew=False)
-        # take the resulted features of the master node
-        batch_out = []
-        for out_index in range(model_GAT_output.shape[0]):
-            expl_out = tf.slice(input_=out, begin=[out_index, init_nb_nodes, 0],
-                                size=[1, 1, kwargs['target_score_type']])
-            batch_out.append(tf.squeeze(expl_out, axis=0))
 
-        print(tf.concat(batch_out, axis=0).shape)
-        return tf.concat(batch_out, axis=0)
+        # take the resulted features of the master node
+        expl_out = tf.slice(input_=out, begin=[0, init_nb_nodes, 0],
+                            size=[dyn_batch_nr, 1, kwargs['target_score_type']])
+
+        return tf.squeeze(expl_out, axis=1)
 
     def inference(self, in_feat_vects, adj_mat, bias_mat, hid_units, n_heads,
                   attn_drop, ffd_drop, activation=tf.nn.relu, residual=False,
