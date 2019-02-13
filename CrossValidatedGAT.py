@@ -361,8 +361,7 @@ class CrossValidatedGAT(MainGAT):
 def cross_validation_GAT():
     hu_choices = [[30, 20, 10]]
     ah_choices = [[3, 3, 2]]
-    aggr_choices = [MainGAT.master_node_aggregator, MainGAT.concat_feature_aggregator,
-                    MainGAT.average_feature_aggregator
+    aggr_choices = [MainGAT.master_node_aggregator, MainGAT.average_feature_aggregator
                     ]
     include_weights = [True]
     pers_traits = [['NEO.NEOFAC_A'], ['NEO.NEOFAC_O'], ['NEO.NEOFAC_C'], ['NEO.NEOFAC_N'], ['NEO.NEOFAC_E']]
@@ -371,7 +370,7 @@ def cross_validation_GAT():
     for load, hu, ah, agg, iw, p_traits, batch_size in product(load_choices, hu_choices, ah_choices, aggr_choices,
                                                                include_weights,
                                                                pers_traits, batch_chocies):
-        for eval_in in range(5):
+        for eval_out in range(5):
             dict_param = {
                 'hidden_units': hu,
                 'attention_heads': ah,
@@ -380,11 +379,11 @@ def cross_validation_GAT():
                 'load_specific_data': load,
                 'pers_traits_selection': p_traits,
                 'batch_size': batch_size,
-                'eval_fold_in': eval_in,
-                'eval_fold_out': 4,
+                'eval_fold_in': 4,
+                'eval_fold_out': eval_out,
                 'k_outer': 5,
                 'k_inner': 5,
-                'nested_CV_level': 'inner'
+                'nested_CV_level': 'outer'
 
             }
             model = CrossValidatedGAT(args=GAT_hyperparam_config(dict_param))

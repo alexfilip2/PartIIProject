@@ -182,6 +182,6 @@ def load_regress_data(trait_choice):
     adj_matrices, scores = [], []
 
     for subj_id in sorted(subjs):
-        adj_matrices.append(data[subj_id]['adj'].flatten().tolist())
+        adj_matrices.append(data[subj_id]['feat'].flatten().tolist())
         scores.append(data[subj_id]['score'].flatten()[0])
     return np.array(adj_matrices), np.array(scores)

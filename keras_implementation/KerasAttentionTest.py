@@ -4,9 +4,6 @@ from keras import activations, constraints, initializers, regularizers
 from keras import backend as K
 from keras.layers import Layer, Dropout, LeakyReLU, Multiply
 
-tf.enable_eager_execution()
-
-
 class GraphAttention(Layer):
 
     def __init__(self,
@@ -63,10 +60,12 @@ class GraphAttention(Layer):
         else:
             # Output will have shape (..., F')
             self.output_dim = self.F_
+        super(GraphAttention, self).__init__(**kwargs)
 
     def build(self, input_shape):
         assert len(input_shape) >= 2
         F = input_shape[-1]
+
 
         # Initialize weights for each attention head
         for head in range(self.attn_heads):
@@ -100,6 +99,7 @@ class GraphAttention(Layer):
                                                  name='attn_kernel_neigh_{}'.format(head))
             self.attn_kernels.append([attn_kernel_self, attn_kernel_neighs])
         self.built = True
+        super(GraphAttention, self).build(input_shape)
 
     def call(self, inputs, **kwargs):
         input_node_feats, adjacency_mat, attn_mask, is_train = inputs
@@ -109,6 +109,7 @@ class GraphAttention(Layer):
         # is_train: bool - specifies if dropout is active/inactive
         outputs = []
         layer_ulosses, layer_elosses = [], []
+
         for head in range(self.attn_heads):
             kernel = self.kernels[head]  # W in the paper (F x F')
             attention_kernel = self.attn_kernels[head]  # Attention kernel a in the paper (2F' x 1)
@@ -140,14 +141,13 @@ class GraphAttention(Layer):
                 dense = dense
 
             # Apply dropout to features and attention coefficients
-            dropout_attn = tf.cond(is_train,
+            dropout_attn = tf.cond(tf.squeeze(is_train),
                                    true_fn=lambda: Dropout(rate=self.dropout_rate).call(dense),
                                    false_fn=lambda: Dropout(rate=0.0).call(dense))
 
-            dropout_feat = tf.cond(is_train,
+            dropout_feat = tf.cond(tf.squeeze(is_train),
                                    true_fn=lambda: Dropout(rate=self.dropout_rate).call(features),
                                    false_fn=lambda: Dropout(rate=0.0).call(features))
-
             # Linear combination with neighbors' features
             node_features = K.batch_dot(dropout_attn, dropout_feat)  # (? x N x F')
 
@@ -178,7 +178,12 @@ class GraphAttention(Layer):
             output = K.mean(K.stack(outputs), axis=0)  # N x F')
         layer_ulosses = K.sum(layer_ulosses)  # total u-loss for all the heads of the layer for ? input graphs
         layer_elosses = K.sum(layer_elosses)  # total e-loss for all the heads of the layer for ? input graphs
-        return self.activation(output), layer_ulosses, layer_elosses
+
+        # apply activation and then batch normalization
+        batch_norm_features = tf.layers.batch_normalization(inputs=self.activation(output), axis=-1)
+
+
+        return [batch_norm_features, layer_ulosses, layer_elosses]
 
 
 def compute_output_shape(self, input_shape):

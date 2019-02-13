@@ -65,7 +65,7 @@ class CrossValidatedGAT(MainGAT):
             return test_fold, training
 
         from random import randint
-        sorted_subjs_by_score = sorted(unbalanced_subj, key=lambda x: self.data[x]['score'][0][0])
+        sorted_subjs_by_score = sorted(unbalanced_subj, key=lambda x: self.data[x]['score'][0])
         stratified_subj = []
         for _ in range(k_split): stratified_subj.append([])
 
@@ -189,16 +189,16 @@ class CrossValidatedGAT(MainGAT):
             # extract every 'batch_sz' subjects from the dataset
             batch_data = [self.data[subj] for subj in subj_keys[batch_id * batch_sz:(batch_id + 1) * batch_sz]]
             # fill a dict with the appended data of these subjects
-            mini_batch = {'feat': [], 'bias': [], 'score': [], 'adj': []}
-            for subj_data in batch_data:
-                mini_batch['feat'].append(subj_data['feat'])
-                mini_batch['bias'].append(subj_data['bias'])
-                mini_batch['score'].append(subj_data['score'])
-                mini_batch['adj'].append(subj_data['adj'])
+            mini_batch = {'feat': np.empty(shape=(batch_sz, self.nb_nodes, self.ft_size)),
+                          'bias': np.empty(shape=(batch_sz, self.nb_nodes, self.nb_nodes)),
+                          'score': np.empty(shape=(batch_sz, self.outGAT_sz_target)),
+                          'adj': np.empty(shape=(batch_sz, self.nb_nodes, self.nb_nodes))}
+            for batch_elem_index, subj_data in enumerate(batch_data):
+                mini_batch['feat'][batch_elem_index] = subj_data['feat']
+                mini_batch['bias'][batch_elem_index] = subj_data['bias']
+                mini_batch['score'][batch_elem_index] = subj_data['score']
+                mini_batch['adj'][batch_elem_index] = subj_data['adj']
             batch_set.append(mini_batch)
-            # ensure all that's feed into placeholders is a numpy array
-            for input_name in mini_batch.keys():
-                mini_batch[input_name] = np.array(mini_batch[input_name])
 
         return batch_set
 
@@ -227,13 +227,10 @@ class CrossValidatedGAT(MainGAT):
         return map(lambda x: x / len(tr_batch_set), [tr_avg_loss, avg_uloss, avg_eloss])
 
     def run_epoch_validation(self, validation_set):
-        # number of validation graph examples
-        vl_size = len(validation_set)
-        vl_avg_loss = 0.0
-        for vl_subj in validation_set:
-            (vl_expl_loss,) = self.feed_forward_op([self.ops['loss']], subj_key=vl_subj, is_train=False)
-            vl_avg_loss += vl_expl_loss
-        vl_avg_loss /= vl_size
+        # all the validation example fed into the NN in a single batch, the MSE loss already averages
+        val_single_batch = validation_set[0]
+        (vl_avg_loss,) = self.feed_forward_op([self.ops['loss']], mini_batch=val_single_batch, is_train=False)
+
         return vl_avg_loss
 
     def train(self):
@@ -256,11 +253,13 @@ class CrossValidatedGAT(MainGAT):
         vlss_early_model = np.inf
         # record the number of consecutive epochs when the loss doesn't improve
         curr_step = 0
+        # no need for shuffling the validation set, therefore its batches are generated just once as a whole batch
+        val_batch_set = self.batch_generation(validation_set, batch_sz=vl_size)
 
         for epoch in range(self.last_epoch, self.params['num_epochs']):
             total_time_start = time.time()
             epoch_tr_loss, epoch_uloss, epoch_eloss = self.run_epoch_training(training_set=training_set)
-            epoch_val_loss = self.run_epoch_validation(validation_set=validation_set)
+            epoch_val_loss = self.run_epoch_validation(validation_set=val_batch_set)
             self.logs[epoch] = {"tr_loss": epoch_tr_loss,
                                 "val_loss": epoch_val_loss,
                                 "u_loss": epoch_uloss,
@@ -366,17 +365,17 @@ class CrossValidatedGAT(MainGAT):
 
 
 def cross_validation_GAT():
-    hu_choices = [[20, 20, 10]]
-    ah_choices = [[3, 3, 2]]
-    aggr_choices = [MainGAT.master_node_aggregator]
+    hu_choices = [[20, 20]]
+    ah_choices = [[3, 2]]
+    aggr_choices = [MainGAT.average_feature_aggregator]
     include_weights = [True]
     pers_traits = [['NEO.NEOFAC_A'], ['NEO.NEOFAC_O'], ['NEO.NEOFAC_C'], ['NEO.NEOFAC_N'], ['NEO.NEOFAC_E']]
-    batch_chocies = [4]
+    batch_chocies = [2]
     load_choices = [load_struct_data]
     for load, hu, ah, agg, iw, p_traits, batch_size in product(load_choices, hu_choices, ah_choices, aggr_choices,
                                                                include_weights,
                                                                pers_traits, batch_chocies):
-        for eval_in in range(5):
+        for eval_out in range(5):
             dict_param = {
                 'hidden_units': hu,
                 'attention_heads': ah,
@@ -385,8 +384,8 @@ def cross_validation_GAT():
                 'load_specific_data': load,
                 'pers_traits_selection': p_traits,
                 'batch_size': batch_size,
-                'eval_fold_in': eval_in,
-                'eval_fold_out': 4,
+                'eval_fold_in': 4,
+                'eval_fold_out': eval_out,
                 'k_outer': 5,
                 'k_inner': 5,
                 'nested_CV_level': 'outer'

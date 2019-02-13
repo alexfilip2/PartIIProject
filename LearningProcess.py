@@ -104,31 +104,30 @@ def draw_adjacency_heatmap(adjacency_matrix):
 
 
 if __name__ == "__main__":
-    hu_choices = [[20, 20, 20], [40, 20, 10], [40, 40, 40], [80, 40, 20], [10, 10, 10]]
-    ah_choices = [[3, 3, 2], [2, 2, 2], [3, 2, 1]]
-    aggr_choices = [MainGAT.concat_feature_aggregator, MainGAT.master_node_aggregator,
-                    MainGAT.average_feature_aggregator]
-    include_weights = [True, False]
-    pers_traits = [['NEO.NEOFAC_A', 'NEO.NEOFAC_O', 'NEO.NEOFAC_C', 'NEO.NEOFAC_N', 'NEO.NEOFAC_E']]
-    batch_chocies = [2, 4, 8]
-    for hu, ah, agg, iw, p_traits, batch_size in product(hu_choices, ah_choices, aggr_choices, include_weights,
-                                                         pers_traits, batch_chocies):
-        for eval_fold_out in range(5):
-            for eavl_fold_in in range(5):
-                dict_param = {
-                    'hidden_units': hu,
-                    'attention_heads': ah,
-                    'include_ew': iw,
-                    'readout_aggregator': agg,
-                    'load_specific_data': load_struct_data,
-                    'pers_traits_selection': p_traits,
-                    'batch_size': batch_size,
-                    'eval_fold_in': eavl_fold_in,
-                    'eval_fold_out': eval_fold_out,
-                    'k_outer': 5,
-                    'k_inner': 5,
-                    'nested_CV_level': 'inner'
+    hu_choices = [[10, 25, 30]]
+    ah_choices = [[5, 5, 4]]
+    aggr_choices = [MainGAT.average_feature_aggregator]
+    include_weights = [True]
+    pers_traits = [['NEO.NEOFAC_A'], ['NEO.NEOFAC_O'], ['NEO.NEOFAC_C'], ['NEO.NEOFAC_N'], ['NEO.NEOFAC_E']]
+    batch_chocies = [2]
+    load_choices = [load_struct_data]
+    for load, hu, ah, agg, iw, p_traits, batch_size in product(load_choices, hu_choices, ah_choices, aggr_choices,
+                                                               include_weights,
+                                                               pers_traits, batch_chocies):
+        for eval_out in range(5):
+            dict_param = {
+                'hidden_units': hu,
+                'attention_heads': ah,
+                'include_ew': iw,
+                'readout_aggregator': agg,
+                'load_specific_data': load,
+                'pers_traits_selection': p_traits,
+                'batch_size': batch_size,
+                'eval_fold_in': 4,
+                'eval_fold_out': eval_out,
+                'k_outer': 5,
+                'k_inner': 5,
+                'nested_CV_level': 'outer'
 
-                }
-                #plt_learn_proc(GAT_hyperparam_config(dict_param))
-    draw_adjacency_heatmap(list(get_structural_adjs().values())[0])
+            }
+            plt_learn_proc(GAT_hyperparam_config(dict_param))

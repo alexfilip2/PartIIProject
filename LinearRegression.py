@@ -7,38 +7,33 @@ from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error
 from sklearn import svm
+from sklearn.model_selection import cross_val_score
 
-adjs, scores = load_regress_data(['NEO.NEOFAC_N'])
-print("The lenght of the dataset is %d" % adjs.shape[0])
-adjs_train, adjs_test, scores_train, scores_test = train_test_split(adjs, scores, test_size=0.2, random_state=0)
-
-lin_reg = LinearRegression(fit_intercept=True, normalize=True, copy_X=True, n_jobs=1)
-# 2. Use fit
-lin_reg.fit(adjs_train, scores_train)
-# 3. Check the score
-print(lin_reg.score(adjs_train, scores_train))
-
-scores_pred = lin_reg.predict(X=adjs_test)
-
-print(mean_squared_error(scores_pred, scores_test))
-
-clf = svm.SVR(kernel='rbf', gamma='auto', C=1.0, epsilon=0.1)
-clf.fit(adjs_train, scores_train)
-print(lin_reg.score(adjs_train, scores_train))
-scores_pred = clf.predict(adjs_test)
-
-print(mean_squared_error(scores_pred, scores_test))
-
-
-clf = RVR(kernel='linear',)
-clf.fit(adjs_train, scores_train)
-RVR(alpha=1e-06, beta=1e-06, beta_fixed=False, bias_used=True, coef0=0.0, coef1=None, degree=3, kernel='linear',
-    n_iter=3000, threshold_alpha=1000000000.0, tol=0.001, verbose=False)
-scores_pred = clf.predict(adjs_test)
-print(mean_squared_error(scores_pred, scores_test))
 
 def cross_validation():
-    pass
+    for pers_trait in ['NEO.NEOFAC_A', 'NEO.NEOFAC_O', 'NEO.NEOFAC_C', 'NEO.NEOFAC_N', 'NEO.NEOFAC_E']:
+        adjs, scores = load_regress_data([pers_trait])
+        print("The lenght of the dataset is %d" % adjs.shape[0])
+        print("The Cross Validation results for personality trait %s are: " % pers_trait)
+
+        lin_reg = LinearRegression(fit_intercept=False, normalize=True, copy_X=True, n_jobs=1)
+        cv_lin_reg = cross_val_score(lin_reg, adjs, scores, scoring='neg_mean_squared_error', cv=5)
+        print(np.average(cv_lin_reg), 'lin_reg cv')
+        print()
+
+        svr = svm.SVR(kernel='rbf', gamma='auto', C=1.0, epsilon=0.1)
+        cv_svr = cross_val_score(svr, adjs, scores, scoring='neg_mean_squared_error', cv=5)
+        print(np.average(cv_svr), 'SVR cv')
+        print()
+
+        rvr = RVR(alpha=1e-06, beta=1e-06, beta_fixed=False, bias_used=True, coef0=0.0, coef1=None, degree=3,
+                  kernel='linear',
+                  n_iter=3000, threshold_alpha=1000000000.0, tol=0.001, verbose=False)
+        cv_rvr = cross_val_score(rvr, adjs, scores, scoring='neg_mean_squared_error', cv=5)
+        print(np.average(cv_rvr), 'RVR cv')
+        print()
+
+cross_validation()
 '''
 def build_model():
     model = keras.Sequential([
