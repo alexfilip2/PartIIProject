@@ -65,7 +65,7 @@ class CrossValidatedGAT(MainGAT):
             return test_fold, training
 
         from random import randint
-        sorted_subjs_by_score = sorted(unbalanced_subj, key=lambda x: self.data[x]['score'][0][0])
+        sorted_subjs_by_score = sorted(unbalanced_subj, key=lambda x: self.data[x]['score'][0])
         stratified_subj = []
         for _ in range(k_split): stratified_subj.append([])
 
@@ -107,10 +107,8 @@ class CrossValidatedGAT(MainGAT):
                            'eval_fold_out': eval_fold_out,
                            'fold_usage': 'val',
                            'nested_CV_level': 'outer'}
-        self.outer_validation, self.outer_train = self.sorted_stratification(unbalanced_subj=out_training,
-                                                                             k_split=k_outer,
-                                                                             eval_fold=-1, id_dict=stratif_identif)
-
+        self.outer_validation, self.outer_train = self.sorted_stratification(unbalanced_subj=out_training, eval_fold=-1,
+                                                                             k_split=k_outer, id_dict=stratif_identif)
         # prepare the inner split
         stratif_identif = {'k_outer': k_outer,
                            'k_inner': k_inner,
@@ -126,103 +124,113 @@ class CrossValidatedGAT(MainGAT):
                            'fold_usage': 'val',
                            'nested_CV_level': 'inner'}
 
-        self.inner_validation, self.inner_train = self.sorted_stratification(unbalanced_subj=in_training,
-                                                                             k_split=k_inner,
-                                                                             eval_fold=-1, id_dict=stratif_identif)
-
+        self.inner_validation, self.inner_train = self.sorted_stratification(unbalanced_subj=in_training, eval_fold=-1,
+                                                                             k_split=k_inner, id_dict=stratif_identif)
         assert set(self.inner_train).isdisjoint(set(self.inner_test))
         assert set(self.outer_train).isdisjoint(set(self.outer_test))
 
     def make_model(self):
         with tf.variable_scope('input'):
-            self.placeholders['ftr_in'] = tf.placeholder(dtype=tf.float32, shape=[1, self.nb_nodes, self.ft_size])
-            self.placeholders['bias_in'] = tf.placeholder(dtype=tf.float32, shape=[1, self.nb_nodes, self.nb_nodes])
-            self.placeholders['score_in'] = tf.placeholder(dtype=tf.float32, shape=[1, self.outGAT_sz_target])
-            self.placeholders['adj_in'] = tf.placeholder(dtype=tf.float32, shape=[1, self.nb_nodes, self.nb_nodes])
-            self.placeholders['include_ew'] = tf.placeholder(dtype=tf.bool, shape=())
-            prediction, self.ops['unif_loss'], self.ops['excl_loss'] = \
-                MainGAT.inference_keras(self, in_feat_vects=self.placeholders['ftr_in'],
-                                        adj_mat=self.placeholders['adj_in'],
-                                        bias_mat=self.placeholders['bias_in'],
-                                        include_weights=self.placeholders['include_ew'],
-                                        hid_units=self.params['hidden_units'],
-                                        n_heads=self.params['attention_heads'],
-                                        target_score_type=self.outGAT_sz_target,
-                                        aggregator=self.params['readout_aggregator'],
-                                        residual=self.params['residual'],
-                                        activation=self.params['non_linearity'],
-                                        attn_drop=self.params['attn_drop'],
-                                        ffd_drop=self.params['ffd_drop'])
+            # variable batch size
+            batch_s = None
+            self.placeholders['ftr_in'] = tf.placeholder(dtype=tf.float32, shape=[None, self.nb_nodes, self.ft_size])
+            self.placeholders['bias_in'] = tf.placeholder(dtype=tf.float32, shape=[None, self.nb_nodes, self.nb_nodes])
+            self.placeholders['score_in'] = tf.placeholder(dtype=tf.float32, shape=[None, self.outGAT_sz_target])
+            self.placeholders['adj_in'] = tf.placeholder(dtype=tf.float32, shape=[None, self.nb_nodes, self.nb_nodes])
+            self.placeholders['is_train'] = tf.placeholder(dtype=tf.bool, shape=())
 
+            # batch outputs inferred by GAT
+            prediction, unif_loss, excl_loss = MainGAT.inference_keras(self, in_feat_vects=self.placeholders['ftr_in'],
+                                                                       adj_mat=self.placeholders['adj_in'],
+                                                                       bias_mat=self.placeholders['bias_in'],
+                                                                       include_weights=self.params['include_ew'],
+                                                                       hid_units=self.params['hidden_units'],
+                                                                       n_heads=self.params['attention_heads'],
+                                                                       target_score_type=self.outGAT_sz_target,
+                                                                       aggregator=self.params['readout_aggregator'],
+                                                                       is_train=self.placeholders['is_train'],
+                                                                       residual=self.params['residual'],
+                                                                       activation=self.params['non_linearity'],
+                                                                       attn_drop=self.params['attn_drop'])
+            # losses for uniformity and exclusivity regulations
+            self.ops['unif_loss'], self.ops['excl_loss'] = unif_loss, excl_loss
+            # per-batch MSE prediction loss
             self.ops['loss'] = tf.losses.mean_squared_error(labels=self.placeholders['score_in'],
                                                             predictions=prediction)
 
-            # minibatch update operations
-            self.ops['zero_grads_ops'], self.ops['accum_ops'], self.ops['apply_ops'] = super().batch_training(
-                loss=self.ops['loss'], u_loss=self.ops['unif_loss'], e_loss=self.ops['excl_loss'],
-                lr=self.params['learning_rate'], l2_coef=self.params['l2_coefficient'])
+            # minibatch training op
+            self.ops['train_op'] = super().training(loss=self.ops['loss'],
+                                                    u_loss=self.ops['unif_loss'],
+                                                    e_loss=self.ops['excl_loss'],
+                                                    lr=self.params['learning_rate'],
+                                                    l2_coef=self.params['l2_coefficient'])
 
     # run the list of Operation objects using the data of the subject with different dropout rate for training
-    def feed_forward_op(self, ops, subj_key, is_train):
-        if is_train:
-            self.params['attn_drop'] = self.params['ffd_drop'] = 0.6
+    def feed_forward_op(self, ops, is_train, **kwargs):
+        if 'mini_batch' in kwargs:
+            to_feed = kwargs['mini_batch']
         else:
-            self.params['attn_drop'] = self.params['ffd_drop'] = 0.0
+            to_feed = {}
+            subj_data = self.data[kwargs['subj_key']]
+            for key in subj_data.keys():
+                to_feed[key] = np.expand_dims(subj_data[key], axis=0)
 
-        subj_data = self.data[subj_key]
-        return self.sess.run(ops, feed_dict={self.placeholders['ftr_in']: [subj_data['feat']],
-                                             self.placeholders['bias_in']: [subj_data['bias']],
-                                             self.placeholders['score_in']: [subj_data['score']],
-                                             self.placeholders['adj_in']: [subj_data['adj']],
-                                             self.placeholders['include_ew']: self.params['include_ew']})
+        return self.sess.run(ops, feed_dict={self.placeholders['ftr_in']: to_feed['feat'],
+                                             self.placeholders['bias_in']: to_feed['bias'],
+                                             self.placeholders['score_in']: to_feed['score'],
+                                             self.placeholders['adj_in']: to_feed['adj'],
+                                             self.placeholders['is_train']: is_train
+                                             })
 
-    # run one batch of training: update the weights of GAT and calculate the loss of the batch of examples
-    def batch_train_step(self, iteration, train_subjs):
-        # reset gradients to 0 before entering minibatch training loop
-        self.sess.run(self.ops['zero_grads_ops'])
-        # loop over the mini-batch and execute accumulate-gradient operation
-        for batch_step in range(self.params['batch_size']):
-            index = batch_step + iteration * self.params['batch_size']
-            if index >= len(train_subjs):
-                break
-            self.feed_forward_op(ops=[self.ops['accum_ops']], subj_key=train_subjs[index], is_train=True)
+    def batch_generation(self, subj_keys, batch_sz):
+        batch_iters = len(subj_keys) // batch_sz
+        batch_set = []
+        for batch_id in range(batch_iters):
+            # extract every 'batch_sz' subjects from the dataset
+            batch_data = [self.data[subj] for subj in subj_keys[batch_id * batch_sz:(batch_id + 1) * batch_sz]]
+            # fill a dict with the appended data of these subjects
+            mini_batch = {'feat': np.empty(shape=(batch_sz, self.nb_nodes, self.ft_size)),
+                          'bias': np.empty(shape=(batch_sz, self.nb_nodes, self.nb_nodes)),
+                          'score': np.empty(shape=(batch_sz, self.outGAT_sz_target)),
+                          'adj': np.empty(shape=(batch_sz, self.nb_nodes, self.nb_nodes))}
+            for batch_elem_index, subj_data in enumerate(batch_data):
+                mini_batch['feat'][batch_elem_index] = subj_data['feat']
+                mini_batch['bias'][batch_elem_index] = subj_data['bias']
+                mini_batch['score'][batch_elem_index] = subj_data['score']
+                mini_batch['adj'][batch_elem_index] = subj_data['adj']
+            batch_set.append(mini_batch)
 
-        # after finished looping over the batch, apply gradients
-        self.sess.run(self.ops['apply_ops'])
+        return batch_set
 
     # run one batch of training: on training_set which comes from a k_split of the dataset (inner or outer)
     def run_epoch_training(self, training_set):
         # Train loop
         tr_size = len(training_set)
-        # number of iterations of the training set on batch-training
-        tr_iterations = tr_size // self.params['batch_size']
-
         # shuffle the training dataset
         shuf_subjs = shuffle_tr_data(training_set, tr_size)
-        for iteration in range(tr_iterations + 1):
-            self.batch_train_step(iteration=iteration, train_subjs=shuf_subjs)
-
+        # 0) generate batches
+        tr_batch_set = self.batch_generation(shuf_subjs, batch_sz=self.params['batch_size'])
+        # 1) train using all batches
+        for tr_batch in tr_batch_set:
+            self.feed_forward_op(ops=[self.ops['train_op']], mini_batch=tr_batch, is_train=True)
+        # 2)calculate the loss on all the batches using the best refined weights/biases (at the end of epoch)
         tr_avg_loss, avg_eloss, avg_uloss = 0.0, 0.0, 0.0
-        for tr_step in range(tr_size):
+        for tr_batch in tr_batch_set:
             (tr_expl_loss, expl_uloss, expl_eloss) = self.feed_forward_op([self.ops['loss'], self.ops['unif_loss'],
                                                                            self.ops['excl_loss']],
-                                                                          subj_key=training_set[tr_step],
+                                                                          mini_batch=tr_batch,
                                                                           is_train=False)
-            tr_avg_loss += tr_expl_loss
-            avg_eloss += expl_eloss
-            avg_uloss += expl_uloss
+            tr_avg_loss += tr_expl_loss  # already averaged by the batch size due to the MSE loss function
+            avg_eloss += expl_eloss / self.params['batch_size']
+            avg_uloss += expl_uloss / self.params['batch_size']
 
-        return map(lambda x: x / tr_size, [tr_avg_loss, avg_uloss, avg_eloss])
+        return map(lambda x: x / len(tr_batch_set), [tr_avg_loss, avg_uloss, avg_eloss])
 
     def run_epoch_validation(self, validation_set):
-        # number of training, validation, test graph examples
-        vl_size = len(validation_set)
-        vl_avg_loss = 0.0
-        for vl_step in range(vl_size):
-            (vl_expl_loss,) = self.feed_forward_op([self.ops['loss']], subj_key=validation_set[vl_step], is_train=False)
-            vl_avg_loss += vl_expl_loss
+        # all the validation example fed into the NN in a single batch, the MSE loss already averages
+        val_single_batch = validation_set[0]
+        (vl_avg_loss,) = self.feed_forward_op([self.ops['loss']], mini_batch=val_single_batch, is_train=False)
 
-        vl_avg_loss /= vl_size
         return vl_avg_loss
 
     def train(self):
@@ -238,7 +246,6 @@ class CrossValidatedGAT(MainGAT):
 
         tr_size = len(training_set)
         vl_size = len(validation_set)
-
         print('The training size is: %d and the validation %d' % (tr_size, vl_size))
         # record the minimum validation loss encountered until current epoch
         vlss_mn = np.inf
@@ -246,11 +253,13 @@ class CrossValidatedGAT(MainGAT):
         vlss_early_model = np.inf
         # record the number of consecutive epochs when the loss doesn't improve
         curr_step = 0
+        # no need for shuffling the validation set, therefore its batches are generated just once as a whole batch
+        val_batch_set = self.batch_generation(validation_set, batch_sz=vl_size)
 
         for epoch in range(self.last_epoch, self.params['num_epochs']):
             total_time_start = time.time()
             epoch_tr_loss, epoch_uloss, epoch_eloss = self.run_epoch_training(training_set=training_set)
-            epoch_val_loss = self.run_epoch_validation(validation_set=validation_set)
+            epoch_val_loss = self.run_epoch_validation(validation_set=val_batch_set)
             self.logs[epoch] = {"tr_loss": epoch_tr_loss,
                                 "val_loss": epoch_val_loss,
                                 "u_loss": epoch_uloss,
@@ -283,14 +292,11 @@ class CrossValidatedGAT(MainGAT):
             test_set = self.inner_test
         else:
             test_set = self.outer_test
-        # number of training, validation, test graph examples
-        ts_size = len(test_set)
         ts_avg_loss = 0.0
-        for ts_step in range(ts_size):
-            (ts_example_loss,) = self.feed_forward_op([self.ops['loss']], subj_key=test_set[ts_step], is_train=False)
+        for ts_subj in test_set:
+            (ts_example_loss,) = self.feed_forward_op([self.ops['loss']], subj_key=ts_subj, is_train=False)
             ts_avg_loss += ts_example_loss
-
-        ts_avg_loss /= ts_size
+        ts_avg_loss /= len(test_set)
         print('Test: loss = %.5f for the model %s' % (ts_avg_loss, self.config))
         self.sess.close()
 
@@ -359,10 +365,9 @@ class CrossValidatedGAT(MainGAT):
 
 
 def cross_validation_GAT():
-    hu_choices = [[30, 20, 10]]
-    ah_choices = [[3, 3, 2]]
-    aggr_choices = [MainGAT.master_node_aggregator, MainGAT.average_feature_aggregator
-                    ]
+    hu_choices = [[20, 20,10]]
+    ah_choices = [[3,3, 2]]
+    aggr_choices = [MainGAT.average_feature_aggregator]
     include_weights = [True]
     pers_traits = [['NEO.NEOFAC_A'], ['NEO.NEOFAC_O'], ['NEO.NEOFAC_C'], ['NEO.NEOFAC_N'], ['NEO.NEOFAC_E']]
     batch_chocies = [2]

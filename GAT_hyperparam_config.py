@@ -10,7 +10,7 @@ class GAT_hyperparam_config(object):
             'attention_heads': [5, 5, 4],
             'include_ew': True,
             'readout_aggregator': BaseGAT.master_node_aggregator,
-            'num_epochs': 10000,
+            'num_epochs': 300,
             'load_specific_data': load_struct_data,
             'pers_traits_selection': ['NEO.NEOFAC_A', 'NEO.NEOFAC_O', 'NEO.NEOFAC_C', 'NEO.NEOFAC_N', 'NEO.NEOFAC_E'],
             'batch_size': 2,

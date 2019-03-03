@@ -4,14 +4,8 @@
     <list default="true" id="e6c655ac-ac83-4960-96cd-bd108dfa904a" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/CrossValidatedGAT.py" beforeDir="false" afterPath="$PROJECT_DIR$/CrossValidatedGAT.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/checkpoint_GAT_struct_AH_3,3,2_HU_20,20,10_PT_A_AGR_master_IW_True_EL_None__BS_4_CV_04outer" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GAT_checkpoints/logs_GAT_struct_AH_3,3,2_HU_20,20,10_PT_A_AGR_master_IW_True_EL_None__BS_4_CV_04outer" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/GAT_hyperparam_config.py" beforeDir="false" afterPath="$PROJECT_DIR$/GAT_hyperparam_config.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/LearningProcess.py" beforeDir="false" afterPath="$PROJECT_DIR$/LearningProcess.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/LinearRegression.py" beforeDir="false" afterPath="$PROJECT_DIR$/LinearRegression.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/MiniBatchGAT.py" beforeDir="false" afterPath="$PROJECT_DIR$/MiniBatchGAT.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ToolsStructural.py" beforeDir="false" afterPath="$PROJECT_DIR$/ToolsStructural.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/keras_implementation/KerasAttentionTest.py" beforeDir="false" afterPath="$PROJECT_DIR$/keras_implementation/KerasAttentionTest.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -20,8 +14,8 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="CoverageDataManager">
-    <SUITE FILE_PATH="coverage/PartIIProject$MiniBatchGAT.coverage" NAME="MiniBatchGAT Coverage Results" MODIFIED="1550020998886" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/PartIIProject$CrossValidatedGAT.coverage" NAME="CrossValidatedGAT Coverage Results" MODIFIED="1549884621875" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/PartIIProject$MiniBatchGAT.coverage" NAME="MiniBatchGAT Coverage Results" MODIFIED="1551618047777" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/PartIIProject$CrossValidatedGAT.coverage" NAME="CrossValidatedGAT Coverage Results" MODIFIED="1551560427377" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/PartIIProject$ToolsStructural.coverage" NAME="ToolsStructural Coverage Results" MODIFIED="1545239992749" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/PartIIProject$RecurrentNNgat.coverage" NAME="RecurrentNNgat Coverage Results" MODIFIED="1546861882560" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/PartIIProject$ToolsFunctional.coverage" NAME="ToolsFunctional Coverage Results" MODIFIED="1546968043245" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
@@ -38,26 +32,28 @@
     <session id="-518088592">
       <usages-collector id="statistics.lifecycle.project">
         <counts>
-          <entry key="project.closed" value="80" />
+          <entry key="project.closed" value="86" />
           <entry key="project.open.time.0" value="9" />
           <entry key="project.open.time.1" value="7" />
           <entry key="project.open.time.15" value="1" />
           <entry key="project.open.time.17" value="1" />
+          <entry key="project.open.time.18" value="1" />
           <entry key="project.open.time.20" value="1" />
           <entry key="project.open.time.22" value="1" />
           <entry key="project.open.time.23" value="2" />
           <entry key="project.open.time.24" value="2" />
           <entry key="project.open.time.25" value="5" />
           <entry key="project.open.time.26" value="3" />
-          <entry key="project.open.time.27" value="3" />
+          <entry key="project.open.time.27" value="4" />
           <entry key="project.open.time.28" value="2" />
           <entry key="project.open.time.29" value="3" />
           <entry key="project.open.time.3" value="2" />
-          <entry key="project.open.time.30" value="2" />
+          <entry key="project.open.time.30" value="3" />
           <entry key="project.open.time.31" value="3" />
-          <entry key="project.open.time.32" value="3" />
+          <entry key="project.open.time.32" value="5" />
           <entry key="project.open.time.33" value="3" />
           <entry key="project.open.time.34" value="3" />
+          <entry key="project.open.time.35" value="1" />
           <entry key="project.open.time.36" value="4" />
           <entry key="project.open.time.37" value="1" />
           <entry key="project.open.time.38" value="2" />
@@ -65,7 +61,7 @@
           <entry key="project.open.time.4" value="1" />
           <entry key="project.open.time.40" value="2" />
           <entry key="project.open.time.41" value="4" />
-          <entry key="project.open.time.42" value="1" />
+          <entry key="project.open.time.42" value="2" />
           <entry key="project.open.time.43" value="1" />
           <entry key="project.open.time.45" value="1" />
           <entry key="project.open.time.52" value="1" />
@@ -75,31 +71,31 @@
           <entry key="project.open.time.79" value="1" />
           <entry key="project.open.time.8" value="1" />
           <entry key="project.open.time.9" value="2" />
-          <entry key="project.opened" value="87" />
+          <entry key="project.opened" value="94" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
         <counts>
           <entry key="emb" value="1" />
           <entry key="model" value="1" />
-          <entry key="py" value="160" />
+          <entry key="py" value="161" />
           <entry key="txt" value="2" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.open">
         <counts>
           <entry key="PLAIN_TEXT" value="4" />
-          <entry key="Python" value="160" />
+          <entry key="Python" value="161" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
-          <entry key="py" value="69659" />
+          <entry key="py" value="72635" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
-          <entry key="Python" value="69659" />
+          <entry key="Python" value="72635" />
         </counts>
       </usages-collector>
     </session>
@@ -109,17 +105,17 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/CrossValidatedGAT.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="221">
-              <caret line="60" column="65" selection-start-line="60" selection-start-column="65" selection-end-line="60" selection-end-column="65" />
+            <state relative-caret-position="2423">
+              <caret line="369" column="54" selection-start-line="369" selection-start-column="54" selection-end-line="369" selection-end-column="54" />
             </state>
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/MiniBatchGAT.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="123">
-              <caret line="399" selection-start-line="399" selection-end-line="399" />
+            <state relative-caret-position="313">
+              <caret line="350" column="27" lean-forward="true" selection-start-line="350" selection-start-column="27" selection-end-line="350" selection-end-column="27" />
               <folding>
                 <element signature="e#0#11#0" expanded="true" />
               </folding>
@@ -128,55 +124,10 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/LinearRegression.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="204">
-              <caret line="12" column="21" selection-start-line="12" selection-start-column="21" selection-end-line="12" selection-end-column="21" />
-              <folding>
-                <element signature="e#0#29#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/ToolsStructural.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="699">
-              <caret line="187" selection-start-line="187" selection-end-line="187" />
-              <folding>
-                <element signature="e#0#19#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/keras_implementation/KerasAttentionHead.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="360">
-              <caret line="169" lean-forward="true" selection-start-line="169" selection-end-line="169" />
-              <folding>
-                <element signature="e#0#38#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/LearningProcess.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="246">
-              <caret line="108" column="55" lean-forward="true" selection-start-line="108" selection-start-column="55" selection-end-line="108" selection-end-column="55" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/keras_implementation/KerasAttentionTest.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="95">
-              <caret line="66" column="23" lean-forward="true" selection-start-line="66" selection-start-column="23" selection-end-line="66" selection-end-column="23" />
+            <state relative-caret-position="1921">
+              <caret line="117" selection-start-line="117" selection-end-line="117" />
               <folding>
                 <element signature="e#0#38#0" expanded="true" />
               </folding>
@@ -184,11 +135,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/BaseGAT.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="975">
-              <caret line="206" column="45" lean-forward="true" selection-start-line="206" selection-start-column="45" selection-end-line="206" selection-end-column="45" />
+            <state relative-caret-position="391">
+              <caret line="28" column="65" selection-start-line="28" selection-start-column="65" selection-end-line="28" selection-end-column="65" />
               <folding>
                 <element signature="e#0#23#0" expanded="true" />
               </folding>
@@ -199,7 +150,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/MainGAT.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="338">
+            <state relative-caret-position="578">
               <caret line="34" column="64" selection-start-line="34" selection-start-column="64" selection-end-line="34" selection-end-column="64" />
             </state>
           </provider>
@@ -208,10 +159,10 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/GAT_hyperparam_config.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="272">
-              <caret line="18" column="32" selection-start-line="18" selection-start-column="32" selection-end-line="18" selection-end-column="32" />
+            <state relative-caret-position="357">
+              <caret line="23" column="28" lean-forward="true" selection-start-line="23" selection-start-column="28" selection-end-line="23" selection-end-column="28" />
               <folding>
-                <marker date="1550015739543" expanded="true" signature="2861:3026" ph="..." />
+                <marker date="1551615243426" expanded="true" signature="2859:3024" ph="..." />
               </folding>
             </state>
           </provider>
@@ -228,13 +179,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>-2.29652869e-06</find>
-      <find>-2.76789501e-06</find>
-      <find>-3.70060047e-06</find>
-      <find>0.000317437487</find>
-      <find>0.000317961967</find>
-      <find>}</find>
-      <find>structural_feats_excel</find>
       <find>training</find>
       <find>self.nb_nodes</find>
       <find>saved</find>
@@ -252,12 +196,19 @@
       <find>graph</find>
       <find>]]</find>
       <find>-5.69954318e-06</find>
-      <find>test: los</find>
       <find>drop</find>
       <find>input_node_feats</find>
       <find>self.tra</find>
-      <find>test: loss</find>
       <find>print</find>
+      <find>data</find>
+      <find>data_pipeline</find>
+      <find>batch_size</find>
+      <find>from_te</find>
+      <find>self.placeholders</find>
+      <find>test: los</find>
+      <find>vlss_early_model</find>
+      <find>test</find>
+      <find>test: loss</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -276,16 +227,16 @@
         <option value="$PROJECT_DIR$/keras_implementation/KerasGAT.py" />
         <option value="$PROJECT_DIR$/EstimatorGAT.py" />
         <option value="$PROJECT_DIR$/MainGAT.py" />
-        <option value="$PROJECT_DIR$/CrossValidatedGAT.py" />
         <option value="$PROJECT_DIR$/ToolsStructural.py" />
         <option value="$PROJECT_DIR$/LinearRegression.py" />
         <option value="$PROJECT_DIR$/keras_implementation/KerasAttentionHead.py" />
-        <option value="$PROJECT_DIR$/GAT_hyperparam_config.py" />
         <option value="$PROJECT_DIR$/keras_implementation/KerasAttentionTest.py" />
         <option value="$PROJECT_DIR$/KerasGAT.py" />
         <option value="$PROJECT_DIR$/LearningProcess.py" />
-        <option value="$PROJECT_DIR$/MiniBatchGAT.py" />
         <option value="$PROJECT_DIR$/BaseGAT.py" />
+        <option value="$PROJECT_DIR$/CrossValidatedGAT.py" />
+        <option value="$PROJECT_DIR$/GAT_hyperparam_config.py" />
+        <option value="$PROJECT_DIR$/MiniBatchGAT.py" />
       </list>
     </option>
   </component>
@@ -307,6 +258,22 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scope">
+        <subPane subId="Scope 'Project Files'; set:Project Files; class com.intellij.psi.search.scope.ProjectFilesScope">
+          <expand>
+            <path>
+              <item name="PartIIProject" type="3d21c010:ScopeViewTreeModel$ProjectNode" />
+              <item name="" type="442cc68d:ScopeViewTreeModel$RootNode" />
+            </path>
+            <path>
+              <item name="PartIIProject" type="3d21c010:ScopeViewTreeModel$ProjectNode" />
+              <item name="" type="442cc68d:ScopeViewTreeModel$RootNode" />
+              <item name="keras_implementation" type="9f88c78c:ScopeViewTreeModel$FileNode" />
+            </path>
+          </expand>
+          <select />
+        </subPane>
+      </pane>
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -339,22 +306,6 @@
               <item name="PartIIProject" type="b2602c69:ProjectViewProjectNode" />
               <item name="PartIIProject" type="462c0819:PsiDirectoryNode" />
               <item name="TIVscores" type="462c0819:PsiDirectoryNode" />
-            </path>
-          </expand>
-          <select />
-        </subPane>
-      </pane>
-      <pane id="Scope">
-        <subPane subId="Scope 'Project Files'; set:Project Files; class com.intellij.psi.search.scope.ProjectFilesScope">
-          <expand>
-            <path>
-              <item name="PartIIProject" type="3d21c010:ScopeViewTreeModel$ProjectNode" />
-              <item name="" type="442cc68d:ScopeViewTreeModel$RootNode" />
-            </path>
-            <path>
-              <item name="PartIIProject" type="3d21c010:ScopeViewTreeModel$ProjectNode" />
-              <item name="" type="442cc68d:ScopeViewTreeModel$RootNode" />
-              <item name="keras_implementation" type="9f88c78c:ScopeViewTreeModel$FileNode" />
             </path>
           </expand>
           <select />
@@ -506,10 +457,10 @@
     <recent_temporary>
       <list>
         <item itemvalue="Python.MiniBatchGAT" />
+        <item itemvalue="Python.CrossValidatedGAT" />
         <item itemvalue="Python.LearningProcess" />
         <item itemvalue="Python.KerasGAT" />
         <item itemvalue="Python.LinearRegression" />
-        <item itemvalue="Python.CrossValidatedGAT" />
       </list>
     </recent_temporary>
   </component>
@@ -530,12 +481,12 @@
     <frame x="-7" y="-7" width="1550" height="838" extended-state="7" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.31879196" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.15033557" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.14872521" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.14589235" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.39943343" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -683,46 +634,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/LinearRegression.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="204">
-          <caret line="12" column="21" selection-start-line="12" selection-start-column="21" selection-end-line="12" selection-end-column="21" />
-          <folding>
-            <element signature="e#0#29#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/GAT_hyperparam_config.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="272">
-          <caret line="18" column="32" selection-start-line="18" selection-start-column="32" selection-end-line="18" selection-end-column="32" />
-          <folding>
-            <marker date="1550015739543" expanded="true" signature="2861:3026" ph="..." />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/KerasGAT.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="103">
-          <caret line="60" column="62" lean-forward="true" selection-start-line="60" selection-start-column="62" selection-end-line="60" selection-end-column="62" />
-          <folding>
-            <element signature="e#0#31#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/CrossValidatedGAT.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="221">
-          <caret line="60" column="65" selection-start-line="60" selection-start-column="65" selection-end-line="60" selection-end-column="65" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/KerasGAT.py" />
     <entry file="file://$PROJECT_DIR$/ToolsStructural.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="699">
+        <state relative-caret-position="3162">
           <caret line="187" selection-start-line="187" selection-end-line="187" />
           <folding>
             <element signature="e#0#19#0" expanded="true" />
@@ -730,44 +645,31 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/MainGAT.py">
+    <entry file="file://$PROJECT_DIR$/LearningProcess.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="338">
-          <caret line="34" column="64" selection-start-line="34" selection-start-column="64" selection-end-line="34" selection-end-column="64" />
+        <state relative-caret-position="1768">
+          <caret line="108" column="55" selection-start-line="108" selection-start-column="55" selection-end-line="108" selection-end-column="55" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/LinearRegression.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="51">
+          <caret line="12" column="21" selection-start-line="12" selection-start-column="21" selection-end-line="12" selection-end-column="21" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/keras_implementation/KerasAttentionHead.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="360">
-          <caret line="169" lean-forward="true" selection-start-line="169" selection-end-line="169" />
-          <folding>
-            <element signature="e#0#38#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/MiniBatchGAT.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="123">
-          <caret line="399" selection-start-line="399" selection-end-line="399" />
-          <folding>
-            <element signature="e#0#11#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/LearningProcess.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="246">
-          <caret line="108" column="55" lean-forward="true" selection-start-line="108" selection-start-column="55" selection-end-line="108" selection-end-column="55" />
+        <state>
+          <caret column="23" selection-start-column="23" selection-end-column="23" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/keras_implementation/KerasAttentionTest.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="95">
-          <caret line="66" column="23" lean-forward="true" selection-start-line="66" selection-start-column="23" selection-end-line="66" selection-end-column="23" />
+        <state relative-caret-position="1921">
+          <caret line="117" selection-start-line="117" selection-end-line="117" />
           <folding>
             <element signature="e#0#38#0" expanded="true" />
           </folding>
@@ -776,10 +678,44 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/BaseGAT.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="975">
-          <caret line="206" column="45" lean-forward="true" selection-start-line="206" selection-start-column="45" selection-end-line="206" selection-end-column="45" />
+        <state relative-caret-position="391">
+          <caret line="28" column="65" selection-start-line="28" selection-start-column="65" selection-end-line="28" selection-end-column="65" />
           <folding>
             <element signature="e#0#23#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/MainGAT.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="578">
+          <caret line="34" column="64" selection-start-line="34" selection-start-column="64" selection-end-line="34" selection-end-column="64" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/CrossValidatedGAT.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2423">
+          <caret line="369" column="54" selection-start-line="369" selection-start-column="54" selection-end-line="369" selection-end-column="54" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/GAT_hyperparam_config.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="357">
+          <caret line="23" column="28" lean-forward="true" selection-start-line="23" selection-start-column="28" selection-end-line="23" selection-end-column="28" />
+          <folding>
+            <marker date="1551615243426" expanded="true" signature="2859:3024" ph="..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/MiniBatchGAT.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="313">
+          <caret line="350" column="27" lean-forward="true" selection-start-line="350" selection-start-column="27" selection-end-line="350" selection-end-column="27" />
+          <folding>
+            <element signature="e#0#11#0" expanded="true" />
           </folding>
         </state>
       </provider>

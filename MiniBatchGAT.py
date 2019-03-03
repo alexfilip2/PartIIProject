@@ -129,20 +129,73 @@ class CrossValidatedGAT(MainGAT):
         assert set(self.inner_train).isdisjoint(set(self.inner_test))
         assert set(self.outer_train).isdisjoint(set(self.outer_test))
 
+    def format_data_pipeline(self, subj_keys):
+        data_sz = len(subj_keys)
+        whole_data = {'ftr_in': np.empty(shape=(data_sz, self.nb_nodes, self.ft_size), dtype=np.float32),
+                      'bias_in': np.empty(shape=(data_sz, self.nb_nodes, self.nb_nodes), dtype=np.float32),
+                      'score_in': np.empty(shape=(data_sz, self.outGAT_sz_target), dtype=np.float32),
+                      'adj_in': np.empty(shape=(data_sz, self.nb_nodes, self.nb_nodes), dtype=np.float32)}
+        for expl_index, s_key in enumerate(subj_keys):
+            whole_data['ftr_in'][expl_index] = self.data[s_key]['feat']
+            whole_data['bias_in'][expl_index] = self.data[s_key]['bias']
+            whole_data['score_in'][expl_index] = self.data[s_key]['score']
+            whole_data['adj_in'][expl_index] = self.data[s_key]['adj']
+
+        return whole_data
+
     def make_model(self):
         with tf.variable_scope('input'):
-            # variable batch size
-            batch_s = None
-            self.placeholders['ftr_in'] = tf.placeholder(dtype=tf.float32, shape=[None, self.nb_nodes, self.ft_size])
-            self.placeholders['bias_in'] = tf.placeholder(dtype=tf.float32, shape=[None, self.nb_nodes, self.nb_nodes])
-            self.placeholders['score_in'] = tf.placeholder(dtype=tf.float32, shape=[None, self.outGAT_sz_target])
-            self.placeholders['adj_in'] = tf.placeholder(dtype=tf.float32, shape=[None, self.nb_nodes, self.nb_nodes])
+            # choose the suitable dataset for the CV level and format it for use with a tf Dataset
+            if self.params['nested_CV_level'] == 'inner':
+                training_set = self.format_data_pipeline(self.inner_train)
+                validation_set = self.format_data_pipeline(self.inner_validation)
+                test_set = self.format_data_pipeline(self.inner_test)
+                self.tr_size = len(self.inner_train)
+                self.vl_size = len(self.inner_validation)
+                self.ts_size = len(self.inner_test)
+
+            else:
+                training_set = self.format_data_pipeline(self.outer_train)
+                validation_set = self.format_data_pipeline(self.outer_validation)
+                test_set = self.format_data_pipeline(self.outer_test)
+                self.tr_size = len(self.outer_train)
+                self.vl_size = len(self.outer_validation)
+                self.ts_size = len(self.outer_test)
+
+            # allow for dynamically changing of the batch size (supported by the underlying archit.) and Dropout rate
             self.placeholders['is_train'] = tf.placeholder(dtype=tf.bool, shape=())
+            self.placeholders['batch_size'] = tf.placeholder(tf.int64)
+            # create the Dataset objects pipeline the individual datasets
+            train_dataset = tf.data.Dataset.from_tensor_slices((training_set['ftr_in'],
+                                                                training_set['bias_in'],
+                                                                training_set['adj_in'],
+                                                                training_set['score_in']))
+            # shuffle the train set then generate batched
+            train_dataset = train_dataset.shuffle(buffer_size=1000).batch(self.placeholders['batch_size']).repeat()
+
+            validation_dataset = tf.data.Dataset.from_tensor_slices((validation_set['ftr_in'],
+                                                                     validation_set['bias_in'],
+                                                                     validation_set['adj_in'],
+                                                                     validation_set['score_in']))
+            validation_dataset = validation_dataset.batch(self.placeholders['batch_size']).repeat()
+
+            test_dataset = tf.data.Dataset.from_tensor_slices((test_set['ftr_in'],
+                                                               test_set['bias_in'],
+                                                               test_set['adj_in'],
+                                                               test_set['score_in']))
+            test_dataset = test_dataset.batch(self.placeholders['batch_size']).repeat()
+            # create an iterator for the datasets which will extract a batch at a time
+            iterator = tf.data.Iterator.from_structure(train_dataset.output_types, train_dataset.output_shapes)
+            feats, biases, adjs, scores = iterator.get_next()
+            # operations to swap between datsets
+            self.training_init_op = iterator.make_initializer(train_dataset)
+            self.validation_init_op = iterator.make_initializer(validation_dataset)
+            self.testing_init_op = iterator.make_initializer(test_dataset)
 
             # batch outputs inferred by GAT
-            prediction, unif_loss, excl_loss = MainGAT.inference_keras(self, in_feat_vects=self.placeholders['ftr_in'],
-                                                                       adj_mat=self.placeholders['adj_in'],
-                                                                       bias_mat=self.placeholders['bias_in'],
+            prediction, unif_loss, excl_loss = MainGAT.inference_keras(self, in_feat_vects=feats,
+                                                                       adj_mat=adjs,
+                                                                       bias_mat=biases,
                                                                        include_weights=self.params['include_ew'],
                                                                        hid_units=self.params['hidden_units'],
                                                                        n_heads=self.params['attention_heads'],
@@ -155,8 +208,7 @@ class CrossValidatedGAT(MainGAT):
             # losses for uniformity and exclusivity regulations
             self.ops['unif_loss'], self.ops['excl_loss'] = unif_loss, excl_loss
             # per-batch MSE prediction loss
-            self.ops['loss'] = tf.losses.mean_squared_error(labels=self.placeholders['score_in'],
-                                                            predictions=prediction)
+            self.ops['loss'] = tf.losses.mean_squared_error(labels=scores, predictions=prediction)
 
             # minibatch training op
             self.ops['train_op'] = super().training(loss=self.ops['loss'],
@@ -165,138 +217,70 @@ class CrossValidatedGAT(MainGAT):
                                                     lr=self.params['learning_rate'],
                                                     l2_coef=self.params['l2_coefficient'])
 
-    # run the list of Operation objects using the data of the subject with different dropout rate for training
-    def feed_forward_op(self, ops, is_train, **kwargs):
-        if 'mini_batch' in kwargs:
-            to_feed = kwargs['mini_batch']
-        else:
-            to_feed = {}
-            subj_data = self.data[kwargs['subj_key']]
-            for key in subj_data.keys():
-                to_feed[key] = np.expand_dims(subj_data[key], axis=0)
-
-        return self.sess.run(ops, feed_dict={self.placeholders['ftr_in']: to_feed['feat'],
-                                             self.placeholders['bias_in']: to_feed['bias'],
-                                             self.placeholders['score_in']: to_feed['score'],
-                                             self.placeholders['adj_in']: to_feed['adj'],
-                                             self.placeholders['is_train']: is_train
-                                             })
-
-    def batch_generation(self, subj_keys, batch_sz):
-        batch_iters = len(subj_keys) // batch_sz
-        batch_set = []
-        for batch_id in range(batch_iters):
-            # extract every 'batch_sz' subjects from the dataset
-            batch_data = [self.data[subj] for subj in subj_keys[batch_id * batch_sz:(batch_id + 1) * batch_sz]]
-            # fill a dict with the appended data of these subjects
-            mini_batch = {'feat': np.empty(shape=(batch_sz, self.nb_nodes, self.ft_size)),
-                          'bias': np.empty(shape=(batch_sz, self.nb_nodes, self.nb_nodes)),
-                          'score': np.empty(shape=(batch_sz, self.outGAT_sz_target)),
-                          'adj': np.empty(shape=(batch_sz, self.nb_nodes, self.nb_nodes))}
-            for batch_elem_index, subj_data in enumerate(batch_data):
-                mini_batch['feat'][batch_elem_index] = subj_data['feat']
-                mini_batch['bias'][batch_elem_index] = subj_data['bias']
-                mini_batch['score'][batch_elem_index] = subj_data['score']
-                mini_batch['adj'][batch_elem_index] = subj_data['adj']
-            batch_set.append(mini_batch)
-
-        return batch_set
-
-    # run one batch of training: on training_set which comes from a k_split of the dataset (inner or outer)
-    def run_epoch_training(self, training_set):
-        # Train loop
-        tr_size = len(training_set)
-        # shuffle the training dataset
-        shuf_subjs = shuffle_tr_data(training_set, tr_size)
-        # 0) generate batches
-        tr_batch_set = self.batch_generation(shuf_subjs, batch_sz=self.params['batch_size'])
-        # 1) train using all batches
-        for tr_batch in tr_batch_set:
-            self.feed_forward_op(ops=[self.ops['train_op']], mini_batch=tr_batch, is_train=True)
-        # 2)calculate the loss on all the batches using the best refined weights/biases (at the end of epoch)
-        tr_avg_loss, avg_eloss, avg_uloss = 0.0, 0.0, 0.0
-        for tr_batch in tr_batch_set:
-            (tr_expl_loss, expl_uloss, expl_eloss) = self.feed_forward_op([self.ops['loss'], self.ops['unif_loss'],
-                                                                           self.ops['excl_loss']],
-                                                                          mini_batch=tr_batch,
-                                                                          is_train=False)
-            tr_avg_loss += tr_expl_loss  # already averaged by the batch size due to the MSE loss function
-            avg_eloss += expl_eloss / self.params['batch_size']
-            avg_uloss += expl_uloss / self.params['batch_size']
-
-        return map(lambda x: x / len(tr_batch_set), [tr_avg_loss, avg_uloss, avg_eloss])
-
-    def run_epoch_validation(self, validation_set):
-        # all the validation example fed into the NN in a single batch, the MSE loss already averages
-        val_single_batch = validation_set[0]
-        (vl_avg_loss,) = self.feed_forward_op([self.ops['loss']], mini_batch=val_single_batch, is_train=False)
-
-        return vl_avg_loss
-
     def train(self):
         if self.trained_flag:
             return
-        # choose the correct training set of subjects
-        if self.params['nested_CV_level'] == 'inner':
-            training_set = self.inner_train
-            validation_set = self.inner_validation
-        else:
-            training_set = self.outer_train
-            validation_set = self.outer_validation
-
-        tr_size = len(training_set)
-        vl_size = len(validation_set)
-        print('The training size is: %d and the validation %d' % (tr_size, vl_size))
-        # record the minimum validation loss encountered until current epoch
-        vlss_mn = np.inf
+        best_vl_loss = np.inf
         # store the validation loss of previous epoch
-        vlss_early_model = np.inf
+        prev_epoch_vl_loss = np.inf
         # record the number of consecutive epochs when the loss doesn't improve
         curr_step = 0
-        # no need for shuffling the validation set, therefore its batches are generated just once as a whole batch
-        val_batch_set = self.batch_generation(validation_set, batch_sz=vl_size)
+        n_batches = math.ceil(self.tr_size / self.params['batch_size'])
 
+        # run the training-validation cycle
         for epoch in range(self.last_epoch, self.params['num_epochs']):
             total_time_start = time.time()
-            epoch_tr_loss, epoch_uloss, epoch_eloss = self.run_epoch_training(training_set=training_set)
-            epoch_val_loss = self.run_epoch_validation(validation_set=val_batch_set)
+            # fill the TensorFlow intializable Dataset with the training data
+            self.sess.run(self.training_init_op, feed_dict={self.placeholders['batch_size']: self.params['batch_size']})
+            # perform mini-batch training
+            for _ in range(n_batches):
+                self.sess.run([self.ops['train_op']], feed_dict={self.placeholders['is_train']: True})
+            # compute the training loss feeding the whole dataset as a batch
+            self.sess.run(self.training_init_op, feed_dict={self.placeholders['batch_size']: self.tr_size})
+            epoch_tr_loss, epoch_uloss, epoch_eloss = self.sess.run([self.ops['loss'],
+                                                                     self.ops['unif_loss'],
+                                                                     self.ops['excl_loss']],
+                                                                    feed_dict={self.placeholders['is_train']: True})
+            # average the total epoch losses by batch number
+            epoch_uloss /= self.tr_size
+            epoch_eloss /= self.tr_size
+            # fill the TensorFlow intializable Dataset with the validation data, feed it into in one batch
+            self.sess.run(self.validation_init_op, feed_dict={self.placeholders['batch_size']: self.vl_size})
+            (epoch_val_loss,) = self.sess.run([self.ops['loss']], feed_dict={self.placeholders['is_train']: False})
+            # log the loss values so far
             self.logs[epoch] = {"tr_loss": epoch_tr_loss,
                                 "val_loss": epoch_val_loss,
                                 "u_loss": epoch_uloss,
                                 "e_loss": epoch_eloss,
                                 }
+
             epoch_time = time.time() - total_time_start
-            print('Training: loss = %.5f | Val: loss = %.5f | '
-                  'Unifrom loss: %f| Exclusive loss: %f | '
+            print('Training: loss = %.5f | Val: loss = %.5f | Unifrom loss: %f| Exclusive loss: %f | '
                   'Elapsed epoch time: %.5f' % (epoch_tr_loss, epoch_val_loss, epoch_uloss, epoch_eloss, epoch_time))
             if epoch % self.params['CHECKPT_PERIOD'] == 0:
                 self.save_model(last_epoch=epoch + 1, fully_trained=False)
                 print("Training progress after %d epochs saved in path: %s" % (epoch, self.config.checkpt_file()))
+
             # wait for the validation loss to settle before the specified number of training iterations
-            if epoch_val_loss <= vlss_mn:
-                vlss_early_model = epoch_val_loss
-                vlss_mn = np.min((epoch_val_loss, vlss_mn))
+            if epoch_val_loss <= best_vl_loss:
+                best_vl_loss = epoch_val_loss
                 curr_step = 0
             else:
                 curr_step += 1
-                if curr_step == self.params['patience']:
-                    self.save_model(last_epoch=epoch, fully_trained=True)
-                    print("Training progress after %d epochs saved in path: %s" % (epoch, self.config.checkpt_file()))
-                    print('Early stop! Min loss: ', vlss_mn)
-                    print('Early stop model validation loss: ', vlss_early_model)
-                    break
+            # store the prev epoch val loss
+            prev_epoch_vl_loss = epoch_val_loss
+            # check if the settleing reached the patience threshold
+            if curr_step == self.params['patience'] and epoch >= 100:
+                self.save_model(last_epoch=epoch, fully_trained=True)
+                print("Training progress after %d epochs saved in path: %s" % (epoch, self.config.checkpt_file()))
+                print('Early stop! Min loss: ', best_vl_loss)
+                print('Early stop model validation loss: ', prev_epoch_vl_loss)
+                break
 
     def test(self):
-        # choose the correct training set of subjects
-        if self.params['nested_CV_level'] == 'inner':
-            test_set = self.inner_test
-        else:
-            test_set = self.outer_test
-        ts_avg_loss = 0.0
-        for ts_subj in test_set:
-            (ts_example_loss,) = self.feed_forward_op([self.ops['loss']], subj_key=ts_subj, is_train=False)
-            ts_avg_loss += ts_example_loss
-        ts_avg_loss /= len(test_set)
+        # fill the TensorFlow intializable Dataset with the testing data, feed it into in one batch
+        self.sess.run(self.testing_init_op, feed_dict={self.placeholders['batch_size']: self.ts_size})
+        (ts_avg_loss,) = self.sess.run([self.ops['loss']], feed_dict={self.placeholders['is_train']: False})
         print('Test: loss = %.5f for the model %s' % (ts_avg_loss, self.config))
         self.sess.close()
 
@@ -365,12 +349,12 @@ class CrossValidatedGAT(MainGAT):
 
 
 def cross_validation_GAT():
-    hu_choices = [[20, 20]]
-    ah_choices = [[3, 2]]
+    hu_choices = [[20, 20, 10]]
+    ah_choices = [[3, 3, 2]]
     aggr_choices = [MainGAT.average_feature_aggregator]
     include_weights = [True]
     pers_traits = [['NEO.NEOFAC_A'], ['NEO.NEOFAC_O'], ['NEO.NEOFAC_C'], ['NEO.NEOFAC_N'], ['NEO.NEOFAC_E']]
-    batch_chocies = [2]
+    batch_chocies = [10]
     load_choices = [load_struct_data]
     for load, hu, ah, agg, iw, p_traits, batch_size in product(load_choices, hu_choices, ah_choices, aggr_choices,
                                                                include_weights,
