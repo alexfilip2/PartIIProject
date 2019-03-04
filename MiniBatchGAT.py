@@ -93,6 +93,7 @@ class CrossValidatedGAT(MainGAT):
         # Split the entire dataset for a particular training and testing of the nested Cross Validation
 
     def split_nested_CV(self):
+        self.outer, self.inner = {}, {}
         eval_fold_in = self.params['eval_fold_in']  # the specific inner fold chosen for evaluation
         eval_fold_out = self.params['eval_fold_out']  # the specific outer fold chosen for evaluation
         k_outer = self.params['k_outer']  # the number of outer folds
@@ -101,22 +102,24 @@ class CrossValidatedGAT(MainGAT):
         stratif_identif = {'k_outer': k_outer,
                            'fold_usage': 'test',
                            'nested_CV_level': 'outer'}
-        self.outer_test, out_training = self.sorted_stratification(unbalanced_subj=self.subjects, k_split=k_outer,
-                                                                   eval_fold=eval_fold_out, id_dict=stratif_identif)
+        self.outer['test'], out_training = self.sorted_stratification(unbalanced_subj=self.subjects, k_split=k_outer,
+                                                                      eval_fold=eval_fold_out, id_dict=stratif_identif)
         stratif_identif = {'k_outer': k_outer,
                            'eval_fold_out': eval_fold_out,
                            'fold_usage': 'val',
                            'nested_CV_level': 'outer'}
-        self.outer_validation, self.outer_train = self.sorted_stratification(unbalanced_subj=out_training, eval_fold=-1,
-                                                                             k_split=k_outer, id_dict=stratif_identif)
+        self.outer['validation'], self.outer['train'] = self.sorted_stratification(unbalanced_subj=out_training,
+                                                                                   eval_fold=-1,
+                                                                                   k_split=k_outer,
+                                                                                   id_dict=stratif_identif)
         # prepare the inner split
         stratif_identif = {'k_outer': k_outer,
                            'k_inner': k_inner,
                            'eval_fold_out': eval_fold_out,
                            'fold_usage': 'test',
                            'nested_CV_level': 'inner'}
-        self.inner_test, in_training = self.sorted_stratification(unbalanced_subj=out_training, k_split=k_inner,
-                                                                  eval_fold=eval_fold_in, id_dict=stratif_identif)
+        self.inner['test'], in_training = self.sorted_stratification(unbalanced_subj=out_training, k_split=k_inner,
+                                                                     eval_fold=eval_fold_in, id_dict=stratif_identif)
         stratif_identif = {'k_outer': k_outer,
                            'k_inner': k_inner,
                            'eval_fold_in': eval_fold_in,
@@ -124,10 +127,14 @@ class CrossValidatedGAT(MainGAT):
                            'fold_usage': 'val',
                            'nested_CV_level': 'inner'}
 
-        self.inner_validation, self.inner_train = self.sorted_stratification(unbalanced_subj=in_training, eval_fold=-1,
-                                                                             k_split=k_inner, id_dict=stratif_identif)
-        assert set(self.inner_train).isdisjoint(set(self.inner_test))
-        assert set(self.outer_train).isdisjoint(set(self.outer_test))
+        self.inner['validation'], self.inner['train'] = self.sorted_stratification(unbalanced_subj=in_training,
+                                                                                   eval_fold=-1,
+                                                                                   k_split=k_inner,
+                                                                                   id_dict=stratif_identif)
+        assert set(self.inner['train']).isdisjoint(set(self.inner['test']))
+        assert set(self.inner['train']).isdisjoint(set(self.inner['validation']))
+        assert set(self.outer['train']).isdisjoint(set(self.outer['test']))
+        assert set(self.outer['train']).isdisjoint(set(self.outer['validation']))
 
     def format_data_pipeline(self, subj_keys):
         data_sz = len(subj_keys)
@@ -146,21 +153,11 @@ class CrossValidatedGAT(MainGAT):
     def make_model(self):
         with tf.variable_scope('input'):
             # choose the suitable dataset for the CV level and format it for use with a tf Dataset
-            if self.params['nested_CV_level'] == 'inner':
-                training_set = self.format_data_pipeline(self.inner_train)
-                validation_set = self.format_data_pipeline(self.inner_validation)
-                test_set = self.format_data_pipeline(self.inner_test)
-                self.tr_size = len(self.inner_train)
-                self.vl_size = len(self.inner_validation)
-                self.ts_size = len(self.inner_test)
-
-            else:
-                training_set = self.format_data_pipeline(self.outer_train)
-                validation_set = self.format_data_pipeline(self.outer_validation)
-                test_set = self.format_data_pipeline(self.outer_test)
-                self.tr_size = len(self.outer_train)
-                self.vl_size = len(self.outer_validation)
-                self.ts_size = len(self.outer_test)
+            data = self.inner if self.params['nested_CV_level'] == 'inner' else self.outer
+            training_set = self.format_data_pipeline(data['train'])
+            validation_set = self.format_data_pipeline(data['validation'])
+            test_set = self.format_data_pipeline(data['test'])
+            self.tr_size, self.vl_size, self.ts_size = len(data['train']), len(data['validation']), len(data['test'])
 
             # allow for dynamically changing of the batch size (supported by the underlying archit.) and Dropout rate
             self.placeholders['is_train'] = tf.placeholder(dtype=tf.bool, shape=())
@@ -172,18 +169,17 @@ class CrossValidatedGAT(MainGAT):
                                                                 training_set['score_in']))
             # shuffle the train set then generate batched
             train_dataset = train_dataset.shuffle(buffer_size=1000).batch(self.placeholders['batch_size']).repeat()
-
             validation_dataset = tf.data.Dataset.from_tensor_slices((validation_set['ftr_in'],
                                                                      validation_set['bias_in'],
                                                                      validation_set['adj_in'],
                                                                      validation_set['score_in']))
             validation_dataset = validation_dataset.batch(self.placeholders['batch_size']).repeat()
-
             test_dataset = tf.data.Dataset.from_tensor_slices((test_set['ftr_in'],
                                                                test_set['bias_in'],
                                                                test_set['adj_in'],
                                                                test_set['score_in']))
-            test_dataset = test_dataset.batch(self.placeholders['batch_size']).repeat()
+            test_dataset = test_dataset.batch(self.placeholders['batch_size'])
+
             # create an iterator for the datasets which will extract a batch at a time
             iterator = tf.data.Iterator.from_structure(train_dataset.output_types, train_dataset.output_shapes)
             feats, biases, adjs, scores = iterator.get_next()
@@ -351,10 +347,10 @@ class CrossValidatedGAT(MainGAT):
 def cross_validation_GAT():
     hu_choices = [[20, 20, 10]]
     ah_choices = [[3, 3, 2]]
-    aggr_choices = [MainGAT.average_feature_aggregator]
+    aggr_choices = [MainGAT.master_node_aggregator]
     include_weights = [True]
     pers_traits = [['NEO.NEOFAC_A'], ['NEO.NEOFAC_O'], ['NEO.NEOFAC_C'], ['NEO.NEOFAC_N'], ['NEO.NEOFAC_E']]
-    batch_chocies = [10]
+    batch_chocies = [2]
     load_choices = [load_struct_data]
     for load, hu, ah, agg, iw, p_traits, batch_size in product(load_choices, hu_choices, ah_choices, aggr_choices,
                                                                include_weights,
