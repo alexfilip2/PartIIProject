@@ -1,0 +1,20 @@
+Best params for the model LR on split 1 are
+{'fit_intercept': True, 'normalize': True, 'n_jobs': 4}
+The MSE loss on the outer test set using the best inner model is:
+785.0463919122441
+Best params for the model LR on split 2 are
+{'fit_intercept': False, 'normalize': True, 'n_jobs': 4}
+The MSE loss on the outer test set using the best inner model is:
+2489.2200415835596
+Best params for the model LR on split 3 are
+{'fit_intercept': False, 'normalize': True, 'n_jobs': 4}
+The MSE loss on the outer test set using the best inner model is:
+194.5320120169644
+Best params for the model LR on split 4 are
+{'fit_intercept': False, 'normalize': True, 'n_jobs': 4}
+The MSE loss on the outer test set using the best inner model is:
+549.7743368561103
+Best params for the model LR on split 5 are
+{'fit_intercept': False, 'normalize': True, 'n_jobs': 4}
+The MSE loss on the outer test set using the best inner model is:
+422.03727743740217

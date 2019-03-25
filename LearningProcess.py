@@ -4,20 +4,19 @@ import networkx as nx
 from matplotlib import pyplot, patches
 from CrossValidatedGAT import *
 
+CONF_LIMIT = 2.4148
+
 
 def plt_learn_proc(model_GAT_config: GAT_hyperparam_config) -> None:
     print("Restoring training logs from file %s." % model_GAT_config.logs_file())
     with open(model_GAT_config.logs_file(), 'rb') as in_file:
-        logs = pickle.load(in_file)['logs']
-    tr_loss, vl_loss = [],[]
-    for epoch in range(1, model_GAT_config.params['num_epochs']):
-        if epoch in logs.keys():
-            tr_loss.append(logs[epoch]['tr_loss'])
-            vl_loss.append(logs[epoch]['val_loss'])
-        else:
-            break
+        logs = pickle.load(in_file)
+    tr_loss, vl_loss = [], []
+    for epoch in range(1, logs['last_tr_epoch']):
+        tr_loss.append(logs['logs'][epoch]['tr_loss'])
+        vl_loss.append(logs['logs'][epoch]['val_loss'])
     # Create data
-    df = pd.DataFrame({'epoch': list(range(1, len(vl_loss)+1)), 'train': np.array(tr_loss), 'val': np.array(vl_loss)})
+    df = pd.DataFrame({'epoch': list(range(1, len(vl_loss) + 1)), 'train': np.array(tr_loss), 'val': np.array(vl_loss)})
     plt.plot('epoch', 'train', data=df, color='blue', label='training loss')
     plt.plot('epoch', 'val', data=df, color='orange', label='validation loss')
     plt.title(str(model_GAT_config))
@@ -28,34 +27,20 @@ def plt_learn_proc(model_GAT_config: GAT_hyperparam_config) -> None:
     plt.show()
 
 
-def n_degree_empirical_distrib(hop=10000):
-    edge_weights = list(map(int, persist_ew_data(get_adjs_loader=get_structural_adjs())))
-    y_ratio, x_limit = [], []
-    for limit in range(1, max(edge_weights), hop):
-        filter_weights = [ew for ew in edge_weights if ew < limit]
-        y_ratio.append(len(filter_weights) / len(edge_weights))
-        x_limit.append(limit / hop)
-
-    plt.plot(x_limit, y_ratio)
-    plt.show()
-
-
 def plot_edge_weight_hist(log_scale=10, get_adjs_loader=get_structural_adjs):
     data_type = get_adjs_loader.__name__.split('_')[1]
     # log-scale values of the weights, excluding the 0 edges (self-edges still have weigth 0)
     edge_weights = np.array([math.log(x, log_scale) for x in persist_ew_data(get_adjs_loader) if x != 0])
-    lower_conf = np.percentile(edge_weights, 5)
-    upper_conf = np.percentile(edge_weights, 95)
-    # An "interface" to matplotlib.axes.Axes.hist() method
-    n, bins, patches = plt.hist(x=edge_weights, bins='auto', color='#0504aa', alpha=0.7, rwidth=0.85)
+    lower_conf = np.percentile(edge_weights, 10)
+    print('Tail limit is %.4f' % lower_conf)
+    n, bins, patches = plt.hist(x=edge_weights, bins='auto', color='#0504aa', alpha=0.7, rwidth=None)
     for index, patch in enumerate(patches):
-        patch.set_facecolor('#0504aa' if lower_conf <= bins[index] <= upper_conf else 'black')
+        patch.set_facecolor('#0504aa' if lower_conf <= bins[index] else 'black')
 
     plt.grid(axis='y', alpha=0.75)
     plt.xlabel('Log %d edge weight value' % log_scale)
     plt.ylabel('Frequency')
-    plt.title('Edge Weights Histogram for %s graphs' % data_type)
-    plt.text(23, 45, r'$\mu=15, b=3$')
+    plt.title('Edge Weight Histogram for %s graphs' % data_type)
     maxfreq = n.max()
     # Set a clean upper y-axis limit.
     plt.ylim(top=np.ceil(maxfreq / 10) * 10 if maxfreq % 10 else maxfreq + 10)
@@ -63,34 +48,41 @@ def plot_edge_weight_hist(log_scale=10, get_adjs_loader=get_structural_adjs):
     plt.show()
 
 
-def plot_node_degree_hist(log_scale=10, get_adjs_loader=get_structural_adjs):
+def plot_node_degree_hist(get_adjs_loader=get_structural_adjs, filter_flag=True):
     data_type = get_adjs_loader.__name__.split('_')[1]
     adjs = np.array(list(get_adjs_loader().values()))
+    if filter_flag:
+        for i in range(len(adjs)):
+            adjs[i] = lower_bound_filter(CONF_LIMIT, adjs[i])
+
     binary_adjs = [get_binary_adj(g) for g in adjs]
     degrees = np.array([[np.sum(curr_node_edges) for curr_node_edges in g] for g in binary_adjs]).flatten()
-    n, bins, patches = plt.hist(x=degrees, bins='auto', color='#0504aa', alpha=0.7, rwidth=0.85)
+    n, bins, patches = plt.hist(x=degrees, bins='auto', color='#0504aa', alpha=0.7, rwidth=None)
     plt.grid(axis='y', alpha=0.75)
     plt.xlabel('Node degree value')
     plt.ylabel('Frequency')
-    plt.title('Node degrees Histogram for %s data' % data_type)
-    plt.text(23, 45, r'$\mu=15, b=3$')
+    plt.title('Node degrees Histogram for %s data when filtering is %r' % (data_type, filter_flag))
+    mean = np.mean(degrees)
+    var = np.var(degrees)
+    plt.text(x=5, y=n.max() * 0.5, s=r'$\mu=%.2f, b=%.2f$' % (mean, var))
     maxfreq = n.max()
     # Set a clean upper y-axis limit.
     plt.ylim(top=np.ceil(maxfreq / 10) * 10 if maxfreq % 10 else maxfreq + 10)
-    plt.savefig(join(gat_model_stats, 'node_degrees_filtered.png'))
+    plt.savefig(join(gat_model_stats, 'node_degrees_%s_filtered_%r.png' % (data_type,filter_flag)))
     plt.show()
 
 
 def plot_pers_scores_hist():
-    all_traits = np.array(list(get_NEO5_scores().values())).transpose()
+    scores_data, trait_names = get_NEO5_scores()
+    all_traits = np.array(list(scores_data.values())).transpose()
 
-    for trait_vals in all_traits:
+    packed_scores = zip(all_traits, trait_names)
+    for trait_vals, trait_n in packed_scores:
         n, bins, patches = plt.hist(x=trait_vals, bins='auto', color='#0504aa', alpha=0.7, rwidth=0.85)
         plt.grid(axis='y', alpha=0.75)
         plt.xlabel('Peronality trait value')
         plt.ylabel('Frequency')
-        plt.title('Peronality trait Histogram')
-        plt.text(23, 45, r'$\mu=15, b=3$')
+        plt.title('Histogram of the distribution of %s trait' % trait_n)
         maxfreq = n.max()
         # Set a clean upper y-axis limit.
         plt.ylim(top=np.ceil(maxfreq / 10) * 10 if maxfreq % 10 else maxfreq + 10)
@@ -104,11 +96,12 @@ def draw_adjacency_heatmap(adjacency_matrix):
 
 
 if __name__ == "__main__":
-    hu_choices = [[10, 25, 30]]
-    ah_choices = [[5, 5, 4]]
-    aggr_choices = [MainGAT.average_feature_aggregator]
+    hu_choices = [[20, 20, 10]]
+    ah_choices = [[3, 3, 2]]
+    aggr_choices = [MainGAT.concat_feature_aggregator, MainGAT.average_feature_aggregator,
+                    MainGAT.master_node_aggregator]
     include_weights = [True]
-    pers_traits = [['NEO.NEOFAC_A'], ['NEO.NEOFAC_O'], ['NEO.NEOFAC_C'], ['NEO.NEOFAC_N'], ['NEO.NEOFAC_E']]
+    pers_traits = [['NEO.NEOFAC_A']]
     batch_chocies = [2]
     load_choices = [load_struct_data]
     for load, hu, ah, agg, iw, p_traits, batch_size in product(load_choices, hu_choices, ah_choices, aggr_choices,
@@ -130,4 +123,6 @@ if __name__ == "__main__":
                 'nested_CV_level': 'outer'
 
             }
-            plt_learn_proc(GAT_hyperparam_config(dict_param))
+            model = GAT_hyperparam_config(dict_param)
+            plt_learn_proc(model)
+

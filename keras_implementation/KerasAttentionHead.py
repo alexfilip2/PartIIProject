@@ -2,7 +2,7 @@ from __future__ import absolute_import
 import tensorflow as tf
 from keras import activations, constraints, initializers, regularizers
 from keras import backend as K
-from keras.layers import Layer, Dropout, LeakyReLU, Multiply
+from keras.layers import Layer, Dropout, LeakyReLU, Multiply, BatchNormalization
 
 
 class GraphAttention(Layer):
@@ -12,7 +12,8 @@ class GraphAttention(Layer):
                  attn_heads=1,
                  attn_heads_reduction='concat',  # {'concat', 'average'}
                  dropout_rate=0.6,
-                 activation='relu',
+                 activation=activations.relu,
+                 flag_batch_norm=True,
                  use_bias=True,
                  kernel_initializer='glorot_uniform',
                  bias_initializer='zeros',
@@ -33,8 +34,9 @@ class GraphAttention(Layer):
         self.attn_heads = attn_heads  # Number of attention heads (K in the paper)
         self.attn_heads_reduction = attn_heads_reduction  # Eq. 5 and 6 in the paper
         self.dropout_rate = dropout_rate  # Internal dropout rate
-        self.activation = activations.get(activation)  # Eq. 4 in the paper
+        self.activation = activation  # Eq. 4 in the paper
         self.use_bias = use_bias
+        self.use_batch_norm = flag_batch_norm
 
         self.kernel_initializer = initializers.get(kernel_initializer)
         self.bias_initializer = initializers.get(bias_initializer)
@@ -107,9 +109,7 @@ class GraphAttention(Layer):
         # adjacency_mat: Adjacency matrix (? x N x N)
         # attn_mask : Bias matrix (? x N x N)
         # is_train: bool - specifies if dropout is active/inactive
-        outputs = []
-        layer_ulosses, layer_elosses = [], []
-
+        outputs, layer_ulosses, layer_elosses = [], [], []
         for head in range(self.attn_heads):
             kernel = self.kernels[head]  # W in the paper (F x F')
             attention_kernel = self.attn_kernels[head]  # Attention kernel a in the paper (2F' x 1)
@@ -137,8 +137,6 @@ class GraphAttention(Layer):
             # Include edge weights (at tensorflow Graph construction time)
             if kwargs['include_ew']:
                 dense = Multiply()([dense, adjacency_mat])
-            else:
-                dense = dense
 
             # Apply dropout to features and attention coefficients
             dropout_attn = tf.cond(tf.squeeze(is_train),
@@ -176,14 +174,20 @@ class GraphAttention(Layer):
             output = K.concatenate(outputs)  # (N x KF')
         else:
             output = K.mean(K.stack(outputs), axis=0)  # N x F')
+
         layer_ulosses = K.sum(layer_ulosses)  # total u-loss for all the heads of the layer for ? input graphs
         layer_elosses = K.sum(layer_elosses)  # total e-loss for all the heads of the layer for ? input graphs
 
-        # apply activation and then batch normalization
-        batch_norm_features = tf.layers.batch_normalization(inputs=self.activation(output), axis=-1)
-        return [batch_norm_features, layer_ulosses, layer_elosses]
+        # apply batch normalization
+        if self.use_batch_norm:
+            batch_norm_features = tf.layers.batch_normalization(inputs=output, axis=-1, training=is_train)
+        else:
+            batch_norm_features = output
+        # apply activation
+        activation_out = self.activation(batch_norm_features)
 
+        return [activation_out, layer_ulosses, layer_elosses]
 
     def compute_output_shape(self, input_shape):
-        output_shape = [(input_shape[0][0], input_shape[0][1], self.output_dim),(),()]
+        output_shape = [(input_shape[0][0], input_shape[0][1], self.output_dim), (), ()]
         return output_shape

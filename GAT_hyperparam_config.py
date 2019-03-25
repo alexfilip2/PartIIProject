@@ -14,8 +14,9 @@ class GAT_hyperparam_config(object):
             'load_specific_data': load_struct_data,
             'pers_traits_selection': ['NEO.NEOFAC_A', 'NEO.NEOFAC_O', 'NEO.NEOFAC_C', 'NEO.NEOFAC_N', 'NEO.NEOFAC_E'],
             'batch_size': 2,
-            'edgeWeights_filter': None,
-            'patience': 20,
+            'edgeWeights_filter': lower_bound_filter,
+            'low_ew_limit': 2.4148,
+            'patience': 50,
             'CHECKPT_PERIOD': 50,
             'learning_rate': 0.0001,
             'l2_coefficient': 0.0005,
@@ -45,7 +46,7 @@ class GAT_hyperparam_config(object):
         str_attn_heads = 'AH_' + ",".join(map(str, self.params['attention_heads']))
         str_hid_units = 'HU_' + ",".join(map(str, self.params['hidden_units']))
         str_aggregator = 'AGR_' + self.params['readout_aggregator'].__name__.split('_')[0]
-        str_limits = 'EL_' + ('None' if self.params['edgeWeights_filter'] is None else str(self.params['ew_limits']))
+        str_limits = 'EL_' + ('None' if self.params['edgeWeights_filter'] is None else str(self.params['low_ew_limit']))
         str_batch_sz = '_BS_' + str(self.params['batch_size'])
         str_dataset = 'GAT_' + self.params['load_specific_data'].__name__.split('_')[1]
         str_include_ew = 'IW_' + str(self.params['include_ew'])

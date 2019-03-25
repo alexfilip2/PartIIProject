@@ -1,7 +1,6 @@
 import time
 import pickle
 import multiprocessing
-
 from MainGAT import *
 from GAT_hyperparam_config import GAT_hyperparam_config
 
@@ -21,7 +20,15 @@ class CrossValidatedGAT(MainGAT):
         self.params = self.config.params
         # Print the model details
         self.config.print_model_details()
+        # initialize the dataset variables
+        self.outer, self.inner = {}, {}
+        self.data, self.subjects = {}, []
+        self.nb_nodes = self.ft_size = self.outGAT_sz_target = 0
+        self.tr_size = self.vl_size = self.ts_size = 0
         # Initialize the model skeleton, the computation graph and the parameters
+        self.last_epoch = 1
+        self.trained_flag = False
+        self.logs = {}
         config = tf.ConfigProto()
         config.gpu_options.allow_growth = True
         config.intra_op_parallelism_threads = multiprocessing.cpu_count()
@@ -32,8 +39,9 @@ class CrossValidatedGAT(MainGAT):
             tf.set_random_seed(self.params['random_seed'])
             self.placeholders = {}
             self.ops = {}
-            self.load_CV_data()
-            self.split_nested_CV()
+            self.training_init_op = self.validation_init_op = self.testing_init_op = None
+            self.load_cv_data()
+            self.split_nested_cv()
             self.make_model()
             # Restore/initialize variables:
             if os.path.exists(self.config.checkpt_file()) and os.path.exists(self.config.logs_file()):
@@ -42,32 +50,38 @@ class CrossValidatedGAT(MainGAT):
                 self.initialize_model()
 
     # Load the entire dataset structural or functional that will be used
-    def load_CV_data(self):
+    def load_cv_data(self):
         # Load data:
         # dictionary of adjancency, node features, bias matrices, personality scores indexed by subject ID's
         self.data, self.subjects = self.params['load_specific_data'](self.params)
         # nr of nodes of each graph
-        self.nb_nodes = self.data[self.subjects[0]]['adj'].shape[-1]
+        self.nb_nodes = self.data[self.subjects[0]]['adj_in'].shape[-1]
         # the initial dimension F of each node's feature vector
-        self.ft_size = self.data[self.subjects[0]]['feat'].shape[-1]
+        self.ft_size = self.data[self.subjects[0]]['ftr_in'].shape[-1]
         # the number of the big-five personality traits the model is targeting at once
         self.outGAT_sz_target = len(self.params['pers_traits_selection'])
 
-    def sorted_stratification(self, unbalanced_subj, k_split, eval_fold, id_dict):
-        sorted_id = [x[1] for x in sorted(id_dict.items(), key=operator.itemgetter(0))]
-        target_trait = self.params['pers_traits_selection'][0]
-        strat_split_file = os.path.join(self.config.proc_data_dir(), '_'.join(list(map(str, sorted_id))) + target_trait)
-        if os.path.exists(strat_split_file + '.npy'):
+    def sorted_stratification(self, unbalanced_subj, k_split, eval_fold, cv_lvl, other_split, eval_sets, ret_type):
+        saved_splt = ''
+        trait = self.params['pers_traits_selection'][0]
+        if cv_lvl == 'outer':
+            saved_splt = '%s_%s_%s_%d_%d_%s_%s' % (eval_sets, eval_fold, cv_lvl, other_split, k_split, ret_type, trait)
+        elif cv_lvl == 'inner':
+            saved_splt = '%s_%s_%s_%d_%d_%s_%s' % (eval_fold, eval_sets, cv_lvl, k_split, other_split, ret_type, trait)
+
+        saved_splt = os.path.join(self.config.proc_data_dir(), saved_splt + '.npy')
+        if os.path.exists(saved_splt):
             print('Reload the split of sorted stratification for the model %s' % self.config)
-            stratified_subj = np.load(strat_split_file + '.npy')
+            stratified_subj = np.load(saved_splt)
             test_fold = stratified_subj[eval_fold]
             training = np.concatenate(np.delete(stratified_subj, obj=eval_fold, axis=0))
             return test_fold, training
 
         from random import randint
-        sorted_subjs_by_score = sorted(unbalanced_subj, key=lambda x: self.data[x]['score'][0])
+        sorted_subjs_by_score = sorted(unbalanced_subj, key=lambda x: self.data[x]['score_in'][0])
         stratified_subj = []
-        for _ in range(k_split): stratified_subj.append([])
+        for _ in range(k_split):
+            stratified_subj.append([])
 
         for window_nr in range(len(sorted_subjs_by_score) // k_split):
             window = sorted_subjs_by_score[window_nr * k_split:(window_nr + 1) * k_split]
@@ -82,81 +96,65 @@ class CrossValidatedGAT(MainGAT):
         dump_fold_rest = randint(0, k_split - 1)
         for rest in range(len(sorted_subjs_by_score) // k_split * k_split, len(sorted_subjs_by_score)):
             stratified_subj[dump_fold_rest].append(sorted_subjs_by_score[rest])
-
+        # save the particular split on disk
         stratified_subj = np.array(stratified_subj)
-        np.save(strat_split_file, stratified_subj)
+        np.save(saved_splt, stratified_subj)
 
         test_fold = stratified_subj[eval_fold]
         training = np.concatenate(np.delete(stratified_subj, obj=eval_fold, axis=0))
         return test_fold, training
 
-        # Split the entire dataset for a particular training and testing of the nested Cross Validation
-
-    def split_nested_CV(self):
-        self.outer, self.inner = {}, {}
+    # Split the entire dataset for a particular training and testing of the nested Cross Validation
+    def split_nested_cv(self):
         eval_fold_in = self.params['eval_fold_in']  # the specific inner fold chosen for evaluation
         eval_fold_out = self.params['eval_fold_out']  # the specific outer fold chosen for evaluation
         k_outer = self.params['k_outer']  # the number of outer folds
         k_inner = self.params['k_inner']  # the number of inner folds
         # prepare the outer split
-        stratif_identif = {'k_outer': k_outer,
-                           'fold_usage': 'test',
-                           'nested_CV_level': 'outer'}
         self.outer['test'], out_training = self.sorted_stratification(unbalanced_subj=self.subjects, k_split=k_outer,
-                                                                      eval_fold=eval_fold_out, id_dict=stratif_identif)
-        stratif_identif = {'k_outer': k_outer,
-                           'eval_fold_out': eval_fold_out,
-                           'fold_usage': 'val',
-                           'nested_CV_level': 'outer'}
+                                                                      other_split=k_inner, eval_fold=eval_fold_out,
+                                                                      eval_sets=eval_fold_in, cv_lvl='outer',
+                                                                      ret_type='test')
         self.outer['validation'], self.outer['train'] = self.sorted_stratification(unbalanced_subj=out_training,
+                                                                                   k_split=k_outer, other_split=k_inner,
                                                                                    eval_fold=-1,
-                                                                                   k_split=k_outer,
-                                                                                   id_dict=stratif_identif)
+                                                                                   eval_sets=(
+                                                                                       eval_fold_in, eval_fold_out),
+                                                                                   cv_lvl='outer', ret_type='val')
         # prepare the inner split
-        stratif_identif = {'k_outer': k_outer,
-                           'k_inner': k_inner,
-                           'eval_fold_out': eval_fold_out,
-                           'fold_usage': 'test',
-                           'nested_CV_level': 'inner'}
         self.inner['test'], in_training = self.sorted_stratification(unbalanced_subj=out_training, k_split=k_inner,
-                                                                     eval_fold=eval_fold_in, id_dict=stratif_identif)
-        stratif_identif = {'k_outer': k_outer,
-                           'k_inner': k_inner,
-                           'eval_fold_in': eval_fold_in,
-                           'eval_fold_out': eval_fold_out,
-                           'fold_usage': 'val',
-                           'nested_CV_level': 'inner'}
+                                                                     other_split=k_outer, eval_fold=eval_fold_in,
+                                                                     eval_sets=eval_fold_in, cv_lvl='inner',
+                                                                     ret_type='test')
 
         self.inner['validation'], self.inner['train'] = self.sorted_stratification(unbalanced_subj=in_training,
-                                                                                   eval_fold=-1,
                                                                                    k_split=k_inner,
-                                                                                   id_dict=stratif_identif)
-        assert set(self.inner['train']).isdisjoint(set(self.inner['test']))
-        assert set(self.inner['train']).isdisjoint(set(self.inner['validation']))
-        assert set(self.outer['train']).isdisjoint(set(self.outer['test']))
-        assert set(self.outer['train']).isdisjoint(set(self.outer['validation']))
+                                                                                   other_split=k_outer, eval_fold=-1,
+                                                                                   eval_sets=(
+                                                                                       eval_fold_in, eval_fold_out),
+                                                                                   cv_lvl='inner', ret_type='val')
+        for ev_test, cv_lvl in product(['test', 'validation'], [self.inner, self.outer]):
+            assert set(cv_lvl['train']).isdisjoint(set(cv_lvl[ev_test]))
 
-    def format_data_pipeline(self, subj_keys):
+    def format_for_pipeline(self, subj_keys):
         data_sz = len(subj_keys)
-        whole_data = {'ftr_in': np.empty(shape=(data_sz, self.nb_nodes, self.ft_size), dtype=np.float32),
-                      'bias_in': np.empty(shape=(data_sz, self.nb_nodes, self.nb_nodes), dtype=np.float32),
-                      'score_in': np.empty(shape=(data_sz, self.outGAT_sz_target), dtype=np.float32),
-                      'adj_in': np.empty(shape=(data_sz, self.nb_nodes, self.nb_nodes), dtype=np.float32)}
+        entire_data = {'ftr_in': np.empty(shape=(data_sz, self.nb_nodes, self.ft_size), dtype=np.float32),
+                       'bias_in': np.empty(shape=(data_sz, self.nb_nodes, self.nb_nodes), dtype=np.float32),
+                       'score_in': np.empty(shape=(data_sz, self.outGAT_sz_target), dtype=np.float32),
+                       'adj_in': np.empty(shape=(data_sz, self.nb_nodes, self.nb_nodes), dtype=np.float32)}
         for expl_index, s_key in enumerate(subj_keys):
-            whole_data['ftr_in'][expl_index] = self.data[s_key]['feat']
-            whole_data['bias_in'][expl_index] = self.data[s_key]['bias']
-            whole_data['score_in'][expl_index] = self.data[s_key]['score']
-            whole_data['adj_in'][expl_index] = self.data[s_key]['adj']
+            for input_type in self.data[s_key].keys():
+                entire_data[input_type][expl_index] = self.data[s_key][input_type]
 
-        return whole_data
+        return entire_data
 
     def make_model(self):
         with tf.variable_scope('input'):
             # choose the suitable dataset for the CV level and format it for use with a tf Dataset
             data = self.inner if self.params['nested_CV_level'] == 'inner' else self.outer
-            training_set = self.format_data_pipeline(data['train'])
-            validation_set = self.format_data_pipeline(data['validation'])
-            test_set = self.format_data_pipeline(data['test'])
+            training_set, validation_set, test_set = map(lambda x: self.format_for_pipeline(data[x]),
+                                                         ['test', 'validation', 'test'])
+
             self.tr_size, self.vl_size, self.ts_size = len(data['train']), len(data['validation']), len(data['test'])
 
             # allow for dynamically changing of the batch size (supported by the underlying archit.) and Dropout rate
@@ -182,36 +180,39 @@ class CrossValidatedGAT(MainGAT):
 
             # create an iterator for the datasets which will extract a batch at a time
             iterator = tf.data.Iterator.from_structure(train_dataset.output_types, train_dataset.output_shapes)
-            feats, biases, adjs, scores = iterator.get_next()
+            batch_node_features, batch_bias_mats, batch_adj_mats, batch_scores = iterator.get_next()
             # operations to swap between datsets
             self.training_init_op = iterator.make_initializer(train_dataset)
             self.validation_init_op = iterator.make_initializer(validation_dataset)
             self.testing_init_op = iterator.make_initializer(test_dataset)
 
             # batch outputs inferred by GAT
-            prediction, unif_loss, excl_loss = MainGAT.inference_keras(self, in_feat_vects=feats,
-                                                                       adj_mat=adjs,
-                                                                       bias_mat=biases,
+            prediction, unif_loss, excl_loss = MainGAT.inference_keras(self, batch_node_features=batch_node_features,
+                                                                       batch_adj_mats=batch_adj_mats,
+                                                                       batch_bias_mats=batch_bias_mats,
                                                                        include_weights=self.params['include_ew'],
                                                                        hid_units=self.params['hidden_units'],
-                                                                       n_heads=self.params['attention_heads'],
+                                                                       nb_heads=self.params['attention_heads'],
                                                                        target_score_type=self.outGAT_sz_target,
                                                                        aggregator=self.params['readout_aggregator'],
                                                                        is_train=self.placeholders['is_train'],
-                                                                       residual=self.params['residual'],
                                                                        activation=self.params['non_linearity'],
                                                                        attn_drop=self.params['attn_drop'])
             # losses for uniformity and exclusivity regulations
             self.ops['unif_loss'], self.ops['excl_loss'] = unif_loss, excl_loss
             # per-batch MSE prediction loss
-            self.ops['loss'] = tf.losses.mean_squared_error(labels=scores, predictions=prediction)
-
-            # minibatch training op
-            self.ops['train_op'] = super().training(loss=self.ops['loss'],
-                                                    u_loss=self.ops['unif_loss'],
-                                                    e_loss=self.ops['excl_loss'],
-                                                    lr=self.params['learning_rate'],
-                                                    l2_coef=self.params['l2_coefficient'])
+            self.ops['loss'] = tf.losses.mean_squared_error(labels=batch_scores, predictions=prediction)
+            # update the mean and variance of the Batch Normalization at each mini-batch trining step
+            update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
+            if len(update_ops) == 0:
+                quit()
+            with tf.control_dependencies(update_ops):
+                # training operation
+                self.ops['train_op'] = super().training(loss=self.ops['loss'],
+                                                        u_loss=self.ops['unif_loss'],
+                                                        e_loss=self.ops['excl_loss'],
+                                                        lr=self.params['learning_rate'],
+                                                        l2_coef=self.params['l2_coefficient'])
 
     def train(self):
         if self.trained_flag:
@@ -266,7 +267,8 @@ class CrossValidatedGAT(MainGAT):
             # store the prev epoch val loss
             prev_epoch_vl_loss = epoch_val_loss
             # check if the settleing reached the patience threshold
-            if curr_step == self.params['patience'] and epoch >= 100:
+            print(curr_step)
+            if curr_step >= self.params['patience']:
                 self.save_model(last_epoch=epoch, fully_trained=True)
                 print("Training progress after %d epochs saved in path: %s" % (epoch, self.config.checkpt_file()))
                 print('Early stop! Min loss: ', best_vl_loss)
@@ -344,12 +346,13 @@ class CrossValidatedGAT(MainGAT):
         self.last_epoch = data_to_load['last_epoch']
 
 
-def cross_validation_GAT():
+def cross_validation_gat():
     hu_choices = [[20, 20, 10]]
     ah_choices = [[3, 3, 2]]
-    aggr_choices = [MainGAT.master_node_aggregator]
+    aggr_choices = [MainGAT.concat_feature_aggregator, MainGAT.average_feature_aggregator,
+                    MainGAT.master_node_aggregator]
     include_weights = [True]
-    pers_traits = [['NEO.NEOFAC_A'], ['NEO.NEOFAC_O'], ['NEO.NEOFAC_C'], ['NEO.NEOFAC_N'], ['NEO.NEOFAC_E']]
+    pers_traits = [['NEO.NEOFAC_A']]
     batch_chocies = [2]
     load_choices = [load_struct_data]
     for load, hu, ah, agg, iw, p_traits, batch_size in product(load_choices, hu_choices, ah_choices, aggr_choices,
@@ -377,4 +380,4 @@ def cross_validation_GAT():
 
 
 if __name__ == "__main__":
-    cross_validation_GAT()
+    cross_validation_gat()

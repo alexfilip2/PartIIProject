@@ -24,7 +24,7 @@ if not os.path.exists(gat_model_stats):
 ################### util functions for processing PERSONALITY SCORES ########################
 
 # dictionary of string subject ID: array of real-valued scores for each trait
-def get_NEO5_scores(trait_choice: list = None) -> dict:
+def get_NEO5_scores(trait_choice: list = None) -> tuple:
     df = pd.ExcelFile(pers_scores).parse('Raw_data')
     tiv_scores = []
     if trait_choice is None:
@@ -35,7 +35,7 @@ def get_NEO5_scores(trait_choice: list = None) -> dict:
         tiv_scores.append(df[trait])
     subjects = map(str, list(df['Subject']))
     tiv_score_dict = dict(zip(subjects, np.array(tiv_scores).transpose().tolist()))
-    return tiv_score_dict
+    return tiv_score_dict, trait_names
 
 
 ################### util functions for processing ADACENCY MATRICES ########################
@@ -76,13 +76,11 @@ def attach_master(nb_nodes):
 
 
 # zero all the matrix entries that are not in the specified range value
-def interval_filter(limits: tuple, struct_adj: np.ndarray):
-    lower_conf = limits[0]
-    upper_conf = limits[1]
+def lower_bound_filter(log_10_limit: float, struct_adj: np.ndarray):
     filtered_adjs = np.empty(struct_adj.shape)
     for i in range(struct_adj.shape[0]):
         for j in range(struct_adj.shape[1]):
-            filtered_adjs[i][j] = struct_adj[i][j] if (lower_conf <= struct_adj[i][j] <= upper_conf) else 0.0
+            filtered_adjs[i][j] = struct_adj[i][j] if ((10**log_10_limit) <= struct_adj[i][j]) else 0.0
 
     return filtered_adjs
 

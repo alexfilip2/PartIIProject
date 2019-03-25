@@ -130,7 +130,7 @@ def get_structural_adjs():
 
 def load_struct_data(hyparams):
     str_traits = ''.join([trait.split('NEO.NEOFAC_')[-1] for trait in hyparams['pers_traits_selection']])
-    str_limits = "" if hyparams['edgeWeights_filter'] is None else str(hyparams['ew_limits'])
+    str_limits = "" if hyparams['edgeWeights_filter'] is None else str(hyparams['low_ew_limit'])
     binary_prefix = '%s_%s.pkl' % (str_traits, str_limits)
 
     dataset_binary = join(dir_proc_struct_data, binary_prefix)
@@ -143,7 +143,7 @@ def load_struct_data(hyparams):
 
     dict_adj = get_structural_adjs()
     dict_node_feat = get_scaled_struct_node_feat()
-    dict_tiv_score = get_NEO5_scores(hyparams['pers_traits_selection'])
+    dict_tiv_score,_ = get_NEO5_scores(hyparams['pers_traits_selection'])
 
     dict_dataset = {}
     all_subjects = sorted(list(dict_adj.keys()))
@@ -155,15 +155,16 @@ def load_struct_data(hyparams):
                 unexp_adj = norm_rows_adj((np.array(dict_adj[subj_id])))
             else:
                 unexp_adj = norm_rows_adj(
-                    hyparams['edgeWeights_filter'](hyparams['ew_limits'], (np.array(dict_adj[subj_id]))))
-            unexp_adj += np.eye(unexp_adj.shape[0])
+                    hyparams['edgeWeights_filter'](hyparams['low_ew_limit'], (np.array(dict_adj[subj_id]))))
+
             if np.isnan(unexp_adj).any():
                 print(unexp_adj)
                 quit()
-            dict_dataset[subj_id]['feat'] =np.array(dict_node_feat[subj_id])
-            dict_dataset[subj_id]['adj'] = unexp_adj
-            dict_dataset[subj_id]['bias'] = adj_to_bias(unexp_adj, nhood=1)
-            dict_dataset[subj_id]['score'] = np.array(dict_tiv_score[subj_id])
+            dict_dataset[subj_id]['ftr_in'] =np.array(dict_node_feat[subj_id])
+            dict_dataset[subj_id]['bias_in'] = adj_to_bias(unexp_adj, nhood=1)
+            unexp_adj = (unexp_adj + np.eye(unexp_adj.shape[0])) / 2
+            dict_dataset[subj_id]['adj_in'] = unexp_adj
+            dict_dataset[subj_id]['score_in'] = np.array(dict_tiv_score[subj_id])
             available_subjs.append(subj_id)
 
     with open(dataset_binary, 'wb') as handle:
@@ -173,7 +174,7 @@ def load_struct_data(hyparams):
     return dict_dataset, sorted(available_subjs)
 
 
-def load_regress_data(trait_choice):
+def load_baseline_struct_data(trait_choice):
     hyparams = {'ew_limits': None,
                 'edgeWeights_filter': None,
                 'pers_traits_selection': trait_choice
@@ -182,6 +183,6 @@ def load_regress_data(trait_choice):
     adj_matrices, scores = [], []
 
     for subj_id in sorted(subjs):
-        adj_matrices.append(data[subj_id]['feat'].flatten().tolist())
-        scores.append(data[subj_id]['score'].flatten()[0])
+        adj_matrices.append(data[subj_id]['ftr_in'].flatten().tolist())
+        scores.append(data[subj_id]['score_in'].flatten()[0])
     return np.array(adj_matrices), np.array(scores)

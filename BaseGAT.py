@@ -1,38 +1,76 @@
 import tensorflow as tf
 from ToolsFunctional import *
 from ToolsStructural import *
-from keras_implementation.KerasAttentionHead import GraphAttention
+
+from keras_implementation.KerasAttentionHead import *
+
+# number of attention heads of the master node layer
+MASTER_HEADS = 3
 
 
 class BaseGAT(object):
 
     def average_feature_aggregator(self, model_GAT_output, **kwargs):
-        # sum all the node features vectors
+        """ Averages the node features produced by GAT
+                Parameters
+                ----------
+                model_GAT_output : tensor of shape (?, nb_nodes, F')
+                    The tensor storing the GAT output node feature vectors for each node of each graph in the batch
+
+                Returns
+                -------
+                out_avg : tensor of shape (?, F'), F' is 1 (targets one personality trait)
+                    The tensor storing the average of the feat. vectors across the entire node set
+        """
         out_avg = tf.reduce_sum(model_GAT_output, axis=1)
-        # fed them into a MLP with separate weights for each personality score
         # output = tf.layers.dense(output, units=target_score_type, use_bias=False)
         return out_avg
 
     def concat_feature_aggregator(self, model_GAT_output, **kwargs):
-        # concatenate all the node features
-        dyn_shape = model_GAT_output.get_shape().as_list()
-        concat_dim = np.prod(dyn_shape[1:])
-        out_concat = tf.reshape(model_GAT_output, [-1, concat_dim])
+        """ Concatenates the node features produced by GAT and feed them into a single layer of MLP
+                Parameters
+                ----------
+                model_GAT_output : tensor of shape (?, nb_nodes, F')
+                    The tensor storing the GAT output node feature vectors for each node of each graph in the batch
 
-        # fed them into a MLP with separate weights for each personality score
-        out = tf.layers.dense(out_concat, units=kwargs['target_score_type'], use_bias=True)
-        return out
+                Returns
+                -------
+                out_mlp : tensor of shape (?, kwargs['target_score_type'])
+                    The tensor storing the regression output for each graph in the batch
+        """
+        # run-time tensor shape as variable batch sizes are possible
+        dyn_shape = model_GAT_output.get_shape().as_list()
+        concat_axis = np.prod(dyn_shape[1:])
+        out_concat = tf.reshape(model_GAT_output, [-1, concat_axis])
+        # fed the result into MLP layer with separate weights for each personality score
+        out_mlp = tf.layers.dense(out_concat, units=kwargs['target_score_type'], use_bias=False)
+        return out_mlp
 
     def master_node_aggregator(self, model_GAT_output, **kwargs):
-        # model_GAT_output: (?,N,F')
+        """ Aggregate the node features produced by GAT via a Master node
+                Parameters
+                ----------
+                model_GAT_output : tensor of shape (?, nb_nodes, F')
+                    The tensor storing the GAT output node feature vectors for each node of each graph in the batch
+
+                Returns
+                -------
+                out_avg : tensor of shape (?, F'),
+                            The tensor storing the average of the feat. vectors across the entire node set
+        """
         init_nb_nodes = int(model_GAT_output.shape[1])
-        dyn_batch_nr = tf.shape(model_GAT_output)[0]
+        dyn_batch_size = tf.shape(model_GAT_output)[0]
+        # consider 0's feature vec for the master node
         master_feats = tf.zeros([1, model_GAT_output.shape[-1]])
-        master_feats_tilled = tf.expand_dims(tf.tile(master_feats, tf.stack([dyn_batch_nr, 1])), axis=1)
-        extended_feats = tf.concat([model_GAT_output, master_feats_tilled], axis=1)  # extended_feats: (1,N+1,F')
-        adj_mat, bias_mat = attach_master(init_nb_nodes)
-        adj_mat = tf.cast(tf.tile(adj_mat, [dyn_batch_nr, 1, 1]), dtype=tf.float32)
-        bias_mat = tf.cast(tf.tile(bias_mat, [dyn_batch_nr, 1, 1]), dtype=tf.float32)
+        # create masters for each graph in the batch
+        master_feats_tilled = tf.expand_dims(tf.tile(master_feats, tf.stack([dyn_batch_size, 1])), axis=1)
+        # extended node feats including the masters (?,N+1,F')
+        extended_feats = tf.concat([model_GAT_output, master_feats_tilled], axis=1)
+        # connect the master to all the nodes and  pairwise disconnect these
+        extended_adj, extended_bias = attach_master(init_nb_nodes)
+        # repeat the same adjacency matrix for all the graphs in the batch
+        extended_adj = tf.cast(tf.tile(extended_adj, [dyn_batch_size, 1, 1]), dtype=tf.float32)
+        extended_bias = tf.cast(tf.tile(extended_bias, [dyn_batch_size, 1, 1]), dtype=tf.float32)
 
         # master GAT layer
         master_layer, _, _ = GraphAttention(F_=kwargs['target_score_type'],
@@ -40,59 +78,91 @@ class BaseGAT(object):
                                             attn_heads_reduction='average',
                                             dropout_rate=kwargs['attn_drop'],
                                             activation=lambda x: x)(
-            inputs=[extended_feats, adj_mat, bias_mat, kwargs['is_train']],include_ew=False)
+            inputs=[extended_feats, extended_adj, extended_bias, kwargs['is_train']], include_ew=False)
 
-        # take the resulted features of the master node
-        expl_out = tf.slice(input_=master_layer, begin=[0, init_nb_nodes, 0],
-                            size=[dyn_batch_nr, 1, kwargs['target_score_type']])
+        # extract only the high-level features produced for the master node (in each batch graph)
+        out_master = tf.squeeze(tf.slice(input_=master_layer, begin=[0, init_nb_nodes, 0],
+                                         size=[dyn_batch_size, 1, kwargs['target_score_type']]), axis=1)
 
-        return tf.squeeze(expl_out, axis=1)
+        return out_master
 
-    def inference_keras(self, in_feat_vects, adj_mat, bias_mat, hid_units, n_heads,
-                        attn_drop, is_train, include_weights, activation=tf.nn.elu, residual=False
+    def inference_keras(self, batch_node_features, batch_adj_mats, batch_bias_mats, hid_units, nb_heads,
+                        attn_drop, is_train, include_weights, activation= activations.relu
                         , aggregator=concat_feature_aggregator, target_score_type=5):
+        """ Builds the GAT architecture
+                Parameters
+                ----------
+                batch_node_features : tensor of shape (?, nb_nodes, F)
+                    The tensor storing the input node features for each graph in the batch
+                batch_adj_mats: tensor of shape (?, nb_nodes, nb_nodes)
+                    The tensor storing the input weighted adjacency matrices
+                batch_bias_mats: tensor of shape (?, nb_nodes, nb_nodes)
+                    The tensor representing the mask for node connectivity
+                hid_units: list of int
+                    The length of the node feature vecs produced by each attn head of each layer
+                nb_heads: list of int
+                    Number of attention heads on each layer of the GAT NN
+                attn_drop : float
+                    Dropout rate for the input features (of previous layer) and the alpha_ij coefficients
+                is_train: bool
+                    Flag that enables or not the dropout layers
+                include_weights : bool tensor
+                    Flag for integrating the EDGE WEIGHTS when generating the alpha_ij coefficients
+                activation : function
+                    The activation function of the layer applied to the feature vectors element-wise
+                aggregator : function
+                    The aggregation function for all the node features for the final score prediction
+                target_score_type: int
+                    The output dimension of the GAT NN: predicting some of the Big-Five personality scores
 
-        # adj_mat, bias_mat, in_feat_vects = map(lambda x: tf.squeeze(x, axis=0), [adj_mat, bias_mat, in_feat_vects])
-        # change the length of the final features produced if just plain averaging is used
+                Returns
+                -------
+                out_avg : tensor of shape (?, F'),
+                            The tensor storing the average of the feat. vectors across the entire node set
+        """
+        # change the dimension of the final features produced if averaging is employed
+        out_layer_feat_dim = hid_units[-1]
         if aggregator is BaseGAT.average_feature_aggregator:
-            hid_units[-1] = target_score_type
+            out_layer_feat_dim = target_score_type
+
         # input GAT layer
         out_input_layer, arch_uloss, arch_eloss = GraphAttention(F_=hid_units[0],
-                                                                 attn_heads=n_heads[0],
+                                                                 attn_heads=nb_heads[0],
+                                                                 flag_batch_norm=True,
                                                                  attn_heads_reduction='concat',
                                                                  dropout_rate=attn_drop,
                                                                  activation=activation)(
-            inputs=[in_feat_vects, adj_mat, bias_mat, is_train], include_ew=include_weights)
-
-        # hidden GAT layers
+            inputs=[batch_node_features, batch_adj_mats, batch_bias_mats, is_train], include_ew=include_weights)
         out = out_input_layer
-        for i in range(1, len(n_heads) - 1):
+        # hidden GAT layers
+        for i in range(1, len(nb_heads) - 1):
             out_i_th_layer, layer_uloss, layer_eloss = GraphAttention(F_=hid_units[i],
-                                                                      attn_heads=n_heads[i],
+                                                                      attn_heads=nb_heads[i],
                                                                       attn_heads_reduction='concat',
+                                                                      flag_batch_norm=True,
                                                                       dropout_rate=attn_drop,
                                                                       activation=activation)(
-                inputs=[out, adj_mat, bias_mat, is_train], include_ew=include_weights)
+                inputs=[out, batch_adj_mats, batch_bias_mats, is_train], include_ew=include_weights)
             out = out_i_th_layer
-            arch_uloss = tf.add(arch_uloss, layer_uloss)
-            arch_eloss = tf.add(arch_eloss, layer_eloss)
+            # accumulate the regularization losses
+            arch_uloss, arch_eloss = tf.add(arch_uloss, layer_uloss), tf.add(arch_eloss, layer_eloss)
 
         # output GAT layer
-        gat_output, output_uloss, output_eloss = GraphAttention(F_=hid_units[-1],
-                                                                attn_heads=n_heads[-1],
+        gat_output, output_uloss, output_eloss = GraphAttention(F_=out_layer_feat_dim,
+                                                                attn_heads=nb_heads[-1],
+                                                                flag_batch_norm=False,
                                                                 attn_heads_reduction='average',
                                                                 dropout_rate=attn_drop,
                                                                 activation=lambda x: x)(
-            inputs=[out, adj_mat, bias_mat, is_train],
-            include_ew=include_weights)
+            inputs=[out, batch_adj_mats, batch_bias_mats, is_train], include_ew=include_weights)
 
-        nb_attn_heads = np.sum(np.array(n_heads))
+        # average the regularization losses by the total nr of attention heads
+        nb_attn_heads = np.sum(np.array(nb_heads))
         arch_uloss = tf.divide(tf.add(arch_uloss, output_uloss), nb_attn_heads)
         arch_eloss = tf.divide(tf.add(arch_eloss, output_eloss), nb_attn_heads)
 
-        # aggregate all the output node features
-        output = aggregator(self, model_GAT_output=gat_output,
-                            target_score_type=target_score_type, is_train=is_train,
-                            attn_drop=attn_drop, master_heads=3)
+        # aggregate all the output node features using the specified strategy
+        pred_out = aggregator(self, model_GAT_output=gat_output, target_score_type=target_score_type, is_train=is_train,
+                              attn_drop=attn_drop, master_heads=MASTER_HEADS)
 
-        return output, arch_uloss, arch_eloss
+        return pred_out, arch_uloss, arch_eloss
