@@ -2,6 +2,7 @@ from gat_impl.ExecuteGAT import *
 from utils.LoadFunctionalData import *
 from utils.LoadStructuralData import *
 from sklearn.model_selection import ParameterGrid
+from gat_impl.HyperparametersGAT import checkpts_dir
 
 
 def sorted_stratification(config, data, unbalan_subj, lvl_split):
@@ -77,14 +78,16 @@ def generate_cv_data(config, data, subjects):
 
 
 def nested_cross_validation_gat():
-    param_grid = {'hidden_units': [[20, 20, 10], [30, 20, 10], [20, 10]],
-                  'attention_heads': [[3, 3, 2], [4, 5, 2], [3, 2]],
-                  'learning_rate': [0.0001],
+    total_time_start = time.time()
+    param_grid = {'hidden_units': [[5, 10, 10], [20, 20, 10], [30, 20, 10], [30, 40, 40]],
+                  'attention_heads': [[3, 3, 2], [4, 4, 5], [2, 2, 3], [5, 7, 7]],
+                  'learning_rate': [0.0001, 0.001],
                   'l2_coefficient': [0.0005],
-                  'attn_drop': [0.6],
+                  'attn_drop': [0.6, 0.4, 0.2],
                   'include_ew': [True, False],
-                  'readout_aggregator': [MainGAT.concat_feature_aggregator, MainGAT.average_feature_aggregator,
-                                         MainGAT.master_node_aggregator],
+                  'readout_aggregator': [MainGAT.master_node_aggregator, MainGAT.concat_feature_aggregator,
+                                         MainGAT.average_feature_aggregator
+                                         ],
                   'load_specific_data': [load_struct_data, load_funct_data],
                   'pers_traits_selection': [['NEO.NEOFAC_A'], ['NEO.NEOFAC_O'], ['NEO.NEOFAC_C'], ['NEO.NEOFAC_N'],
                                             ['NEO.NEOFAC_E']],
@@ -98,10 +101,12 @@ def nested_cross_validation_gat():
 
     for eval_out in range(dict_param['k_outer']):
         dict_param['eval_fold_out'] = eval_out
-        for eval_in in range(dict_param['k_inner']):
-            for params in grid:
+        for params in grid:
+            for eval_in in range(dict_param['k_inner']):
+                dict_param['eval_fold_in'] = eval_in
                 dict_param.update(params)
                 config = HyperparametersGAT(dict_param)
+
                 data, subjects = config.params['load_specific_data'](config.params)
                 tr_set, vl_set, ts_set = generate_cv_data(config=config, data=data, subjects=subjects)
                 model = CrossValidatedGAT(args=config)
@@ -109,6 +114,33 @@ def nested_cross_validation_gat():
                 model.build()
                 model.train()
                 model.test()
+    cv_time = time.time() - total_time_start
+    with open('time_elapsed.txt', 'w') as handle:
+        handle.write(str(cv_time))
+
+
+def extract_test_losses(param_search):
+    model_descriptors = {}
+    for file in os.listdir(checkpts_dir):
+        if file.startswith('predictions_'):
+            not_trained = False
+            for param in param_search:
+                if param not in file:
+                    not_trained = True
+            if not_trained:
+                continue
+            with open(os.path.join(checkpts_dir, file), 'rb') as out_result_file:
+                results = pkl.load(out_result_file)
+
+                name_model = file.split('_CV_')
+                if name_model[0] not in model_descriptors.keys():
+                    model_descriptors[name_model[0]] = {}
+                model_descriptors[name_model[0]][name_model[1]] = results['test_loss']
+
+    for model in model_descriptors.keys():
+        if len(model_descriptors[model].values()) == 5:
+            print('The test loss for model %s is %.3f' % (
+                model, np.array(list(model_descriptors[model].values())).mean()))
 
 
 if __name__ == "__main__":

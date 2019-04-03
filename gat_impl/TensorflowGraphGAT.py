@@ -2,9 +2,6 @@ from gat_impl.KerasAttentionHead import *
 from utils.ToolsDataProcessing import attach_master
 import numpy as np
 
-# number of attention heads of the master node layer
-MASTER_HEADS = 3
-
 
 class TensorflowGraphGAT(object):
 
@@ -20,8 +17,8 @@ class TensorflowGraphGAT(object):
                 out_avg : tensor of shape (?, F'), F' is 1 (targets one personality trait)
                     The tensor storing the average of the feat. vectors across the entire node set
         """
-        out_avg = tf.reduce_sum(model_GAT_output, axis=1)
-        # output = tf.layers.dense(output, units=target_score_type, use_bias=False)
+        in_mlp = tf.reduce_sum(model_GAT_output, axis=1)
+        out_avg = tf.layers.dense(in_mlp, units=kwargs['target_score_type'], use_bias=True)
         return out_avg
 
     def concat_feature_aggregator(self, model_GAT_output, **kwargs):
@@ -39,10 +36,10 @@ class TensorflowGraphGAT(object):
         # run-time tensor shape as variable batch sizes are possible
         dyn_shape = model_GAT_output.get_shape().as_list()
         concat_axis = np.prod(dyn_shape[1:])
-        out_concat = tf.reshape(model_GAT_output, [-1, concat_axis])
+        in_mlp = tf.reshape(model_GAT_output, [-1, concat_axis])
         # fed the result into MLP layer with separate weights for each personality score
-        out_mlp = tf.layers.dense(out_concat, units=kwargs['target_score_type'], use_bias=False)
-        return out_mlp
+        out_concat = tf.layers.dense(in_mlp, units=kwargs['target_score_type'], use_bias=True)
+        return out_concat
 
     def master_node_aggregator(self, model_GAT_output, **kwargs):
         """ Aggregate the node features produced by GAT via a Master node
@@ -56,31 +53,27 @@ class TensorflowGraphGAT(object):
                 out_avg : tensor of shape (?, F'),
                             The tensor storing the average of the feat. vectors across the entire node set
         """
-        init_nb_nodes = int(model_GAT_output.shape[1])
+        nb_nodes = int(model_GAT_output.shape[1])
         dyn_batch_size = tf.shape(model_GAT_output)[0]
-        # consider 0's feature vec for the master node
-        master_feats = tf.zeros([1, model_GAT_output.shape[-1]])
-        # create masters for each graph in the batch
-        master_feats_tilled = tf.expand_dims(tf.tile(master_feats, tf.stack([dyn_batch_size, 1])), axis=1)
-        # extended node feats including the masters (?,N+1,F')
-        extended_feats = tf.concat([model_GAT_output, master_feats_tilled], axis=1)
         # connect the master to all the nodes and  pairwise disconnect these
-        extended_adj, extended_bias = attach_master(init_nb_nodes)
+        extended_adj, extended_bias = attach_master(nb_nodes)
         # repeat the same adjacency matrix for all the graphs in the batch
         extended_adj = tf.cast(tf.tile(extended_adj, [dyn_batch_size, 1, 1]), dtype=tf.float32)
         extended_bias = tf.cast(tf.tile(extended_bias, [dyn_batch_size, 1, 1]), dtype=tf.float32)
 
         # master GAT layer
-        master_layer, _, _ = GraphAttention(F_=kwargs['target_score_type'],
+        master_layer, _, _ = GraphAttention(F_=kwargs['master_feats'],
                                             attn_heads=kwargs['master_heads'],
                                             attn_heads_reduction='average',
+                                            flag_batch_norm=False,
                                             dropout_rate=kwargs['attn_drop'],
                                             activation=lambda x: x)(
-            inputs=[extended_feats, extended_adj, extended_bias, kwargs['is_train']], include_ew=False)
+            inputs=[model_GAT_output, extended_adj, extended_bias, kwargs['is_train']], include_ew=False)
 
         # extract only the high-level features produced for the master node (in each batch graph)
-        out_master = tf.squeeze(tf.slice(input_=master_layer, begin=[0, init_nb_nodes, 0],
-                                         size=[dyn_batch_size, 1, kwargs['target_score_type']]), axis=1)
+        in_mlp = tf.squeeze(tf.slice(input_=master_layer, begin=[0, nb_nodes - 1, 0],
+                                     size=[dyn_batch_size, 1, kwargs['master_feats']]), axis=1)
+        out_master = tf.layers.dense(in_mlp, units=kwargs['target_score_type'], use_bias=True)
 
         return out_master
 
@@ -119,23 +112,38 @@ class TensorflowGraphGAT(object):
                             The tensor storing the average of the feat. vectors across the entire node set
         """
         # change the dimension of the final features produced if averaging is employed
-        out_layer_feat_dim = hidden_units[-1]
-        if readout_aggregator is TensorflowGraphGAT.average_feature_aggregator:
-            out_layer_feat_dim = target_score_type
+        mutable_hu = hidden_units.copy()
+        mutable_ah = attention_heads.copy()
+        out_gat_layer_params = {'F_': mutable_hu[-1],
+                                'attn_heads': mutable_ah[-1],
+                                'flag_batch_norm': False,
+                                'attn_heads_reduction': 'average',
+                                'dropout_rate': attn_drop,
+                                'activation': lambda x: x}
+        master_heads = master_feats = 0
+        if readout_aggregator is TensorflowGraphGAT.master_node_aggregator:
+            master_heads = mutable_ah.pop()
+            master_feats = mutable_hu.pop()
+            out_gat_layer_params.update({'F_': mutable_hu[-1],
+                                         'attn_heads': mutable_ah[-1],
+                                         'flag_batch_norm': False,
+                                         'attn_heads_reduction': 'concat',
+                                         'activation': non_linearity})
 
         # input GAT layer
-        out_input_layer, arch_uloss, arch_eloss = GraphAttention(F_=hidden_units[0],
-                                                                 attn_heads=attention_heads[0],
-                                                                 flag_batch_norm=True,
+        out_input_layer, arch_uloss, arch_eloss = GraphAttention(F_=mutable_hu[0],
+                                                                 attn_heads=mutable_ah[0],
+                                                                 flag_batch_norm=False,
                                                                  attn_heads_reduction='concat',
                                                                  dropout_rate=attn_drop,
                                                                  activation=non_linearity)(
             inputs=[batch_node_features, batch_adj_mats, batch_bias_mats, is_train], include_ew=include_ew)
         out = out_input_layer
+
         # hidden GAT layers
-        for i in range(1, len(attention_heads) - 1):
-            out_i_th_layer, layer_uloss, layer_eloss = GraphAttention(F_=hidden_units[i],
-                                                                      attn_heads=attention_heads[i],
+        for i in range(1, len(mutable_ah) - 1):
+            out_i_th_layer, layer_uloss, layer_eloss = GraphAttention(F_=mutable_hu[i],
+                                                                      attn_heads=mutable_ah[i],
                                                                       attn_heads_reduction='concat',
                                                                       flag_batch_norm=False,
                                                                       dropout_rate=attn_drop,
@@ -146,12 +154,7 @@ class TensorflowGraphGAT(object):
             arch_uloss, arch_eloss = tf.add(arch_uloss, layer_uloss), tf.add(arch_eloss, layer_eloss)
 
         # output GAT layer
-        gat_output, output_uloss, output_eloss = GraphAttention(F_=out_layer_feat_dim,
-                                                                attn_heads=attention_heads[-1],
-                                                                flag_batch_norm=False,
-                                                                attn_heads_reduction='average',
-                                                                dropout_rate=attn_drop,
-                                                                activation=lambda x: x)(
+        gat_output, output_uloss, output_eloss = GraphAttention(**out_gat_layer_params)(
             inputs=[out, batch_adj_mats, batch_bias_mats, is_train], include_ew=include_ew)
 
         # average the regularization losses by the total nr of attention heads
@@ -162,6 +165,6 @@ class TensorflowGraphGAT(object):
         # aggregate all the output node features using the specified strategy
         pred_out = readout_aggregator(self, model_GAT_output=gat_output, target_score_type=target_score_type,
                                       is_train=is_train,
-                                      attn_drop=attn_drop, master_heads=MASTER_HEADS)
+                                      attn_drop=attn_drop, master_heads=master_heads, master_feats=master_feats)
 
         return pred_out, arch_uloss, arch_eloss

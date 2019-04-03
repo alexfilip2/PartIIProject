@@ -54,8 +54,9 @@ class CrossValidatedGAT(MainGAT):
             data_sz = len(subj_keys)
             entire_data = {'ftr_in': np.empty(shape=(data_sz, nb_nodes, ft_size), dtype=np.float32),
                            'bias_in': np.empty(shape=(data_sz, nb_nodes, nb_nodes), dtype=np.float32),
-                           'score_in': np.empty(shape=(data_sz, self.params['target_score_type']), dtype=np.float32),
-                           'adj_in': np.empty(shape=(data_sz, nb_nodes, nb_nodes), dtype=np.float32)}
+                           'adj_in': np.empty(shape=(data_sz, nb_nodes, nb_nodes), dtype=np.float32),
+                           'score_in': np.empty(shape=(data_sz, self.params['target_score_type']), dtype=np.float32)}
+
             for expl_index, s_key in enumerate(subj_keys):
                 for input_type in data[s_key].keys():
                     entire_data[input_type][expl_index] = data[s_key][input_type]
@@ -75,7 +76,7 @@ class CrossValidatedGAT(MainGAT):
 
         # allow for dynamically changing of the batch size (supported by the underlying archit.) and Dropout rate
         self.placeholders['is_train'] = tf.placeholder(dtype=tf.bool, shape=())
-        self.placeholders['batch_size'] = tf.placeholder(tf.int64)
+        self.placeholders['batch_size'] = tf.placeholder(dtype=tf.int64,shape=())
 
         # create the Dataset objects pipeline the individual datasets, shuffle the train set then generate batched
         tr_dataset = tf.data.Dataset.from_tensor_slices(tr_slices).shuffle(buffer_size=1000).batch(
@@ -93,11 +94,11 @@ class CrossValidatedGAT(MainGAT):
 
     def build(self):
         with tf.variable_scope('input'):
+            # right order to unpack is ftr_in, bias_in, adj_in, score_in
             batch_node_features, batch_bias_mats, batch_adj_mats, batch_scores = self.iterator.get_next()
             feed_data = {'batch_node_features': batch_node_features,
                          'batch_bias_mats': batch_bias_mats,
                          'batch_adj_mats': batch_adj_mats,
-                         'batch_scores': batch_scores,
                          'is_train': self.placeholders['is_train']}
             # parameters and inputs for building the graph
             inference_args = {**feed_data, **self.params}
@@ -110,6 +111,7 @@ class CrossValidatedGAT(MainGAT):
             self.ops['loss'] = tf.losses.mean_squared_error(labels=batch_scores, predictions=self.ops['prediction'])
             # update the mean and variance of the Batch Normalization at each mini-batch trining step
             update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
+            print(len(update_ops))
             with tf.control_dependencies(update_ops):
                 # training operation
                 train_args = {**self.ops, **self.params}
@@ -131,6 +133,7 @@ class CrossValidatedGAT(MainGAT):
         print("Restoring weights from file %s." % self.config.checkpt_file())
         with open(self.config.checkpt_file(), 'rb') as in_file:
             data_to_load = pickle.load(in_file)
+            self.last_epoch = data_to_load['last_epoch']
 
         # Assert that we got the same model configuration
         shared_params = {k: self.params[k] for k in self.params if
@@ -155,7 +158,6 @@ class CrossValidatedGAT(MainGAT):
 
             self.sess.run(restore_ops)
 
-        self.last_epoch = data_to_load['last_epoch']
 
     def train(self):
         # Restore/initialize variables:
@@ -201,11 +203,11 @@ class CrossValidatedGAT(MainGAT):
                     # pop last tr loss and push the current one
                     tr_k_logs[:-1] = tr_k_logs[1:]
                     tr_k_logs[-1] = epoch_tr_loss
-                    gl = (epoch_val_loss / best_vl_loss - 1.0)
-                    pk = (last_k_tr_loss / (self.params['k_strip_epochs'] * best_k_tr_loss) - 1.0)
-                    print('PQ ratio for epoch is %.6f and the training progress %.5f' % (gl / pk, 100 * pk))
-                    if pk <= self.params['trp_strict_upper']: return True
-                    if pk <= self.params['trp_backup_upper']:
+                    gl = (epoch_val_loss / best_vl_loss - 1.0) * 100.0
+                    pk = (last_k_tr_loss / (self.params['k_strip_epochs'] * best_k_tr_loss) - 1.0) * 100.0
+                    print('PQ ratio for epoch is %.6f and the training progress %.5f' % (gl / pk, pk))
+                    if pk <= self.params['no_train_prog']: return True
+                    if pk <= self.params['enough_train_prog']:
                         if gl / pk >= self.params['gl_tr_prog_threshold']:
                             return True
                         else:

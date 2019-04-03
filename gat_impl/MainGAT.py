@@ -28,6 +28,6 @@ class MainGAT(TensorflowGraphGAT):
         # Create optimizer
         opt = tf.train.AdamOptimizer(learning_rate=learning_rate)
         # Training tensorflow Operation for batches of size 1
-        train_op = opt.minimize(tf.add_n([loss, lossL2, u_loss * 0.0005, e_loss * 0.0005]))
+        train_op = opt.minimize(tf.add_n([loss, lossL2, u_loss * l2_coefficient, e_loss * l2_coefficient]))
 
         return train_op

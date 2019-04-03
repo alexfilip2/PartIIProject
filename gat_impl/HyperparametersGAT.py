@@ -37,9 +37,9 @@ class HyperparametersGAT(object):
             'edgeWeights_filter': lower_bound_filter,
             'CHECKPT_PERIOD': 100,
             'gl_tr_prog_threshold': 0.2,
-            'trp_backup_upper': 0.01,
-            'trp_strict_upper': 0.002,
-            'k_strip_epochs': 10,
+            'enough_train_prog': 2.0,
+            'no_train_prog': 0.2,
+            'k_strip_epochs': 15,
             'low_ew_limit': 2.4148,
             'num_epochs': 200
 
@@ -50,19 +50,27 @@ class HyperparametersGAT(object):
         self.params['target_score_type'] = len(self.params['pers_traits_selection'])
 
     def __str__(self):
-        str_traits = 'PT_' + "".join([pers.split('NEO.NEOFAC_')[1] for pers in self.params['pers_traits_selection']])
+        str_dataset = 'GAT_' + self.params['load_specific_data'].__name__.split('_')[1]
+        str_dim_sess = 'DIM_' + str(self.params['functional_dim']) + '_' + 'SESS_' + str(self.params['scan_session'])
         str_attn_heads = 'AH_' + ",".join(map(str, self.params['attention_heads']))
         str_hid_units = 'HU_' + ",".join(map(str, self.params['hidden_units']))
+        str_traits = 'PT_' + "".join([pers.split('NEO.NEOFAC_')[1] for pers in self.params['pers_traits_selection']])
         str_aggregator = 'AGR_' + self.params['readout_aggregator'].__name__.split('_')[0]
-        str_limits = 'EL_' + ('None' if self.params['edgeWeights_filter'] is None else str(self.params['low_ew_limit']))
-        str_batch_sz = '_BS_' + str(self.params['batch_size'])
-        str_dataset = 'GAT_' + self.params['load_specific_data'].__name__.split('_')[1]
         str_include_ew = 'IW_' + str(self.params['include_ew'])
+        str_limits = 'EL_' + ('No_' if self.params['edgeWeights_filter'] is None else str(self.params['low_ew_limit']))
+        str_batch_sz = 'BS_' + str(self.params['batch_size'])
         str_cross_val = 'CV_' + str(self.params['eval_fold_in']) + str(self.params['eval_fold_out']) + self.params[
             'nested_CV_level']
+        str_dropout = 'DROP_' + str(self.params['attn_drop'])
 
-        return '_'.join([str_dataset, str_attn_heads, str_hid_units, str_traits, str_aggregator, str_include_ew,
-                         str_limits, str_batch_sz, str_cross_val])
+        str_params = [str_dataset, str_dim_sess, str_attn_heads, str_hid_units, str_traits, str_aggregator,
+                      str_include_ew, str_limits, str_batch_sz, str_cross_val, str_dropout]
+        if self.params['load_specific_data'].__name__.split('_')[1] == 'struct':
+            str_params.remove(str_dim_sess)
+        else:
+            str_params.remove(str_limits)
+
+        return '_'.join(str_params)
 
     def update(self, update_hyper):
         if update_hyper is not None:
@@ -91,8 +99,7 @@ class HyperparametersGAT(object):
             print('Dataset: structural HCP graphs')
         else:
             print('Dataset: functional HCP graphs')
-            print('Dimension of functional matrices: %d and session: %d' % (
-                params['functional_dim'], params['scan_session']))
+            print('Dimension of graphs: %d and session: %d' % (params['functional_dim'], params['scan_session']))
         print('----- Opt. hyperparams -----')
         print('batch size: ' + str(params['batch_size']))
         print('number of training epochs: ' + str(params['num_epochs']))

@@ -30,6 +30,16 @@ def plt_learn_proc(model_GAT_config: HyperparametersGAT) -> None:
     plt.show()
 
 
+def plt_all_learn_curves():
+    config = HyperparametersGAT()
+    for file in sorted(os.listdir(checkpts_dir)):
+        if file.startswith('checkpoint_'):
+            with open(os.path.join(checkpts_dir, file), 'rb') as checkpoint:
+                true_config = pkl.load(checkpoint)['params']
+                config.params.update(**true_config)
+                plt_learn_proc(config)
+
+
 def plot_edge_weight_hist(log_scale=10, get_adjs_loader=get_structural_adjs):
     data_type = get_adjs_loader.__name__.split('_')[1]
     # log-scale values of the weights, excluding the 0 edges (self-edges still have weigth 0)
@@ -99,32 +109,4 @@ def draw_adjacency_heatmap(adjacency_matrix):
 
 
 if __name__ == "__main__":
-    hu_choices = [[20, 20, 10]]
-    ah_choices = [[3, 3, 2]]
-    aggr_choices = [MainGAT.average_feature_aggregator,
-                    MainGAT.master_node_aggregator]
-    include_weights = [True]
-    pers_traits = [['NEO.NEOFAC_A']]
-    batch_chocies = [2]
-    load_choices = [load_struct_data]
-    for load, hu, ah, agg, iw, p_traits, batch_size in product(load_choices, hu_choices, ah_choices, aggr_choices,
-                                                               include_weights,
-                                                               pers_traits, batch_chocies):
-        for eval_out in range(5):
-            dict_param = {
-                'hidden_units': hu,
-                'attention_heads': ah,
-                'include_ew': iw,
-                'readout_aggregator': agg,
-                'load_specific_data': load,
-                'pers_traits_selection': p_traits,
-                'batch_size': batch_size,
-                'eval_fold_in': 4,
-                'eval_fold_out': eval_out,
-                'k_outer': 5,
-                'k_inner': 5,
-                'nested_CV_level': 'outer'
-
-            }
-            model = HyperparametersGAT(dict_param)
-            plt_learn_proc(model)
+    plt_all_learn_curves()

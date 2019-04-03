@@ -2,7 +2,7 @@ from __future__ import absolute_import
 import tensorflow as tf
 from keras import activations, constraints, initializers, regularizers
 from keras import backend as K
-from keras.layers import Layer, Dropout, LeakyReLU, Multiply
+from keras.layers import Layer, Dropout, LeakyReLU, Multiply,BatchNormalization
 
 
 class GraphAttention(Layer):
@@ -110,6 +110,12 @@ class GraphAttention(Layer):
         # attn_mask : Bias matrix (? x N x N)
         # is_train: bool - specifies if dropout is active/inactive
         outputs, layer_ulosses, layer_elosses = [], [], []
+
+        def SwitchDropout(inputs):
+            return tf.cond(tf.squeeze(is_train),
+                           true_fn=lambda: Dropout(rate=self.dropout_rate).call(inputs),
+                           false_fn=lambda: Dropout(rate=0.0).call(inputs))
+
         for head in range(self.attn_heads):
             kernel = self.kernels[head]  # W in the paper (F x F')
             attention_kernel = self.attn_kernels[head]  # Attention kernel a in the paper (2F' x 1)
@@ -139,13 +145,8 @@ class GraphAttention(Layer):
                 dense = Multiply()([dense, adjacency_mat])
 
             # Apply dropout to features and attention coefficients
-            dropout_attn = tf.cond(tf.squeeze(is_train),
-                                   true_fn=lambda: Dropout(rate=self.dropout_rate).call(dense),
-                                   false_fn=lambda: Dropout(rate=0.0).call(dense))
-
-            dropout_feat = tf.cond(tf.squeeze(is_train),
-                                   true_fn=lambda: Dropout(rate=self.dropout_rate).call(features),
-                                   false_fn=lambda: Dropout(rate=0.0).call(features))
+            dropout_attn = SwitchDropout(dense)
+            dropout_feat = SwitchDropout(features)
             # Linear combination with neighbors' features
             node_features = K.batch_dot(dropout_attn, dropout_feat)  # (? x N x F')
 
@@ -186,7 +187,9 @@ class GraphAttention(Layer):
         # apply activation
         activation_out = self.activation(batch_norm_features)
 
-        return [activation_out, layer_ulosses, layer_elosses]
+        gat_layer_out = SwitchDropout(activation_out)
+
+        return [gat_layer_out, layer_ulosses, layer_elosses]
 
     def compute_output_shape(self, input_shape):
         output_shape = [(input_shape[0][0], input_shape[0][1], self.output_dim), (), ()]
