@@ -78,20 +78,18 @@ def generate_cv_data(config, data, subjects):
 
 
 def nested_cross_validation_gat():
-    total_time_start = time.time()
-    param_grid = {'hidden_units': [[5, 10, 10], [20, 20, 10], [30, 20, 10], [30, 40, 40]],
+    param_grid = {'hidden_units': [[20, 20, 10], [10, 5, 5], [8, 16, 32]],
                   'attention_heads': [[3, 3, 2], [4, 4, 5], [2, 2, 3], [5, 7, 7]],
-                  'learning_rate': [0.0001, 0.001],
+                  'learning_rate': [0.0001],
                   'l2_coefficient': [0.0005],
-                  'attn_drop': [0.6, 0.4, 0.2],
+                  'attn_drop': [0.2, 0.6],
                   'include_ew': [True, False],
-                  'readout_aggregator': [MainGAT.master_node_aggregator, MainGAT.concat_feature_aggregator,
+                  'readout_aggregator': [MainGAT.concat_feature_aggregator,MainGAT.master_node_aggregator,
                                          MainGAT.average_feature_aggregator
                                          ],
                   'load_specific_data': [load_struct_data, load_funct_data],
-                  'pers_traits_selection': [['NEO.NEOFAC_A'], ['NEO.NEOFAC_O'], ['NEO.NEOFAC_C'], ['NEO.NEOFAC_N'],
-                                            ['NEO.NEOFAC_E']],
-                  'batch_size': [2, 4, 10]}
+                  'pers_traits_selection': [['NEO.NEOFAC_A']],
+                  'batch_size': [2]}
 
     grid = ParameterGrid(param_grid)
     dict_param = {
@@ -102,21 +100,21 @@ def nested_cross_validation_gat():
     for eval_out in range(dict_param['k_outer']):
         dict_param['eval_fold_out'] = eval_out
         for params in grid:
-            for eval_in in range(dict_param['k_inner']):
-                dict_param['eval_fold_in'] = eval_in
-                dict_param.update(params)
-                config = HyperparametersGAT(dict_param)
+            # for eval_in in range(dict_param['k_inner']):
+            eval_in = 0
+            dict_param['eval_fold_in'] = eval_in
+            dict_param.update(params)
+            config = HyperparametersGAT(dict_param)
+            if os.path.exists(config.checkpt_file()):
+                pass
+            data, subjects = config.params['load_specific_data'](config.params)
+            tr_set, vl_set, ts_set = generate_cv_data(config=config, data=data, subjects=subjects)
+            model = CrossValidatedGAT(args=config)
+            model.load_pipeline_data(data=data, train_subj=tr_set, val_subj=vl_set, test_subj=ts_set)
+            model.build()
 
-                data, subjects = config.params['load_specific_data'](config.params)
-                tr_set, vl_set, ts_set = generate_cv_data(config=config, data=data, subjects=subjects)
-                model = CrossValidatedGAT(args=config)
-                model.load_pipeline_data(data=data, train_subj=tr_set, val_subj=vl_set, test_subj=ts_set)
-                model.build()
-                model.train()
-                model.test()
-    cv_time = time.time() - total_time_start
-    with open('time_elapsed.txt', 'w') as handle:
-        handle.write(str(cv_time))
+            model.train()
+            model.test()
 
 
 def extract_test_losses(param_search):

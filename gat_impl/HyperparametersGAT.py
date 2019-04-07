@@ -22,7 +22,7 @@ class HyperparametersGAT(object):
             'pers_traits_selection': ['NEO.NEOFAC_A', 'NEO.NEOFAC_O', 'NEO.NEOFAC_C', 'NEO.NEOFAC_N', 'NEO.NEOFAC_E'],
             'batch_size': 2,
             'learning_rate': 0.0001,
-            'l2_coefficient': 0.0005,
+            'decay_rate': 0.0005,
             'attn_drop': 0.6,
             'functional_dim': 50,
             'scan_session': 1,
@@ -37,9 +37,9 @@ class HyperparametersGAT(object):
             'edgeWeights_filter': lower_bound_filter,
             'CHECKPT_PERIOD': 100,
             'gl_tr_prog_threshold': 0.2,
-            'enough_train_prog': 2.0,
-            'no_train_prog': 0.2,
-            'k_strip_epochs': 15,
+            'no_train_prog':1.0,
+            'enough_train_prog': 10.0,
+            'k_strip_epochs': 5,
             'low_ew_limit': 2.4148,
             'num_epochs': 200
 

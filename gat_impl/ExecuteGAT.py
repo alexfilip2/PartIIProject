@@ -76,13 +76,13 @@ class CrossValidatedGAT(MainGAT):
 
         # allow for dynamically changing of the batch size (supported by the underlying archit.) and Dropout rate
         self.placeholders['is_train'] = tf.placeholder(dtype=tf.bool, shape=())
-        self.placeholders['batch_size'] = tf.placeholder(dtype=tf.int64,shape=())
+        self.placeholders['batch_size'] = tf.placeholder(dtype=tf.int64, shape=())
 
         # create the Dataset objects pipeline the individual datasets, shuffle the train set then generate batched
         tr_dataset = tf.data.Dataset.from_tensor_slices(tr_slices).shuffle(buffer_size=1000).batch(
             self.placeholders['batch_size']).repeat()
-        vl_dataset = tf.data.Dataset.from_tensor_slices(vl_slices).batch(self.placeholders['batch_size']).repeat()
-        ts_dataset = tf.data.Dataset.from_tensor_slices(ts_slices).batch(self.placeholders['batch_size'])
+        vl_dataset = tf.data.Dataset.from_tensor_slices(vl_slices).batch(self.vl_size).repeat()
+        ts_dataset = tf.data.Dataset.from_tensor_slices(ts_slices).batch(self.tr_size)
 
         # create an iterator for the datasets which will extract a batch at a time
         iterator = tf.data.Iterator.from_structure(tr_dataset.output_types, tr_dataset.output_shapes)
@@ -111,7 +111,6 @@ class CrossValidatedGAT(MainGAT):
             self.ops['loss'] = tf.losses.mean_squared_error(labels=batch_scores, predictions=self.ops['prediction'])
             # update the mean and variance of the Batch Normalization at each mini-batch trining step
             update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
-            print(len(update_ops))
             with tf.control_dependencies(update_ops):
                 # training operation
                 train_args = {**self.ops, **self.params}
@@ -158,7 +157,6 @@ class CrossValidatedGAT(MainGAT):
 
             self.sess.run(restore_ops)
 
-
     def train(self):
         # Restore/initialize variables:
         if os.path.exists(self.config.checkpt_file()) and os.path.exists(self.config.logs_file()):
@@ -167,6 +165,7 @@ class CrossValidatedGAT(MainGAT):
             self.initialize_model()
         if self.trained_flag:
             return
+
         # keep track of best val loss and the last k training losses for early-stopping the training
         best_vl_loss = np.inf
         tr_k_logs = np.zeros(self.params['k_strip_epochs'])
@@ -177,48 +176,42 @@ class CrossValidatedGAT(MainGAT):
 
             # fill the TensorFlow intializable Dataset with the training data
             self.sess.run(self.training_init_op, feed_dict={self.placeholders['batch_size']: self.params['batch_size']})
+
             # perform mini-batch training
-            for _ in range(math.ceil(self.tr_size / self.params['batch_size'])):
+            for i in range(math.ceil(self.tr_size / self.params['batch_size'])):
                 self.sess.run([self.ops['train_op']], feed_dict={self.placeholders['is_train']: True})
             # compute the training loss feeding the whole dataset as a batch
             self.sess.run(self.training_init_op, feed_dict={self.placeholders['batch_size']: self.tr_size})
             epoch_tr_loss, epoch_uloss, epoch_eloss = self.sess.run([self.ops['loss'], self.ops['u_loss'],
                                                                      self.ops['e_loss']],
-                                                                    feed_dict={self.placeholders['is_train']: True})
+                                                                    feed_dict={self.placeholders['is_train']: False})
             # average the total epoch losses by batch number
             epoch_uloss /= self.tr_size
             epoch_eloss /= self.tr_size
 
             # fill the TensorFlow intializable Dataset with the validation data, feed it into in one batch
-            self.sess.run(self.validation_init_op, feed_dict={self.placeholders['batch_size']: self.vl_size})
+            self.sess.run(self.validation_init_op)
             (epoch_val_loss,) = self.sess.run([self.ops['loss']], feed_dict={self.placeholders['is_train']: False})
             # log the loss values so far
             self.logs[epoch] = {"tr_loss": epoch_tr_loss, "val_loss": epoch_val_loss}
 
             # eraly stop the training based on generalization loss vs training progress
             def early_stopping(tr_k_logs, epoch_tr_loss, best_vl_loss, epoch_val_loss):
+                # pop last tr loss and push the current one
+                tr_k_logs[:-1] = tr_k_logs[1:]
+                tr_k_logs[-1] = epoch_tr_loss
                 if np.min(tr_k_logs) > 0.0:
                     best_k_tr_loss = np.min(tr_k_logs)
                     last_k_tr_loss = np.sum(tr_k_logs)
-                    # pop last tr loss and push the current one
-                    tr_k_logs[:-1] = tr_k_logs[1:]
-                    tr_k_logs[-1] = epoch_tr_loss
                     gl = (epoch_val_loss / best_vl_loss - 1.0) * 100.0
-                    pk = (last_k_tr_loss / (self.params['k_strip_epochs'] * best_k_tr_loss) - 1.0) * 100.0
+                    pk = (last_k_tr_loss / (self.params['k_strip_epochs'] * best_k_tr_loss) - 1.0) * 1000.0
                     print('PQ ratio for epoch is %.6f and the training progress %.5f' % (gl / pk, pk))
-                    if pk <= self.params['no_train_prog']: return True
-                    if pk <= self.params['enough_train_prog']:
-                        if gl / pk >= self.params['gl_tr_prog_threshold']:
-                            return True
-                        else:
-                            return False
+                    if gl / pk >= self.params['gl_tr_prog_threshold'] and pk <= self.params['enough_train_prog']:
+                        return True
+                    if pk <= self.params['no_train_prog']:
+                        return True
 
-                    return False
-
-                else:
-                    tr_k_logs[:-1] = tr_k_logs[1:]
-                    tr_k_logs[-1] = epoch_tr_loss
-                    return False
+                return False
 
             # update the generalization loss
             best_vl_loss = min(best_vl_loss, epoch_val_loss)
@@ -229,14 +222,13 @@ class CrossValidatedGAT(MainGAT):
             if epoch % self.params['CHECKPT_PERIOD'] == 0:
                 self.save_model(best_vl_loss=best_vl_loss, epoch_val_loss=epoch_val_loss, last_epoch=epoch + 1,
                                 fully_trained=False)
-
             epoch_time = time.time() - total_time_start
             print('Training: loss = %.5f | Val: loss = %.5f | Unifrom loss: %f| Exclusive loss: %f | '
                   'Elapsed epoch time: %.5f' % (epoch_tr_loss, epoch_val_loss, epoch_uloss, epoch_eloss, epoch_time))
 
     def test(self):
         # fill the TensorFlow intializable Dataset with the testing data, feed it into in one batch
-        self.sess.run(self.testing_init_op, feed_dict={self.placeholders['batch_size']: self.ts_size})
+        self.sess.run(self.testing_init_op)
         (ts_avg_loss, results) = self.sess.run([self.ops['loss'], self.ops['prediction']],
                                                feed_dict={self.placeholders['is_train']: False})
         print('Test: loss = %.5f for the model %s' % (ts_avg_loss, self.config))

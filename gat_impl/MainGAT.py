@@ -3,7 +3,7 @@ from gat_impl.TensorflowGraphGAT import *
 
 class MainGAT(TensorflowGraphGAT):
 
-    def training(self, loss, u_loss, e_loss, learning_rate, l2_coefficient, **kwargs):
+    def training(self, loss, u_loss, e_loss, learning_rate, decay_rate, **kwargs):
         """ Defines the training operation of the entire GAT neural network model
 
                 Parameters
@@ -20,14 +20,9 @@ class MainGAT(TensorflowGraphGAT):
                 train_op : tf Operation
                     The training operation using the Adam optimizer to learn the parameters by minimizing 'loss'
         """
-        # Returns all variables created which have trainable = True (by default or implicitly)
-        vars = tf.trainable_variables()
-        # Regularization loss of the parameters: weight decay of the learnable parameters
-        lossL2 = tf.add_n([tf.nn.l2_loss(v) for v in vars if v.name not
-                           in ['bias', 'gamma', 'b', 'g', 'beta']]) * l2_coefficient
         # Create optimizer
         opt = tf.train.AdamOptimizer(learning_rate=learning_rate)
         # Training tensorflow Operation for batches of size 1
-        train_op = opt.minimize(tf.add_n([loss, lossL2, u_loss * l2_coefficient, e_loss * l2_coefficient]))
+        train_op = opt.minimize(tf.add_n([loss, u_loss * decay_rate, e_loss * decay_rate]))
 
         return train_op

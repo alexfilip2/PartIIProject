@@ -17,8 +17,11 @@ class TensorflowGraphGAT(object):
                 out_avg : tensor of shape (?, F'), F' is 1 (targets one personality trait)
                     The tensor storing the average of the feat. vectors across the entire node set
         """
+
         in_mlp = tf.reduce_sum(model_GAT_output, axis=1)
-        out_avg = tf.layers.dense(in_mlp, units=kwargs['target_score_type'], use_bias=True)
+        out_avg = tf.layers.dense(inputs=in_mlp, units=kwargs['target_score_type'],
+                                  kernel_regularizer=regularizers.l2(kwargs['decay_rate']),
+                                  use_bias=False)
         return out_avg
 
     def concat_feature_aggregator(self, model_GAT_output, **kwargs):
@@ -38,7 +41,9 @@ class TensorflowGraphGAT(object):
         concat_axis = np.prod(dyn_shape[1:])
         in_mlp = tf.reshape(model_GAT_output, [-1, concat_axis])
         # fed the result into MLP layer with separate weights for each personality score
-        out_concat = tf.layers.dense(in_mlp, units=kwargs['target_score_type'], use_bias=True)
+        out_concat = tf.layers.dense(inputs=in_mlp, units=kwargs['target_score_type'],
+                                     kernel_regularizer=regularizers.l2(kwargs['decay_rate']),
+                                     use_bias=False)
         return out_concat
 
     def master_node_aggregator(self, model_GAT_output, **kwargs):
@@ -66,19 +71,24 @@ class TensorflowGraphGAT(object):
                                             attn_heads=kwargs['master_heads'],
                                             attn_heads_reduction='average',
                                             flag_batch_norm=False,
+                                            flag_include_ew=False,
                                             dropout_rate=kwargs['attn_drop'],
+                                            decay_rate=kwargs['decay_rate'],
                                             activation=lambda x: x)(
-            inputs=[model_GAT_output, extended_adj, extended_bias, kwargs['is_train']], include_ew=False)
+            inputs=[model_GAT_output, extended_adj, extended_bias, kwargs['is_train']])
 
         # extract only the high-level features produced for the master node (in each batch graph)
         in_mlp = tf.squeeze(tf.slice(input_=master_layer, begin=[0, nb_nodes - 1, 0],
                                      size=[dyn_batch_size, 1, kwargs['master_feats']]), axis=1)
-        out_master = tf.layers.dense(in_mlp, units=kwargs['target_score_type'], use_bias=True)
+        out_master = tf.layers.dense(inputs=in_mlp, units=kwargs['target_score_type'],
+                                     kernel_regularizer=regularizers.l2(kwargs['decay_rate']),
+                                     use_bias=False)
 
         return out_master
 
     def inference_keras(self, batch_node_features, batch_adj_mats, batch_bias_mats, hidden_units, attention_heads,
-                        attn_drop, is_train, include_ew, non_linearity, readout_aggregator, target_score_type,
+                        attn_drop, decay_rate, is_train, include_ew, non_linearity, readout_aggregator,
+                        target_score_type,
                         **kwargs):
         """ Builds the GAT architecture
                 Parameters
@@ -111,60 +121,64 @@ class TensorflowGraphGAT(object):
                 out_avg : tensor of shape (?, F'),
                             The tensor storing the average of the feat. vectors across the entire node set
         """
+        use_batch_norm = include_ew
         # change the dimension of the final features produced if averaging is employed
         mutable_hu = hidden_units.copy()
         mutable_ah = attention_heads.copy()
-        out_gat_layer_params = {'F_': mutable_hu[-1],
-                                'attn_heads': mutable_ah[-1],
-                                'flag_batch_norm': False,
-                                'attn_heads_reduction': 'average',
-                                'dropout_rate': attn_drop,
-                                'activation': lambda x: x}
+        layer_args = {'dropout_rate': attn_drop,
+                      'flag_batch_norm': use_batch_norm,
+                      'decay_rate': decay_rate,
+                      'flag_include_ew': include_ew
+                      }
         master_heads = master_feats = 0
         if readout_aggregator is TensorflowGraphGAT.master_node_aggregator:
             master_heads = mutable_ah.pop()
             master_feats = mutable_hu.pop()
-            out_gat_layer_params.update({'F_': mutable_hu[-1],
-                                         'attn_heads': mutable_ah[-1],
-                                         'flag_batch_norm': False,
-                                         'attn_heads_reduction': 'concat',
-                                         'activation': non_linearity})
 
         # input GAT layer
-        out_input_layer, arch_uloss, arch_eloss = GraphAttention(F_=mutable_hu[0],
-                                                                 attn_heads=mutable_ah[0],
-                                                                 flag_batch_norm=False,
-                                                                 attn_heads_reduction='concat',
-                                                                 dropout_rate=attn_drop,
-                                                                 activation=non_linearity)(
-            inputs=[batch_node_features, batch_adj_mats, batch_bias_mats, is_train], include_ew=include_ew)
-        out = out_input_layer
+        layer_args.update({'F_': mutable_hu[0],
+                           'attn_heads': mutable_ah[0],
+                           'attn_heads_reduction': 'concat',
+                           'activation': non_linearity, })
+        input_layer, model_u_loss, model_e_loss = GraphAttention(**layer_args)(
+            inputs=[batch_node_features, batch_adj_mats, batch_bias_mats, is_train])
+        prev_out = input_layer
 
         # hidden GAT layers
         for i in range(1, len(mutable_ah) - 1):
-            out_i_th_layer, layer_uloss, layer_eloss = GraphAttention(F_=mutable_hu[i],
-                                                                      attn_heads=mutable_ah[i],
-                                                                      attn_heads_reduction='concat',
-                                                                      flag_batch_norm=False,
-                                                                      dropout_rate=attn_drop,
-                                                                      activation=non_linearity)(
-                inputs=[out, batch_adj_mats, batch_bias_mats, is_train], include_ew=include_ew)
-            out = out_i_th_layer
+            layer_args.update({'F_': mutable_hu[i],
+                               'attn_heads': mutable_ah[i],
+                               'attn_heads_reduction': 'concat',
+                               'activation': non_linearity})
+            i_th_layer, layer_u_loss, layer_e_loss = GraphAttention(**layer_args)(
+                inputs=[prev_out, batch_adj_mats, batch_bias_mats, is_train])
+            prev_out = i_th_layer
             # accumulate the regularization losses
-            arch_uloss, arch_eloss = tf.add(arch_uloss, layer_uloss), tf.add(arch_eloss, layer_eloss)
+            model_u_loss, model_u_loss = tf.add(model_u_loss, layer_u_loss), tf.add(model_e_loss, layer_e_loss)
 
         # output GAT layer
-        gat_output, output_uloss, output_eloss = GraphAttention(**out_gat_layer_params)(
-            inputs=[out, batch_adj_mats, batch_bias_mats, is_train], include_ew=include_ew)
+        layer_args.update({'F_': mutable_hu[-1],
+                           'attn_heads': mutable_ah[-1]})
+        # choose the activation of the last layer and attention heads aggregation for specific readout
+        if readout_aggregator is TensorflowGraphGAT.master_node_aggregator:
+            layer_args.update({'attn_heads_reduction': 'concat',
+                               'activation': non_linearity})
+        else:
+            layer_args.update({'flag_batch_norm': False,
+                               'attn_heads_reduction': 'average',
+                               'activation': lambda x: x})
+
+        last_layer, last_u_loss, last_e_loss = GraphAttention(**layer_args)(
+            inputs=[prev_out, batch_adj_mats, batch_bias_mats, is_train], include_ew=include_ew)
 
         # average the regularization losses by the total nr of attention heads
-        nb_attn_heads = np.sum(np.array(attention_heads))
-        arch_uloss = tf.divide(tf.add(arch_uloss, output_uloss), nb_attn_heads)
-        arch_eloss = tf.divide(tf.add(arch_eloss, output_eloss), nb_attn_heads)
+        nb_attn_heads = np.sum(np.array(mutable_ah))
+        model_u_loss = tf.divide(tf.add(model_u_loss, last_u_loss), nb_attn_heads)
+        model_e_loss = tf.divide(tf.add(model_e_loss, last_e_loss), nb_attn_heads)
 
         # aggregate all the output node features using the specified strategy
-        pred_out = readout_aggregator(self, model_GAT_output=gat_output, target_score_type=target_score_type,
-                                      is_train=is_train,
-                                      attn_drop=attn_drop, master_heads=master_heads, master_feats=master_feats)
+        gat_output = readout_aggregator(self, model_GAT_output=last_layer, target_score_type=target_score_type,
+                                        is_train=is_train, decay_rate=decay_rate,
+                                        attn_drop=attn_drop, master_heads=master_heads, master_feats=master_feats)
 
-        return pred_out, arch_uloss, arch_eloss
+        return gat_output, model_u_loss, model_e_loss
