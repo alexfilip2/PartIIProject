@@ -78,17 +78,16 @@ def generate_cv_data(config, data, subjects):
 
 
 def nested_cross_validation_gat():
-    param_grid = {'hidden_units': [[20, 20, 10], [10, 5, 5], [8, 16, 32]],
-                  'attention_heads': [[3, 3, 2], [4, 4, 5], [2, 2, 3], [5, 7, 7]],
-                  'learning_rate': [0.0001],
-                  'l2_coefficient': [0.0005],
-                  'attn_drop': [0.2, 0.6],
+    param_grid = {'hidden_units': [[20, 20, 10]],
+                  'attention_heads': [[3, 3, 2]],
+                  'attn_drop': [0.4],
                   'include_ew': [True, False],
-                  'readout_aggregator': [MainGAT.concat_feature_aggregator,MainGAT.master_node_aggregator,
-                                         MainGAT.average_feature_aggregator
+                  'readout_aggregator': [MainGAT.master_node_aggregator, MainGAT.average_feature_aggregator,
+                                         MainGAT.concat_feature_aggregator
                                          ],
                   'load_specific_data': [load_struct_data, load_funct_data],
-                  'pers_traits_selection': [['NEO.NEOFAC_A']],
+                  'pers_traits_selection': [['NEO.NEOFAC_A'], ['NEO.NEOFAC_O'], ['NEO.NEOFAC_C'], ['NEO.NEOFAC_N'],
+                                            ['NEO.NEOFAC_E']],
                   'batch_size': [2]}
 
     grid = ParameterGrid(param_grid)
@@ -97,30 +96,26 @@ def nested_cross_validation_gat():
         'k_inner': 5,
         'nested_CV_level': 'inner'}
 
-    for eval_out in range(dict_param['k_outer']):
+    for eval_out in range(1):
         dict_param['eval_fold_out'] = eval_out
         for params in grid:
-            # for eval_in in range(dict_param['k_inner']):
-            eval_in = 0
-            dict_param['eval_fold_in'] = eval_in
-            dict_param.update(params)
-            config = HyperparametersGAT(dict_param)
-            if os.path.exists(config.checkpt_file()):
-                pass
-            data, subjects = config.params['load_specific_data'](config.params)
-            tr_set, vl_set, ts_set = generate_cv_data(config=config, data=data, subjects=subjects)
-            model = CrossValidatedGAT(args=config)
-            model.load_pipeline_data(data=data, train_subj=tr_set, val_subj=vl_set, test_subj=ts_set)
-            model.build()
-
-            model.train()
-            model.test()
+            for eval_in in range(1):
+                dict_param['eval_fold_in'] = eval_in
+                dict_param.update(params)
+                config = HyperparametersGAT(dict_param)
+                if os.path.exists(config.checkpt_file()):
+                    continue
+                data, subjects = config.params['load_specific_data'](config.params)
+                tr_set, vl_set, ts_set = generate_cv_data(config=config, data=data, subjects=subjects)
+                model = GAT_Model(args=config)
+                model.fit(data=data, train_subj=tr_set, val_subj=vl_set)
+                model.test(data=data, test_subj=ts_set)
 
 
 def extract_test_losses(param_search):
     model_descriptors = {}
     for file in os.listdir(checkpts_dir):
-        if file.startswith('predictions_'):
+        if file.startswith('logs_'):
             not_trained = False
             for param in param_search:
                 if param not in file:
@@ -129,16 +124,17 @@ def extract_test_losses(param_search):
                 continue
             with open(os.path.join(checkpts_dir, file), 'rb') as out_result_file:
                 results = pkl.load(out_result_file)
-
-                name_model = file.split('_CV_')
-                if name_model[0] not in model_descriptors.keys():
-                    model_descriptors[name_model[0]] = {}
-                model_descriptors[name_model[0]][name_model[1]] = results['test_loss']
+                prefix_name = file.split('_CV_')[0]
+                cv_detail, sufix_name = file.split('_CV_')[1].split('DROP_')
+                sufix_name = 'DROP_' + sufix_name
+                name = prefix_name + sufix_name + '_outer_split' + cv_detail[1]
+                if name not in model_descriptors.keys():
+                    model_descriptors[name] = {}
+                model_descriptors[name][cv_detail[0]] = results['test_loss']
 
     for model in model_descriptors.keys():
-        if len(model_descriptors[model].values()) == 5:
-            print('The test loss for model %s is %.3f' % (
-                model, np.array(list(model_descriptors[model].values())).mean()))
+        print('The test loss for model %s is %.3f %d' % (
+            model, np.array(list(model_descriptors[model].values())).mean(), len(model_descriptors[model].values())))
 
 
 if __name__ == "__main__":

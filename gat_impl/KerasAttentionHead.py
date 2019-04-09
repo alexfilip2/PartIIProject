@@ -2,7 +2,8 @@ from __future__ import absolute_import
 import tensorflow as tf
 from keras import activations, constraints, initializers, regularizers
 from keras import backend as K
-from keras.layers import Layer, LeakyReLU
+
+from keras.layers import Layer, LeakyReLU, Multiply, Dropout, BatchNormalization
 
 
 class GraphAttention(Layer):
@@ -11,7 +12,7 @@ class GraphAttention(Layer):
                  F_,
                  attn_heads=1,
                  attn_heads_reduction='concat',  # {'concat', 'average'}
-                 dropout_rate=0.3,
+                 dropout_rate=0.4,
                  decay_rate=0.0005,
                  activation=activations.relu,
                  flag_batch_norm=True,
@@ -109,7 +110,7 @@ class GraphAttention(Layer):
         super(GraphAttention, self).build(input_shape)
 
     def call(self, inputs, **kwargs):
-        input_node_feats, adjacency_mat, attn_mask, is_train = inputs
+        input_node_feats, adjacency_mat, attn_mask = inputs
         # input_node_feats: Node features (? x N x F)
         # adjacency_mat: Adjacency matrix (? x N x N)
         # attn_mask : Bias matrix (? x N x N)
@@ -139,14 +140,13 @@ class GraphAttention(Layer):
 
             # Apply softmax to get attention coefficients
             dense = K.softmax(dense)  # (? x N x N)
-
             # Include edge weights (at tensorflow Graph construction time)
             if self.use_ew:
-                dense = tf.multiply(dense, adjacency_mat)
+                dense = Multiply()([dense, adjacency_mat])
 
             # Apply dropout to features and attention coefficients
-            dropout_attn = tf.layers.dropout(inputs=dense, rate=self.dropout_rate, training=is_train)
-            dropout_feat = tf.layers.dropout(inputs=features, rate=self.dropout_rate, training=is_train)
+            dropout_attn = Dropout(rate=self.dropout_rate)(inputs=dense)
+            dropout_feat = Dropout(rate=self.dropout_rate)(inputs=features)
             # Linear combination with neighbors' features
             node_features = K.batch_dot(dropout_attn, dropout_feat)  # (? x N x F')
 
@@ -160,11 +160,10 @@ class GraphAttention(Layer):
             node_deg = tf.count_nonzero(adjacency_mat, axis=-1)
 
             # the UNIFORM LOSS of the current attention head
-            uniformity_loss = tf.reduce_mean(tf.to_float(tf.subtract(pos_alpha_coeffs, node_deg)), axis=1)  # (?,)
+            uniformity_loss = tf.reduce_mean(tf.to_float(tf.subtract(pos_alpha_coeffs, node_deg)), axis=-1)  # (?,)
 
             # the EXCLUSIVE LOSS of the current attention head
-            exclusivity_loss = tf.reduce_mean(tf.reduce_sum(tf.abs(dense), axis=-1), axis=1)  # (?,)
-
+            exclusivity_loss = tf.reduce_mean(tf.reduce_sum(tf.abs(dense), axis=-1), axis=-1)  # (?,)
             # Add output of attention head to final output
             outputs.append(node_features)
             layer_u_loss.append(uniformity_loss)
@@ -178,17 +177,17 @@ class GraphAttention(Layer):
 
         # apply batch normalization
         if self.use_batch_norm:
-            batch_norm_features = tf.layers.batch_normalization(inputs=output, axis=-1, training=is_train,
-                                                                beta_regularizer=regularizers.l2(self.decay_rate),
-                                                                gamma_regularizer=regularizers.l2(self.decay_rate))
+            batch_norm_features = BatchNormalization(axis=-1,
+                                                     beta_regularizer=regularizers.l2(self.decay_rate),
+                                                     gamma_regularizer=regularizers.l2(self.decay_rate))(inputs=output)
         else:
             batch_norm_features = output
         # apply activation
         activation_out = self.activation(batch_norm_features)
         # total u-loss for all the heads of the layer for ? input graphs
-        layer_u_loss = K.sum(layer_u_loss)
+        layer_u_loss = K.sum(layer_u_loss, axis=0)
         # total e-loss for all the heads of the layer for ? input graphs
-        layer_e_loss = K.sum(layer_e_loss)
+        layer_e_loss = K.sum(layer_e_loss, axis=0)
 
         return [activation_out, layer_u_loss, layer_e_loss]
 

@@ -1,6 +1,8 @@
 from gat_impl.KerasAttentionHead import *
 from utils.ToolsDataProcessing import attach_master
 import numpy as np
+from keras.layers import Input, Lambda, Dense
+from keras.models import Model
 
 
 class TensorflowGraphGAT(object):
@@ -18,10 +20,13 @@ class TensorflowGraphGAT(object):
                     The tensor storing the average of the feat. vectors across the entire node set
         """
 
-        in_mlp = tf.reduce_sum(model_GAT_output, axis=1)
-        out_avg = tf.layers.dense(inputs=in_mlp, units=kwargs['target_score_type'],
-                                  kernel_regularizer=regularizers.l2(kwargs['decay_rate']),
-                                  use_bias=False)
+        def readuce_sum(layer):
+            return tf.reduce_sum(layer, axis=1)
+
+        in_mlp = Lambda(function=readuce_sum)(model_GAT_output)
+        out_avg = Dense(units=kwargs['target_score_type'],
+                        kernel_regularizer=regularizers.l2(kwargs['decay_rate']),
+                        use_bias=False)(in_mlp)
         return out_avg
 
     def concat_feature_aggregator(self, model_GAT_output, **kwargs):
@@ -36,14 +41,18 @@ class TensorflowGraphGAT(object):
                 out_mlp : tensor of shape (?, kwargs['target_score_type'])
                     The tensor storing the regression output for each graph in the batch
         """
+
         # run-time tensor shape as variable batch sizes are possible
-        dyn_shape = model_GAT_output.get_shape().as_list()
-        concat_axis = np.prod(dyn_shape[1:])
-        in_mlp = tf.reshape(model_GAT_output, [-1, concat_axis])
+        def concat(input):
+            dyn_shape = input.get_shape().as_list()
+            concat_axis = np.prod(dyn_shape[1:])
+            return tf.reshape(input, [-1, concat_axis])
+
+        in_mlp = Lambda(function=concat)(model_GAT_output)
         # fed the result into MLP layer with separate weights for each personality score
-        out_concat = tf.layers.dense(inputs=in_mlp, units=kwargs['target_score_type'],
-                                     kernel_regularizer=regularizers.l2(kwargs['decay_rate']),
-                                     use_bias=False)
+        out_concat = Dense(units=kwargs['target_score_type'],
+                           kernel_regularizer=regularizers.l2(kwargs['decay_rate']),
+                           use_bias=False)(in_mlp)
         return out_concat
 
     def master_node_aggregator(self, model_GAT_output, **kwargs):
@@ -58,13 +67,19 @@ class TensorflowGraphGAT(object):
                 out_avg : tensor of shape (?, F'),
                             The tensor storing the average of the feat. vectors across the entire node set
         """
-        nb_nodes = int(model_GAT_output.shape[1])
-        dyn_batch_size = tf.shape(model_GAT_output)[0]
         # connect the master to all the nodes and  pairwise disconnect these
-        extended_adj, extended_bias = attach_master(nb_nodes)
-        # repeat the same adjacency matrix for all the graphs in the batch
-        extended_adj = tf.cast(tf.tile(extended_adj, [dyn_batch_size, 1, 1]), dtype=tf.float32)
-        extended_bias = tf.cast(tf.tile(extended_bias, [dyn_batch_size, 1, 1]), dtype=tf.float32)
+        extended_adj, extended_bias = attach_master(kwargs['dim_nodes'])
+
+        def prepare_adjs(gat_output):
+            # repeat the same adjacency matrix for all the graphs in the batch
+            return tf.cast(tf.tile(extended_adj, [tf.shape(gat_output)[0], 1, 1]), dtype=tf.float32)
+
+        def prepare_biases(gat_output):
+            # repeat the same adjacency matrix for all the graphs in the batch
+            return tf.cast(tf.tile(extended_bias, [tf.shape(gat_output)[0], 1, 1]), dtype=tf.float32)
+
+        batch_ext_adjs = Lambda(function=prepare_adjs)(model_GAT_output)
+        batch_ext_bias = Lambda(function=prepare_biases)(model_GAT_output)
 
         # master GAT layer
         master_layer, _, _ = GraphAttention(F_=kwargs['master_feats'],
@@ -75,19 +90,23 @@ class TensorflowGraphGAT(object):
                                             dropout_rate=kwargs['attn_drop'],
                                             decay_rate=kwargs['decay_rate'],
                                             activation=lambda x: x)(
-            inputs=[model_GAT_output, extended_adj, extended_bias, kwargs['is_train']])
+            inputs=[model_GAT_output, batch_ext_adjs, batch_ext_bias])
 
         # extract only the high-level features produced for the master node (in each batch graph)
-        in_mlp = tf.squeeze(tf.slice(input_=master_layer, begin=[0, nb_nodes - 1, 0],
-                                     size=[dyn_batch_size, 1, kwargs['master_feats']]), axis=1)
-        out_master = tf.layers.dense(inputs=in_mlp, units=kwargs['target_score_type'],
-                                     kernel_regularizer=regularizers.l2(kwargs['decay_rate']),
-                                     use_bias=False)
+        def extract_master_feats(inputs):
+            return tf.squeeze(tf.slice(input_=inputs, begin=[0, kwargs['dim_nodes'] - 1, 0],
+                                       size=[tf.shape(inputs)[0], 1, kwargs['master_feats']]), axis=1)
+
+        in_mlp = Lambda(function=extract_master_feats)(master_layer)
+
+        out_master = Dense(units=kwargs['target_score_type'],
+                           kernel_regularizer=regularizers.l2(kwargs['decay_rate']),
+                           use_bias=False)(in_mlp)
 
         return out_master
 
-    def inference_keras(self, batch_node_features, batch_adj_mats, batch_bias_mats, hidden_units, attention_heads,
-                        attn_drop, decay_rate, is_train, include_ew, non_linearity, readout_aggregator,
+    def inference_keras(self, dim_nodes, dim_feats, hidden_units, attention_heads,
+                        attn_drop, decay_rate, use_batch_norm, include_ew, non_linearity, readout_aggregator,
                         target_score_type,
                         **kwargs):
         """ Builds the GAT architecture
@@ -121,7 +140,9 @@ class TensorflowGraphGAT(object):
                 out_avg : tensor of shape (?, F'),
                             The tensor storing the average of the feat. vectors across the entire node set
         """
-        use_batch_norm = include_ew
+        batch_node_features = Input(shape=(dim_nodes, dim_feats))
+        batch_adj_mats = Input(shape=(dim_nodes, dim_nodes))
+        batch_bias_mats = Input(shape=(dim_nodes, dim_nodes))
         # change the dimension of the final features produced if averaging is employed
         mutable_hu = hidden_units.copy()
         mutable_ah = attention_heads.copy()
@@ -141,7 +162,7 @@ class TensorflowGraphGAT(object):
                            'attn_heads_reduction': 'concat',
                            'activation': non_linearity, })
         input_layer, model_u_loss, model_e_loss = GraphAttention(**layer_args)(
-            inputs=[batch_node_features, batch_adj_mats, batch_bias_mats, is_train])
+            inputs=[batch_node_features, batch_adj_mats, batch_bias_mats])
         prev_out = input_layer
 
         # hidden GAT layers
@@ -151,10 +172,11 @@ class TensorflowGraphGAT(object):
                                'attn_heads_reduction': 'concat',
                                'activation': non_linearity})
             i_th_layer, layer_u_loss, layer_e_loss = GraphAttention(**layer_args)(
-                inputs=[prev_out, batch_adj_mats, batch_bias_mats, is_train])
+                inputs=[prev_out, batch_adj_mats, batch_bias_mats])
             prev_out = i_th_layer
             # accumulate the regularization losses
-            model_u_loss, model_u_loss = tf.add(model_u_loss, layer_u_loss), tf.add(model_e_loss, layer_e_loss)
+            model_u_loss = tf.add_n([model_u_loss, layer_u_loss])
+            model_e_loss = tf.add_n([model_e_loss, layer_e_loss])
 
         # output GAT layer
         layer_args.update({'F_': mutable_hu[-1],
@@ -169,7 +191,7 @@ class TensorflowGraphGAT(object):
                                'activation': lambda x: x})
 
         last_layer, last_u_loss, last_e_loss = GraphAttention(**layer_args)(
-            inputs=[prev_out, batch_adj_mats, batch_bias_mats, is_train], include_ew=include_ew)
+            inputs=[prev_out, batch_adj_mats, batch_bias_mats])
 
         # average the regularization losses by the total nr of attention heads
         nb_attn_heads = np.sum(np.array(mutable_ah))
@@ -178,7 +200,23 @@ class TensorflowGraphGAT(object):
 
         # aggregate all the output node features using the specified strategy
         gat_output = readout_aggregator(self, model_GAT_output=last_layer, target_score_type=target_score_type,
-                                        is_train=is_train, decay_rate=decay_rate,
+                                        decay_rate=decay_rate, dim_nodes=dim_nodes,
                                         attn_drop=attn_drop, master_heads=master_heads, master_feats=master_feats)
+        model = Model(outputs=[gat_output],
+                      inputs=[batch_node_features, batch_adj_mats, batch_bias_mats])
+        print(model.summary())
 
-        return gat_output, model_u_loss, model_e_loss
+        def model_loss():
+            """" Wrapper function which calculates auxiliary values for the complete loss function.
+             Returns a *function* which calculates the complete loss given only the input and target output """
+
+            def full_mse_loss(y_true, y_pred):
+                mse_loss = K.mean(K.square(y_pred - y_true))
+                robustness_loss = tf.add_n([model_u_loss * decay_rate, model_e_loss * decay_rate])
+                robustness_loss = K.mean(robustness_loss)
+                """ Final loss calculation function to be passed to optimizer"""
+                return mse_loss + robustness_loss
+
+            return full_mse_loss
+
+        return model, model_loss()

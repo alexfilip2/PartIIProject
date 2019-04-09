@@ -2,7 +2,7 @@ from utils.LoadStructuralData import *
 from utils.LoadFunctionalData import *
 from gat_impl.TensorflowGraphGAT import *
 
-from tensorflow.nn import relu
+from keras.activations import relu
 
 checkpts_dir = os.path.join(os.pardir, 'Results', 'GAT_results')
 if not os.path.exists(checkpts_dir):
@@ -30,15 +30,15 @@ class HyperparametersGAT(object):
             'eval_fold_in': 1,
             'eval_fold_out': 4,
             # fixed hyperparameters
+            'use_batch_norm': True,
             'non_linearity': relu,
             'k_outer': 5,
             'k_inner': 5,
             'random_seed': 123,
             'edgeWeights_filter': lower_bound_filter,
             'CHECKPT_PERIOD': 100,
-            'gl_tr_prog_threshold': 0.2,
-            'no_train_prog':1.0,
-            'enough_train_prog': 10.0,
+            'gl_tr_prog_threshold': 0.5,
+            'enough_train_prog': 0.5,
             'k_strip_epochs': 5,
             'low_ew_limit': 2.4148,
             'num_epochs': 200
@@ -62,9 +62,10 @@ class HyperparametersGAT(object):
         str_cross_val = 'CV_' + str(self.params['eval_fold_in']) + str(self.params['eval_fold_out']) + self.params[
             'nested_CV_level']
         str_dropout = 'DROP_' + str(self.params['attn_drop'])
+        str_batch_norm = 'BN_' + str(self.params['use_batch_norm'])
 
         str_params = [str_dataset, str_dim_sess, str_attn_heads, str_hid_units, str_traits, str_aggregator,
-                      str_include_ew, str_limits, str_batch_sz, str_cross_val, str_dropout]
+                      str_include_ew, str_limits, str_batch_sz, str_cross_val, str_dropout, str_batch_norm]
         if self.params['load_specific_data'].__name__.split('_')[1] == 'struct':
             str_params.remove(str_dim_sess)
         else:
@@ -80,7 +81,7 @@ class HyperparametersGAT(object):
         return os.path.join(checkpts_dir, 'checkpoint_' + str(self))
 
     def logs_file(self):
-        return os.path.join(checkpts_dir, 'logs_' + str(self))
+        return os.path.join(checkpts_dir, 'logs_' + str(self) + '.pck')
 
     def results_file(self):
         return os.path.join(checkpts_dir, 'predictions_' + str(self))
@@ -104,8 +105,9 @@ class HyperparametersGAT(object):
         print('batch size: ' + str(params['batch_size']))
         print('number of training epochs: ' + str(params['num_epochs']))
         print('lr: ' + str(params['learning_rate']))
-        print('l2_coef: ' + str(params['l2_coefficient']))
+        print('l2_coef: ' + str(params['decay_rate']))
         print('droput rate ' + str(params['attn_drop']))
+        print('using batch normalization ' + str(params['use_batch_norm']))
         print('----- Archi. hyperparams -----')
         print('nb. layers: ' + str(len(params['hidden_units'])))
         print('nb. units per layer: ' + str(params['hidden_units']))

@@ -14,14 +14,12 @@ def plt_learn_proc(model_GAT_config: HyperparametersGAT) -> None:
     print("Restoring training logs from file %s." % model_GAT_config.logs_file())
     with open(model_GAT_config.logs_file(), 'rb') as in_file:
         logs = pickle.load(in_file)
-    tr_loss, vl_loss = [], []
-    for epoch in range(1, logs['last_tr_epoch']):
-        tr_loss.append(logs['logs'][epoch]['tr_loss'])
-        vl_loss.append(logs['logs'][epoch]['val_loss'])
+    tr_loss, vl_loss = logs['history']['loss'], logs['history']['val_loss']
+    nb_epochs = len(tr_loss)
     # Create data
-    df = pd.DataFrame({'epoch': list(range(1, len(vl_loss) + 1)), 'train': np.array(tr_loss), 'val': np.array(vl_loss)})
-    plt.plot('epoch', 'train', data=df, color='blue', label='training loss')
-    plt.plot('epoch', 'val', data=df, color='orange', label='validation loss')
+    df = pd.DataFrame({'epoch': list(range(1, nb_epochs + 1)), 'train': np.array(tr_loss), 'val': np.array(vl_loss)})
+    plt.plot('epoch', 'train', data=df, color='blue', label='training loss', linewidth=0.8)
+    plt.plot('epoch', 'val', data=df, color='green', label='validation loss', linewidth=0.8)
     plt.title(str(model_GAT_config))
     plt.xlabel('epoch')
     plt.ylabel('MSE loss')
@@ -33,7 +31,7 @@ def plt_learn_proc(model_GAT_config: HyperparametersGAT) -> None:
 def plt_all_learn_curves():
     config = HyperparametersGAT()
     for file in sorted(os.listdir(checkpts_dir)):
-        if file.startswith('checkpoint_'):
+        if file.startswith('logs_'):
             with open(os.path.join(checkpts_dir, file), 'rb') as checkpoint:
                 true_config = pkl.load(checkpoint)['params']
                 config.params.update(**true_config)
