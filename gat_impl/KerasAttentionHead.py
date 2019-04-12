@@ -33,7 +33,7 @@ class GraphAttention(Layer):
         if attn_heads_reduction not in {'concat', 'average'}:
             raise ValueError('Possbile reduction methods: concat, average')
 
-        self.F_ = F_  # Dimensionality of new node features: (F in the paper
+        self.F_ = F_  # Dimensionality of new node features: (F' in the paper
         self.attn_heads = attn_heads  # Number of attention heads (K in the paper)
         self.attn_heads_reduction = attn_heads_reduction  # Eq. 5 and 6 in the paper
         self.dropout_rate = dropout_rate  # Internal dropout rate
@@ -116,7 +116,6 @@ class GraphAttention(Layer):
         # attn_mask : Bias matrix (? x N x N)
         # is_train: bool - specifies if dropout is active/inactive
         outputs, layer_u_loss, layer_e_loss = [], [], []
-
         for head in range(self.attn_heads):
             kernel = self.kernels[head]  # W in the paper (F x F')
             attention_kernel = self.attn_kernels[head]  # Attention kernel a in the paper (2F' x 1)

@@ -3,7 +3,7 @@ from node2vec import Node2Vec
 from utils.LoadFunctionalData import *
 import os
 
-node2vec_emb_dir = os.path.join(os.pardir, 'Data', 'node2vec_embeds')
+node2vec_emb_dir = os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))), 'Data', 'node2vec_embeds')
 if not os.path.exists(node2vec_emb_dir):
     os.makedirs(node2vec_emb_dir)
 

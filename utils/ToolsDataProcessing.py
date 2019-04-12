@@ -6,24 +6,21 @@ import sys
 from itertools import product
 
 # Excel file containing per-subject personality scores
-pers_scores = os.path.join(os.pardir, 'Data', 'TIVscores', '1016_HCP_TIVscores.xlsx')
+pers_scores = os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))), 'Data', 'TIVscores',
+                           '1016_HCP_TIVscores.xlsx')
 
 
 ################### util functions for processing PERSONALITY SCORES ########################
 
 # dictionary of string subject ID: array of real-valued scores for each trait
-def get_NEO5_scores(trait_choice: list = None) -> tuple:
+def get_NEO5_scores(trait_choice: list) -> dict:
     df = pd.ExcelFile(pers_scores).parse('Raw_data')
     tiv_scores = []
-    if trait_choice is None:
-        trait_names = ['NEO.NEOFAC_A', 'NEO.NEOFAC_O', 'NEO.NEOFAC_C', 'NEO.NEOFAC_N', 'NEO.NEOFAC_E']
-    else:
-        trait_names = trait_choice
-    for trait in sorted(trait_names):
+    for trait in trait_choice:
         tiv_scores.append(df[trait])
     subjects = map(str, list(df['Subject']))
-    tiv_score_dict = dict(zip(subjects, np.array(tiv_scores).transpose().tolist()))
-    return tiv_score_dict, trait_names
+    tiv_score_dict = dict(zip(subjects, np.array(tiv_scores).transpose()))
+    return tiv_score_dict
 
 
 ################### util functions for processing ADACENCY MATRICES ########################

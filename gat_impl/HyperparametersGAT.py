@@ -4,7 +4,7 @@ from gat_impl.TensorflowGraphGAT import *
 
 from keras.activations import relu
 
-checkpts_dir = os.path.join(os.pardir, 'Results', 'GAT_results')
+checkpts_dir = os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))), 'Results', 'GAT_results')
 if not os.path.exists(checkpts_dir):
     os.makedirs(checkpts_dir)
 
@@ -19,7 +19,6 @@ class HyperparametersGAT(object):
             'include_ew': True,
             'readout_aggregator': TensorflowGraphGAT.master_node_aggregator,
             'load_specific_data': load_struct_data,
-            'pers_traits_selection': ['NEO.NEOFAC_A', 'NEO.NEOFAC_O', 'NEO.NEOFAC_C', 'NEO.NEOFAC_N', 'NEO.NEOFAC_E'],
             'batch_size': 2,
             'learning_rate': 0.0001,
             'decay_rate': 0.0005,
@@ -30,6 +29,7 @@ class HyperparametersGAT(object):
             'eval_fold_in': 1,
             'eval_fold_out': 4,
             # fixed hyperparameters
+            'pers_traits_selection': ['NEO.NEOFAC_A', 'NEO.NEOFAC_C', 'NEO.NEOFAC_E', 'NEO.NEOFAC_N', 'NEO.NEOFAC_O'],
             'use_batch_norm': True,
             'non_linearity': relu,
             'k_outer': 5,
@@ -37,16 +37,19 @@ class HyperparametersGAT(object):
             'random_seed': 123,
             'edgeWeights_filter': lower_bound_filter,
             'CHECKPT_PERIOD': 100,
-            'gl_tr_prog_threshold': 0.5,
-            'enough_train_prog': 0.5,
+            'gl_tr_prog_threshold': {TensorflowGraphGAT.average_feature_aggregator: 1.0,
+                                     TensorflowGraphGAT.concat_feature_aggregator: 1.0,
+                                     TensorflowGraphGAT.master_node_aggregator: 0.2},
+            'enough_train_prog': 0.15,
             'k_strip_epochs': 5,
             'low_ew_limit': 2.4148,
-            'num_epochs': 200
+            'num_epochs': 150
 
         }
         self.update(update_hyper=updated_params)
         if self.params['nested_CV_level'] not in {'inner', 'outer'}:
             raise ValueError('Possbile CV levels: inner, outer')
+        self.params['pers_traits_selection'] = sorted(self.params['pers_traits_selection'])
         self.params['target_score_type'] = len(self.params['pers_traits_selection'])
 
     def __str__(self):
@@ -65,7 +68,7 @@ class HyperparametersGAT(object):
         str_batch_norm = 'BN_' + str(self.params['use_batch_norm'])
 
         str_params = [str_dataset, str_dim_sess, str_attn_heads, str_hid_units, str_traits, str_aggregator,
-                      str_include_ew, str_limits, str_batch_sz, str_cross_val, str_dropout, str_batch_norm]
+                      str_include_ew, str_limits, str_batch_sz, str_dropout, str_batch_norm, str_cross_val]
         if self.params['load_specific_data'].__name__.split('_')[1] == 'struct':
             str_params.remove(str_dim_sess)
         else:
@@ -78,7 +81,7 @@ class HyperparametersGAT(object):
             self.params.update(update_hyper)
 
     def checkpt_file(self):
-        return os.path.join(checkpts_dir, 'checkpoint_' + str(self))
+        return os.path.join(checkpts_dir, 'checkpoint_' + str(self) + '.h5')
 
     def logs_file(self):
         return os.path.join(checkpts_dir, 'logs_' + str(self) + '.pck')

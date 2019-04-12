@@ -2,7 +2,8 @@ from utils.ToolsDataProcessing import *
 import pickle as pkl
 import operator
 
-dir_root_structural_data = os.path.join(os.pardir, 'Data', 'structural_data')
+dir_root_structural_data = os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))), 'Data',
+                                        'structural_data')
 dir_struct_mat_HCP = os.path.join(dir_root_structural_data, 'PTN_matrices')
 structural_feats_excel = os.path.join(dir_root_structural_data, 'Features_all.xlsx')
 dir_proc_struct_data = os.path.join(dir_root_structural_data, 'processed_data')
@@ -39,7 +40,7 @@ def get_structural_adjs():
                         adj_row.append(float(edge_weight))
                     graph.append(adj_row)
             # the adjancency matrices are upper diagonal, we make them symmetric
-            all_adjs[subj_id.split('_')[0]] = make_symmetric(graph)
+            all_adjs[subj_id.split('_')[0]] = np.array(make_symmetric(graph))
 
     with open(adjs_binary, 'wb') as handle:
         pkl.dump(all_adjs, handle, protocol=pkl.HIGHEST_PROTOCOL)
@@ -123,7 +124,7 @@ def get_scaled_struct_node_feat():
                     print("negative node features")
                     quit()
             current_graph_feats.append(curr_node_feat)
-        all_node_feats[str(int(graph_data['Subjects']))] = current_graph_feats
+        all_node_feats[str(int(graph_data['Subjects']))] = np.array(current_graph_feats)
 
     with open(node_feats_binary, 'wb') as handle:
         pkl.dump(all_node_feats, handle, protocol=pkl.HIGHEST_PROTOCOL)
@@ -134,7 +135,7 @@ def get_scaled_struct_node_feat():
 
 # load the STRUCTURAL DATA for the GAT MODEL
 def load_struct_data(hyparams):
-    str_traits = ''.join([trait.split('NEO.NEOFAC_')[-1] for trait in hyparams['pers_traits_selection']])
+    str_traits = ''.join([trait.replace('NEO.NEOFAC_', '') for trait in hyparams['pers_traits_selection']])
     str_limits = "" if hyparams['edgeWeights_filter'] is None else str(hyparams['low_ew_limit'])
     binary_prefix = '%s_%s.pkl' % (str_traits, str_limits)
 
@@ -148,28 +149,25 @@ def load_struct_data(hyparams):
 
     dict_adj = get_structural_adjs()
     dict_node_feat = get_scaled_struct_node_feat()
-    dict_tiv_score, _ = get_NEO5_scores(hyparams['pers_traits_selection'])
-
+    dict_tiv_score = get_NEO5_scores(hyparams['pers_traits_selection'])
     dict_dataset = {}
     all_subjects = sorted(list(dict_adj.keys()))
     available_subjs = []
     for subj_id in all_subjects:
         if subj_id in dict_node_feat.keys() and subj_id in dict_tiv_score.keys():
             dict_dataset[subj_id] = {}
+            dict_dataset[subj_id]['bias_in'] = adj_to_bias(dict_adj[subj_id], nhood=1)
             if hyparams['edgeWeights_filter'] is None:
-                unexp_adj = norm_rows_adj((np.array(dict_adj[subj_id])))
+                norm_adj = norm_rows_adj(dict_adj[subj_id])
             else:
-                unexp_adj = norm_rows_adj(
-                    hyparams['edgeWeights_filter'](hyparams['low_ew_limit'], (np.array(dict_adj[subj_id]))))
+                norm_adj = norm_rows_adj(
+                    hyparams['edgeWeights_filter'](hyparams['low_ew_limit'], (dict_adj[subj_id])))
+            dict_dataset[subj_id]['adj_in'] = norm_adj
 
-            if np.isnan(unexp_adj).any():
-                print(unexp_adj)
+            if np.isnan(norm_adj).any():
                 quit()
-            dict_dataset[subj_id]['ftr_in'] = np.array(dict_node_feat[subj_id])
-            dict_dataset[subj_id]['bias_in'] = adj_to_bias(unexp_adj, nhood=1)
-            unexp_adj = (unexp_adj + np.eye(unexp_adj.shape[0])) / 2
-            dict_dataset[subj_id]['adj_in'] = unexp_adj
-            dict_dataset[subj_id]['score_in'] = np.array(dict_tiv_score[subj_id])
+            dict_dataset[subj_id]['ftr_in'] = dict_node_feat[subj_id]
+            dict_dataset[subj_id]['score_in'] = dict_tiv_score[subj_id]
             available_subjs.append(subj_id)
 
     with open(dataset_binary, 'wb') as handle:

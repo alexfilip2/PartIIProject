@@ -1,11 +1,13 @@
 import matplotlib.pyplot as plt
 import networkx as nx
 from matplotlib import pyplot, patches
-from gat_impl.NestedCrossValGAT import *
+from NestedCrossValGAT import *
+import math
+import re
 
 CONF_LIMIT = 2.4148
 # Output of the learning process losses directory
-gat_model_stats = os.path.join(os.pardir, 'Diagrams')
+gat_model_stats = os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))), 'Diagrams')
 if not os.path.exists(gat_model_stats):
     os.makedirs(gat_model_stats)
 
@@ -18,8 +20,8 @@ def plt_learn_proc(model_GAT_config: HyperparametersGAT) -> None:
     nb_epochs = len(tr_loss)
     # Create data
     df = pd.DataFrame({'epoch': list(range(1, nb_epochs + 1)), 'train': np.array(tr_loss), 'val': np.array(vl_loss)})
-    plt.plot('epoch', 'train', data=df, color='blue', label='training loss', linewidth=0.8)
-    plt.plot('epoch', 'val', data=df, color='green', label='validation loss', linewidth=0.8)
+    plt.plot('epoch', 'train', data=df, color='blue', label='training loss', linewidth=1.0)
+    plt.plot('epoch', 'val', data=df, color='green', label='validation loss', linewidth=1.0)
     plt.title(str(model_GAT_config))
     plt.xlabel('epoch')
     plt.ylabel('MSE loss')
@@ -28,14 +30,46 @@ def plt_learn_proc(model_GAT_config: HyperparametersGAT) -> None:
     plt.show()
 
 
-def plt_all_learn_curves():
+def plot_pq_ratio(model_GAT_config: HyperparametersGAT) -> None:
+    mode_specs = (model_GAT_config.params['load_specific_data'].__name__.split('_')[1],
+                  model_GAT_config.params['readout_aggregator'].__name__.split('_')[0],
+                  str(model_GAT_config.params['include_ew']))
+    save_fig_path = os.path.join(gat_model_stats, 'pq_ratio_plot_' + '_'.join(mode_specs) + '.png')
+    if os.path.exists(save_fig_path): return
+    print("Restoring training logs from file %s." % model_GAT_config.logs_file())
+    logs = {}
+    for out_split in range(model_GAT_config.params['k_outer']):
+        model_GAT_config.update({'eval_fold_out': out_split})
+        if os.path.exists(model_GAT_config.logs_file()):
+            with open(model_GAT_config.logs_file(), 'rb') as in_file:
+                logs['split_' + str(out_split)] = np.array(pickle.load(in_file)['early_stop']['pq_ratio'])
+        else:
+            return
+    logs['epoch'] = list(range(1, min(map(len, list(logs.values()))) + 1))
+    # Create data
+    df = pd.DataFrame(logs)
+    colours = ['b', 'r', 'c', 'm', 'y']
+    for out_split, colour in zip(range(model_GAT_config.params['k_outer']), colours):
+        plt.plot('epoch', 'split_' + str(out_split), data=df, color=colour, label='split_' + str(out_split),
+                 linewidth=1.0)
+    plt.title('PQ ratio: dataset %s, readout %s, include edges %s' % mode_specs)
+    plt.xlabel('epoch')
+    plt.ylabel('pq_ratio')
+    plt.legend(loc='upper left')
+    plt.savefig(save_fig_path)
+    plt.show()
+
+
+def plt_all_learn_curves(plot_funct):
     config = HyperparametersGAT()
+    print(checkpts_dir)
     for file in sorted(os.listdir(checkpts_dir)):
+
         if file.startswith('logs_'):
             with open(os.path.join(checkpts_dir, file), 'rb') as checkpoint:
                 true_config = pkl.load(checkpoint)['params']
-                config.params.update(**true_config)
-                plt_learn_proc(config)
+                config.update(true_config)
+                plot_funct(config)
 
 
 def plot_edge_weight_hist(log_scale=10, get_adjs_loader=get_structural_adjs):
@@ -84,7 +118,7 @@ def plot_node_degree_hist(get_adjs_loader=get_structural_adjs, filter_flag=True)
 
 
 def plot_pers_scores_hist():
-    scores_data, trait_names = get_NEO5_scores()
+    scores_data, trait_names = get_NEO5_scores(HyperparametersGAT().params)
     all_traits = np.array(list(scores_data.values())).transpose()
 
     packed_scores = zip(all_traits, trait_names)
@@ -107,4 +141,4 @@ def draw_adjacency_heatmap(adjacency_matrix):
 
 
 if __name__ == "__main__":
-    plt_all_learn_curves()
+    plt_all_learn_curves(plt_learn_proc)

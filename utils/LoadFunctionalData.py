@@ -2,13 +2,14 @@ from utils.ToolsDataProcessing import *
 from utils.Node2VecEmbedding import create_node_embedding
 import pickle as pkl
 
-ptnMAT_colab = os.path.join(os.pardir, 'Data', 'functional_data')
+ptnMAT_colab = os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))), 'Data', 'functional_data')
 dir_proc_funct_data = os.path.join(ptnMAT_colab, 'processed_data')
 if not os.path.exists(dir_proc_funct_data):
     os.makedirs(dir_proc_funct_data)
 
 ptnMAT_dim_sess_file = os.path.join(ptnMAT_colab, '3T_HCP1200_MSMAll_d%d_ts2', 'netmats%d.txt')
 subj_id_file = os.path.join(ptnMAT_colab, 'subjectIDs.txt')
+
 
 # load the FUNCTIONAL ADJACENCY MATRICES
 def get_functional_adjs(matrices_dim=50, session_id=1):
@@ -18,7 +19,6 @@ def get_functional_adjs(matrices_dim=50, session_id=1):
         with open(adjs_file, 'rb') as handle:
             dict_adj = pkl.load(handle)
         print('Adjacency matrices for the functional data was loaded.')
-        print(dict_adj)
         return dict_adj
 
     print('Creating and serializing adjacency matrices for functional data...')
@@ -42,6 +42,7 @@ def get_functional_adjs(matrices_dim=50, session_id=1):
 
     return dict_adj
 
+
 # load the FUNCTIONAL NODE FEATURES
 def get_functional_node_feat(matrices_dim=50, session_id=1):
     node_feats_file = os.path.join(dir_proc_funct_data, 'node_feats_dim%d_sess%d.pkl' % (matrices_dim, session_id))
@@ -53,8 +54,8 @@ def get_functional_node_feat(matrices_dim=50, session_id=1):
         return all_node_feats
 
     print('Creating and serializing node features for the functional data...')
-    node2vec_emb_dir = os.path.join(os.getcwd(), os.pardir, 'PartIIProject', 'node2vec_embeds',
-                            'emb_dim%d_sess%d' % (matrices_dim, session_id))
+    node2vec_emb_dir = os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))), 'Data', 'node2vec_embeds',
+                                    'emb_dim%d_sess%d' % (matrices_dim, session_id))
     if not os.path.exists(node2vec_emb_dir):
         create_node_embedding(matrices_dim=matrices_dim, session_id=session_id)
     all_node_feats = {}
@@ -93,9 +94,10 @@ def get_functional_node_feat(matrices_dim=50, session_id=1):
 
     return all_node_feats
 
+
 # load the FUNCTIONAL DATA for the GAT MODEL
 def load_funct_data(hyparams):
-    str_traits = ''.join([trait.split('NEO.NEOFAC_')[-1] for trait in hyparams['pers_traits_selection']])
+    str_traits = ''.join([trait.replace('NEO.NEOFAC_', '') for trait in hyparams['pers_traits_selection']])
     binary_prefix = '%s_d%d_s%d.pkl' % (str_traits, hyparams['functional_dim'], hyparams['scan_session'])
 
     dataset_binary = os.path.join(dir_proc_funct_data, binary_prefix)
@@ -108,7 +110,7 @@ def load_funct_data(hyparams):
 
     dict_adj = get_functional_adjs()
     dict_node_feat = get_functional_node_feat()
-    dict_tiv_score, _ = get_NEO5_scores(hyparams['pers_traits_selection'])
+    dict_tiv_score = get_NEO5_scores(hyparams['pers_traits_selection'])
 
     dict_dataset = {}
     available_subjs = []
@@ -116,9 +118,10 @@ def load_funct_data(hyparams):
     for subj_id in subjects:
         if subj_id in dict_node_feat.keys() and subj_id in dict_tiv_score.keys():
             dict_dataset[subj_id] = {}
-            dict_dataset[subj_id]['adj_in'] = norm_rows_adj(dict_adj[subj_id])
-            dict_dataset[subj_id]['ftr_in'] = dict_node_feat[subj_id]
             dict_dataset[subj_id]['bias_in'] = adj_to_bias(dict_adj[subj_id], nhood=1)
+            norm_adj = norm_rows_adj(dict_adj[subj_id])
+            dict_dataset[subj_id]['adj_in'] = norm_adj
+            dict_dataset[subj_id]['ftr_in'] = dict_node_feat[subj_id]
             dict_dataset[subj_id]['score_in'] = dict_tiv_score[subj_id]
             available_subjs.append(subj_id)
 
