@@ -29,7 +29,7 @@ class GraphAttention(Layer):
                  bias_constraint=None,
                  attn_kernel_constraint=None,
                  **kwargs):
-        super(GraphAttention, self).__init__(**kwargs)
+
         if attn_heads_reduction not in {'concat', 'average'}:
             raise ValueError('Possbile reduction methods: concat, average')
 
@@ -47,9 +47,9 @@ class GraphAttention(Layer):
         self.bias_initializer = initializers.get(bias_initializer)
         self.attn_kernel_initializer = initializers.get(attn_kernel_initializer)
 
-        self.kernel_regularizer = regularizers.get(kernel_regularizer)(decay_rate)
-        self.bias_regularizer = regularizers.get(bias_regularizer)(decay_rate)
-        self.attn_kernel_regularizer = regularizers.get(attn_kernel_regularizer)(decay_rate)
+        self.kernel_regularizer = kernel_regularizer(decay_rate)
+        self.bias_regularizer = bias_regularizer(decay_rate)
+        self.attn_kernel_regularizer = attn_kernel_regularizer(decay_rate)
         self.activity_regularizer = regularizers.get(activity_regularizer)
 
         self.kernel_constraint = constraints.get(kernel_constraint)
@@ -68,7 +68,6 @@ class GraphAttention(Layer):
         else:
             # Output will have shape (..., F')
             self.output_dim = self.F_
-        self.built = False
         super(GraphAttention, self).__init__(**kwargs)
 
     def build(self, input_shape):
@@ -107,7 +106,6 @@ class GraphAttention(Layer):
                                                  name='attn_kernel_neigh_{}'.format(head))
             self.attn_kernels.append([attn_kernel_self, attn_kernel_neighs])
         self.built = True
-        super(GraphAttention, self).build(input_shape)
 
     def call(self, inputs, **kwargs):
         input_node_feats, adjacency_mat, attn_mask = inputs
@@ -139,16 +137,16 @@ class GraphAttention(Layer):
 
             # Apply softmax to get attention coefficients
             dense = K.softmax(dense)  # (? x N x N)
-            # Include edge weights (at tensorflow Graph construction time)
+            # Include edge weights
             if self.use_ew:
                 dense = Multiply()([dense, adjacency_mat])
 
             # Apply dropout to features and attention coefficients
             dropout_attn = Dropout(rate=self.dropout_rate)(inputs=dense)
             dropout_feat = Dropout(rate=self.dropout_rate)(inputs=features)
+
             # Linear combination with neighbors' features
             node_features = K.batch_dot(dropout_attn, dropout_feat)  # (? x N x F')
-
             if self.use_bias:
                 node_features = K.bias_add(node_features, self.biases[head])
 
@@ -181,6 +179,7 @@ class GraphAttention(Layer):
                                                      gamma_regularizer=regularizers.l2(self.decay_rate))(inputs=output)
         else:
             batch_norm_features = output
+
         # apply activation
         activation_out = self.activation(batch_norm_features)
         # total u-loss for all the heads of the layer for ? input graphs

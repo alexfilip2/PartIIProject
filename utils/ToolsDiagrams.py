@@ -1,9 +1,12 @@
 import matplotlib.pyplot as plt
 import networkx as nx
 from matplotlib import pyplot, patches
+import seaborn as sns
 from NestedCrossValGAT import *
 import math
 import re
+
+sns.set(style="whitegrid")
 
 CONF_LIMIT = 2.4148
 # Output of the learning process losses directory
@@ -28,6 +31,19 @@ def plt_learn_proc(model_GAT_config: HyperparametersGAT) -> None:
     plt.legend(loc='upper right')
     plt.savefig(os.path.join(gat_model_stats, 'loss_plot_' + str(model_GAT_config) + '.png'))
     plt.show()
+
+
+def plt_residuals(model_GAT_config: HyperparametersGAT) -> None:
+    print("Restoring prediction results from file %s." % model_GAT_config.results_file())
+    with open(model_GAT_config.results_file(), 'rb') as in_file:
+        results = pickle.load(in_file)
+    for pers_trait in model_GAT_config.params['pers_traits_selection']:
+        true_score, predicted_score = map(lambda x: np.array(x), zip(*results[pers_trait]))
+        plt.figure()
+        ax = sns.residplot(true_score, predicted_score, lowess=True, color="g")
+        ax.set(xlabel='common xlabel', ylabel='common ylabel')
+
+        plt.show()
 
 
 def plot_pq_ratio(model_GAT_config: HyperparametersGAT) -> None:
@@ -62,14 +78,13 @@ def plot_pq_ratio(model_GAT_config: HyperparametersGAT) -> None:
 
 def plt_all_learn_curves(plot_funct):
     config = HyperparametersGAT()
-    print(checkpts_dir)
     for file in sorted(os.listdir(checkpts_dir)):
-
         if file.startswith('logs_'):
             with open(os.path.join(checkpts_dir, file), 'rb') as checkpoint:
                 true_config = pkl.load(checkpoint)['params']
                 config.update(true_config)
                 plot_funct(config)
+            break
 
 
 def plot_edge_weight_hist(log_scale=10, get_adjs_loader=get_structural_adjs):
@@ -81,7 +96,6 @@ def plot_edge_weight_hist(log_scale=10, get_adjs_loader=get_structural_adjs):
     n, bins, patches = plt.hist(x=edge_weights, bins='auto', color='#0504aa', alpha=0.7, rwidth=None)
     for index, patch in enumerate(patches):
         patch.set_facecolor('#0504aa' if lower_conf <= bins[index] else 'black')
-
     plt.grid(axis='y', alpha=0.75)
     plt.xlabel('Log %d edge weight value' % log_scale)
     plt.ylabel('Frequency')
@@ -141,4 +155,4 @@ def draw_adjacency_heatmap(adjacency_matrix):
 
 
 if __name__ == "__main__":
-    plt_all_learn_curves(plt_learn_proc)
+    plt_all_learn_curves(plt_residuals)

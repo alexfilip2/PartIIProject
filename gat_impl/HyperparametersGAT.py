@@ -37,18 +37,20 @@ class HyperparametersGAT(object):
             'random_seed': 123,
             'edgeWeights_filter': lower_bound_filter,
             'CHECKPT_PERIOD': 100,
-            'gl_tr_prog_threshold': {TensorflowGraphGAT.average_feature_aggregator: 1.0,
-                                     TensorflowGraphGAT.concat_feature_aggregator: 1.0,
-                                     TensorflowGraphGAT.master_node_aggregator: 0.2},
-            'enough_train_prog': 0.15,
+            'pq_threshold': {TensorflowGraphGAT.average_feature_aggregator: 1.0,
+                             TensorflowGraphGAT.concat_feature_aggregator: 0.5,
+                             TensorflowGraphGAT.master_node_aggregator: 0.25},
+            'train_prog_threshold': 0.15,
             'k_strip_epochs': 5,
             'low_ew_limit': 2.4148,
             'num_epochs': 150
 
         }
+        # update the default hyper-parameters
         self.update(update_hyper=updated_params)
         if self.params['nested_CV_level'] not in {'inner', 'outer'}:
             raise ValueError('Possbile CV levels: inner, outer')
+        # keep an order on the personality traits predicted at once (so we can decode them from the vectors inferred)
         self.params['pers_traits_selection'] = sorted(self.params['pers_traits_selection'])
         self.params['target_score_type'] = len(self.params['pers_traits_selection'])
 
@@ -60,19 +62,17 @@ class HyperparametersGAT(object):
         str_traits = 'PT_' + "".join([pers.split('NEO.NEOFAC_')[1] for pers in self.params['pers_traits_selection']])
         str_aggregator = 'AGR_' + self.params['readout_aggregator'].__name__.split('_')[0]
         str_include_ew = 'IW_' + str(self.params['include_ew'])
-        str_limits = 'EL_' + ('No_' if self.params['edgeWeights_filter'] is None else str(self.params['low_ew_limit']))
         str_batch_sz = 'BS_' + str(self.params['batch_size'])
         str_cross_val = 'CV_' + str(self.params['eval_fold_in']) + str(self.params['eval_fold_out']) + self.params[
             'nested_CV_level']
         str_dropout = 'DROP_' + str(self.params['attn_drop'])
-        str_batch_norm = 'BN_' + str(self.params['use_batch_norm'])
+        str_learn_rate = 'LR_' + str(self.params['learning_rate'])
+        str_decay_rate = 'DR_' + str(self.params['decay_rate'])
 
         str_params = [str_dataset, str_dim_sess, str_attn_heads, str_hid_units, str_traits, str_aggregator,
-                      str_include_ew, str_limits, str_batch_sz, str_dropout, str_batch_norm, str_cross_val]
+                      str_include_ew, str_batch_sz, str_dropout, str_learn_rate, str_decay_rate, str_cross_val]
         if self.params['load_specific_data'].__name__.split('_')[1] == 'struct':
             str_params.remove(str_dim_sess)
-        else:
-            str_params.remove(str_limits)
 
         return '_'.join(str_params)
 
