@@ -8,6 +8,8 @@ from keras.callbacks import EarlyStopping, Callback
 from keras.backend import clear_session
 from sklearn.metrics import mean_squared_error
 
+flush_console = os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))), 'console_out.txt')
+
 
 class GATModel(TensorflowGraphGAT):
     @classmethod
@@ -71,7 +73,7 @@ class GATModel(TensorflowGraphGAT):
             self.best_vl_loss = np.inf
             self.total_time_start = 0.0
             self.k_strip_epochs = kwargs['k_strip_epochs']
-            self.pq_threshold = kwargs['pq_threshold'][kwargs['readout_aggregator']]
+            self.pq_threshold = kwargs['pq_threshold']
             self.train_prog_threshold = kwargs['train_prog_threshold']
             self.tr_k_logs = np.zeros(self.k_strip_epochs)
             self._data = {'pq_ratio': [], 'train_prog': []}
@@ -113,11 +115,11 @@ class GATModel(TensorflowGraphGAT):
         inference_args = {**feed_data, **self.params}
 
         # Keras GAT model and custom loss function with robustness regularization
-        self.model, model_loss = TensorflowGraphGAT.inference_keras(self, **inference_args)
+        self.model = TensorflowGraphGAT.inference_keras(self, **inference_args)
 
         # Define the optimizer for the training of the model
         optimizer = Adam(lr=self.params['learning_rate'])
-        self.model.compile(optimizer=optimizer, loss=model_loss)
+        self.model.compile(optimizer=optimizer, loss='mean_squared_error')
         self.is_built = True
 
     def fit(self, data, train_subj, val_subj):
@@ -134,7 +136,8 @@ class GATModel(TensorflowGraphGAT):
 
         # Size of the datasets used by this GAT model
         tr_size, vl_size = len(train_subj), len(val_subj)
-        print('The training size is %d, while the validation one: %d' % (tr_size, vl_size))
+        print('The training size is %d, while the validation one: %d for the GAT model %s' % (
+            tr_size, vl_size, self.config))
         # define the custom early stopping callback
         custom_early_stop = self.CustomEarlyStopping(**self.params)
         es = EarlyStopping(monitor='val_loss', mode='min', patience=15)
@@ -142,7 +145,7 @@ class GATModel(TensorflowGraphGAT):
         history = self.model.fit(x=[tr_feats, tr_adjs, tr_biases], y=tr_scores,
                                  batch_size=self.params['batch_size'],
                                  epochs=self.params['num_epochs'],
-                                 verbose=1,
+                                 verbose=0,
                                  callbacks=[custom_early_stop],
                                  validation_split=0.0,
                                  validation_data=([vl_feats, vl_adjs, vl_biases], vl_scores),
@@ -153,7 +156,7 @@ class GATModel(TensorflowGraphGAT):
                                  steps_per_epoch=None,
                                  validation_steps=None)
         # save the model weights
-        self.model.save_weights(self.config.checkpt_file())
+        # self.model.save_weights(self.config.checkpt_file())
         # save its training history, early stopping logs along with the hyper-parameters configuration
         with open(self.config.logs_file(), 'wb') as logs_binary:
             pickle.dump({'history': history.history,
@@ -187,4 +190,5 @@ class GATModel(TensorflowGraphGAT):
             pickle.dump(results, results_binary)
 
         # clear the main memory of the TensorFlow graph
+        del self.model
         clear_session()

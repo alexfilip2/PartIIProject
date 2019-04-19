@@ -19,8 +19,8 @@ class HyperparametersGAT(object):
             'include_ew': True,
             'readout_aggregator': TensorflowGraphGAT.master_node_aggregator,
             'load_specific_data': load_struct_data,
-            'batch_size': 2,
-            'learning_rate': 0.0001,
+            'batch_size': 32,
+            'learning_rate': 0.0005,
             'decay_rate': 0.0005,
             'attn_drop': 0.6,
             'functional_dim': 50,
@@ -34,22 +34,26 @@ class HyperparametersGAT(object):
             'non_linearity': relu,
             'k_outer': 5,
             'k_inner': 5,
-            'random_seed': 123,
             'edgeWeights_filter': lower_bound_filter,
-            'CHECKPT_PERIOD': 100,
-            'pq_threshold': {TensorflowGraphGAT.average_feature_aggregator: 1.0,
-                             TensorflowGraphGAT.concat_feature_aggregator: 0.5,
-                             TensorflowGraphGAT.master_node_aggregator: 0.25},
-            'train_prog_threshold': 0.15,
+            'pq_threshold': np.inf,
+            'train_prog_threshold': 0.1,
             'k_strip_epochs': 5,
             'low_ew_limit': 2.4148,
-            'num_epochs': 150
-
-        }
+            'num_epochs': 150}
         # update the default hyper-parameters
         self.update(update_hyper=updated_params)
         if self.params['nested_CV_level'] not in {'inner', 'outer'}:
             raise ValueError('Possbile CV levels: inner, outer')
+        # values for the PQ threshold:
+        pq_alpha = {
+            TensorflowGraphGAT.master_node_aggregator: {True: {load_funct_data: 0.01, load_struct_data: 0.01},
+                                                        False: {load_funct_data: 1.0, load_struct_data: 0.4}},
+            TensorflowGraphGAT.concat_feature_aggregator: {True: {load_funct_data: 0.4, load_struct_data: 0.4},
+                                                           False: {load_funct_data: 1.0, load_struct_data: 0.75}},
+            TensorflowGraphGAT.average_feature_aggregator: {True: {load_funct_data: 0.5, load_struct_data: 0.5},
+                                                            False: {load_funct_data: 1.0, load_struct_data: 1.0}}}
+        self.params['pq_threshold'] = pq_alpha[self.params['readout_aggregator']][self.params['include_ew']][
+            self.params['load_specific_data']]
         # keep an order on the personality traits predicted at once (so we can decode them from the vectors inferred)
         self.params['pers_traits_selection'] = sorted(self.params['pers_traits_selection'])
         self.params['target_score_type'] = len(self.params['pers_traits_selection'])

@@ -29,7 +29,7 @@ class GraphAttention(Layer):
                  bias_constraint=None,
                  attn_kernel_constraint=None,
                  **kwargs):
-
+        super(GraphAttention, self).__init__(**kwargs)
         if attn_heads_reduction not in {'concat', 'average'}:
             raise ValueError('Possbile reduction methods: concat, average')
 
@@ -68,7 +68,6 @@ class GraphAttention(Layer):
         else:
             # Output will have shape (..., F')
             self.output_dim = self.F_
-        super(GraphAttention, self).__init__(**kwargs)
 
     def build(self, input_shape):
         assert len(input_shape) >= 2
@@ -183,11 +182,16 @@ class GraphAttention(Layer):
         # apply activation
         activation_out = self.activation(batch_norm_features)
         # total u-loss for all the heads of the layer for ? input graphs
-        layer_u_loss = K.sum(layer_u_loss, axis=0)
+        layer_u_loss = K.mean(K.mean(K.stack(layer_u_loss, axis=1), axis=-1))
+        layer_u_loss = tf.identity(layer_u_loss, name="uniform_loss_{}".format(self.name))
         # total e-loss for all the heads of the layer for ? input graphs
-        layer_e_loss = K.sum(layer_e_loss, axis=0)
+        layer_e_loss = K.mean(K.mean(K.stack(layer_e_loss, axis=1), axis=-1))
+        layer_e_loss = tf.identity(layer_e_loss, name="exclusive_loss_{}".format(self.name))
+        # add the regularization losses to the overall loss
+        self.add_loss(layer_u_loss * self.decay_rate)
+        self.add_loss(layer_e_loss * self.decay_rate)
 
-        return [activation_out, layer_u_loss, layer_e_loss]
+        return activation_out
 
     def compute_output_shape(self, input_shape):
         output_shape = [(input_shape[0][0], input_shape[0][1], self.output_dim), (), ()]

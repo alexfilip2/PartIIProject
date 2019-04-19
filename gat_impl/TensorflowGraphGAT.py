@@ -84,14 +84,14 @@ class TensorflowGraphGAT(object):
         batch_ext_bias = Lambda(function=prepare_biases)(model_gat_output)
 
         # master GAT layer
-        master_layer, _, _ = GraphAttention(F_=kwargs['master_feats'],
-                                            attn_heads=kwargs['master_heads'],
-                                            attn_heads_reduction='average',
-                                            flag_batch_norm=False,
-                                            flag_include_ew=False,
-                                            dropout_rate=kwargs['attn_drop'],
-                                            decay_rate=kwargs['decay_rate'],
-                                            activation=lambda x: x)([model_gat_output, batch_ext_adjs, batch_ext_bias])
+        master_layer = GraphAttention(F_=kwargs['master_feats'],
+                                      attn_heads=kwargs['master_heads'],
+                                      attn_heads_reduction='average',
+                                      flag_batch_norm=False,
+                                      flag_include_ew=False,
+                                      dropout_rate=kwargs['attn_drop'],
+                                      decay_rate=kwargs['decay_rate'],
+                                      activation=lambda x: x)([model_gat_output, batch_ext_adjs, batch_ext_bias])
 
         # extract only the high-level features produced for the master node (in each batch graph)
         def extract_master_feats(inputs):
@@ -162,9 +162,7 @@ class TensorflowGraphGAT(object):
                            'attn_heads': mutable_ah[0],
                            'attn_heads_reduction': 'concat',
                            'activation': non_linearity})
-        input_layer, model_u_loss, model_e_loss = GraphAttention(**layer_args)(
-            inputs=[batch_node_features, batch_adj_mats, batch_bias_mats])
-
+        input_layer = GraphAttention(**layer_args)(inputs=[batch_node_features, batch_adj_mats, batch_bias_mats])
         # hidden GAT layers
         prev_out = input_layer
         for i in range(1, len(mutable_ah) - 1):
@@ -172,12 +170,10 @@ class TensorflowGraphGAT(object):
                                'attn_heads': mutable_ah[i],
                                'attn_heads_reduction': 'concat',
                                'activation': non_linearity})
-            i_th_layer, layer_u_loss, layer_e_loss = GraphAttention(**layer_args)(
+            i_th_layer = GraphAttention(**layer_args)(
                 inputs=[prev_out, batch_adj_mats, batch_bias_mats])
             prev_out = i_th_layer
             # accumulate the regularization losses
-            model_u_loss = tf.add_n([model_u_loss, layer_u_loss])
-            model_e_loss = tf.add_n([model_e_loss, layer_e_loss])
 
         # output GAT layer
         layer_args.update({'F_': mutable_hu[-1],
@@ -190,13 +186,10 @@ class TensorflowGraphGAT(object):
             layer_args.update({'flag_batch_norm': False,
                                'attn_heads_reduction': 'average',
                                'activation': lambda x: x})
-        last_layer, last_u_loss, last_e_loss = GraphAttention(**layer_args)(
+        last_layer = GraphAttention(**layer_args)(
             inputs=[prev_out, batch_adj_mats, batch_bias_mats])
 
         # average the regularization losses by the total nr of attention heads
-        nb_attn_heads = np.sum(np.array(mutable_ah))
-        model_u_loss = tf.divide(tf.add(model_u_loss, last_u_loss), nb_attn_heads)
-        model_e_loss = tf.divide(tf.add(model_e_loss, last_e_loss), nb_attn_heads)
 
         # aggregate all the output node features using the specified strategy
         gat_output = readout_aggregator(self, model_gat_output=last_layer, target_score_type=target_score_type,
@@ -206,18 +199,4 @@ class TensorflowGraphGAT(object):
         model = Model(outputs=[gat_output], inputs=[batch_node_features, batch_adj_mats, batch_bias_mats])
         model.summary()
 
-        # define the GAT loss: MSE + robustness regularization
-        def model_loss():
-            """" Wrapper function which calculates auxiliary values for the complete loss function.
-             Returns a *function* which calculates the complete loss given only the input and target output """
-
-            def full_mse_loss(y_true, y_pred):
-                mse_loss = K.mean(K.square(y_pred - y_true))
-                robustness_loss = tf.add_n([model_u_loss * decay_rate, model_e_loss * decay_rate])
-                robustness_loss = K.mean(robustness_loss)
-                """ Final loss calculation function to be passed to optimizer"""
-                return mse_loss + robustness_loss
-
-            return full_mse_loss
-
-        return model, model_loss()
+        return model

@@ -6,7 +6,7 @@ from NestedCrossValGAT import *
 import math
 import re
 
-sns.set(style="whitegrid")
+
 
 CONF_LIMIT = 2.4148
 # Output of the learning process losses directory
@@ -25,15 +25,16 @@ def plt_learn_proc(model_GAT_config: HyperparametersGAT) -> None:
     df = pd.DataFrame({'epoch': list(range(1, nb_epochs + 1)), 'train': np.array(tr_loss), 'val': np.array(vl_loss)})
     plt.plot('epoch', 'train', data=df, color='blue', label='training loss', linewidth=1.0)
     plt.plot('epoch', 'val', data=df, color='green', label='validation loss', linewidth=1.0)
-    plt.title(str(model_GAT_config))
+    #plt.title(str(model_GAT_config))
     plt.xlabel('epoch')
     plt.ylabel('MSE loss')
     plt.legend(loc='upper right')
-    plt.savefig(os.path.join(gat_model_stats, 'loss_plot_' + str(model_GAT_config) + '.png'))
+    plt.savefig(os.path.join(gat_model_stats, 'loss_plot_' + str(model_GAT_config) + '.pdf'))
     plt.show()
 
 
 def plt_residuals(model_GAT_config: HyperparametersGAT) -> None:
+    sns.set(style="whitegrid")
     print("Restoring prediction results from file %s." % model_GAT_config.results_file())
     with open(model_GAT_config.results_file(), 'rb') as in_file:
         results = pickle.load(in_file)
@@ -49,8 +50,9 @@ def plt_residuals(model_GAT_config: HyperparametersGAT) -> None:
 def plot_pq_ratio(model_GAT_config: HyperparametersGAT) -> None:
     mode_specs = (model_GAT_config.params['load_specific_data'].__name__.split('_')[1],
                   model_GAT_config.params['readout_aggregator'].__name__.split('_')[0],
-                  str(model_GAT_config.params['include_ew']))
-    save_fig_path = os.path.join(gat_model_stats, 'pq_ratio_plot_' + '_'.join(mode_specs) + '.png')
+                  str(model_GAT_config.params['include_ew']),
+                  str(model_GAT_config.params['batch_size']))
+    save_fig_path = os.path.join(gat_model_stats, 'pq_ratio_plot_' + '_'.join(mode_specs) + '.pdf')
     if os.path.exists(save_fig_path): return
     print("Restoring training logs from file %s." % model_GAT_config.logs_file())
     logs = {}
@@ -68,7 +70,7 @@ def plot_pq_ratio(model_GAT_config: HyperparametersGAT) -> None:
     for out_split, colour in zip(range(model_GAT_config.params['k_outer']), colours):
         plt.plot('epoch', 'split_' + str(out_split), data=df, color=colour, label='split_' + str(out_split),
                  linewidth=1.0)
-    plt.title('PQ ratio: dataset %s, readout %s, include edges %s' % mode_specs)
+    plt.title('PQ ratio: dataset %s, readout %s, include edges %s, batch size %s' % mode_specs)
     plt.xlabel('epoch')
     plt.ylabel('pq_ratio')
     plt.legend(loc='upper left')
@@ -84,7 +86,7 @@ def plt_all_learn_curves(plot_funct):
                 true_config = pkl.load(checkpoint)['params']
                 config.update(true_config)
                 plot_funct(config)
-            break
+
 
 
 def plot_edge_weight_hist(log_scale=10, get_adjs_loader=get_structural_adjs):
@@ -103,7 +105,7 @@ def plot_edge_weight_hist(log_scale=10, get_adjs_loader=get_structural_adjs):
     maxfreq = n.max()
     # Set a clean upper y-axis limit.
     plt.ylim(top=np.ceil(maxfreq / 10) * 10 if maxfreq % 10 else maxfreq + 10)
-    plt.savefig(os.path.join(gat_model_stats, 'edge_weight_distrib_%s.png' % data_type))
+    plt.savefig(os.path.join(gat_model_stats, 'edge_weight_distrib_%s.pdf' % data_type))
     plt.show()
 
 
@@ -127,7 +129,7 @@ def plot_node_degree_hist(get_adjs_loader=get_structural_adjs, filter_flag=True)
     maxfreq = n.max()
     # Set a clean upper y-axis limit.
     plt.ylim(top=np.ceil(maxfreq / 10) * 10 if maxfreq % 10 else maxfreq + 10)
-    plt.savefig(os.path.join(gat_model_stats, 'node_degrees_%s_filtered_%r.png' % (data_type, filter_flag)))
+    plt.savefig(os.path.join(gat_model_stats, 'node_degrees_%s_filtered_%r.pdf' % (data_type, filter_flag)))
     plt.show()
 
 
@@ -155,4 +157,4 @@ def draw_adjacency_heatmap(adjacency_matrix):
 
 
 if __name__ == "__main__":
-    plt_all_learn_curves(plt_residuals)
+    plt_all_learn_curves(plt_learn_proc)
