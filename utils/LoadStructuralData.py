@@ -179,8 +179,8 @@ def load_struct_data(hyparams):
 
 # load the STRUCTURAL DATA for the BASELINE MODEL
 def load_baseline_struct_data(trait_choice):
-    hyparams = {'ew_limits': None,
-                'edgeWeights_filter': None,
+    hyparams = {'ew_limits': 2.4148,
+                'edgeWeights_filter': lower_bound_filter,
                 'pers_traits_selection': trait_choice
                 }
     data, subjs = load_struct_data(hyparams)
@@ -188,5 +188,5 @@ def load_baseline_struct_data(trait_choice):
 
     for subj_id in sorted(subjs):
         adj_matrices.append(data[subj_id]['ftr_in'].flatten().tolist())
-        scores.append(data[subj_id]['score_in'].flatten()[0])
+        scores.append(np.squeeze(data[subj_id]['score_in'].flatten()))
     return np.array(adj_matrices), np.array(scores)

@@ -80,6 +80,9 @@ class HyperparametersGAT(object):
 
         return '_'.join(str_params)
 
+    def get_name(self):
+        return str(self).split('CV_')[0]
+
     def update(self, update_hyper):
         if update_hyper is not None:
             self.params.update(update_hyper)

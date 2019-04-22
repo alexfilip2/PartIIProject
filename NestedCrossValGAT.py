@@ -79,14 +79,14 @@ def generate_cv_data(config, data, subjects):
 NO_LAYERS = 3
 
 
-def sample_hyper_params(max_samples=10080):
+def sample_hyper_params(max_samples=18000):
     sampled_models_file = os.path.join(os.path.join(os.path.dirname(__file__)), 'sampled_models.pck')
     if os.path.exists(sampled_models_file):
         with open(sampled_models_file, 'rb') as handle:
             param_grid = pickle.load(handle)
             return ParameterGrid(param_grid)
     param_grid = {
-        'learning_rate': [0.01, 0.005, 0.001, 0.0005, 0.0001],
+        'learning_rate': [0.005, 0.001, 0.0005, 0.0001],
         'decay_rate': [0.0005],
         'attn_drop': [0.0, 0.2, 0.4, 0.6, 0.8],
         'readout_aggregator': [GATModel.average_feature_aggregator, GATModel.master_node_aggregator,
@@ -94,7 +94,7 @@ def sample_hyper_params(max_samples=10080):
         'load_specific_data': [load_struct_data, load_funct_data],
         'include_ew': [True, False],
         'batch_size': [32]}
-    models_so_far = np.prod(np.array([len(param_grid[x]) for x in param_grid.keys()])) / 25
+    models_so_far = np.prod(np.array([len(param_grid[x]) for x in param_grid.keys()])) * 25
     sampling_count = math.floor(max_samples / models_so_far)
     sample_ah = list(itertools.product(range(3, 7), repeat=3))
     sample_hu = list(itertools.product(range(12, 48), repeat=3))
@@ -179,6 +179,7 @@ def extract_test_losses():
             print(
                 'The BEST average test loss for trait %s is  %.3f' % (trait_key, avg_loss[sort_by_trait[0]][trait_key]))
             print('The model achieving this score for %s is %s' % (trait_key, sort_by_trait[0]))
+            print(avg_loss[sort_by_trait[-1]][trait_key],sort_by_trait[-1])
             for trait, loss in avg_loss[sort_by_trait[0]].items():
                 print(trait, loss)
 

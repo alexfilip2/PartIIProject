@@ -6,8 +6,6 @@ from NestedCrossValGAT import *
 import math
 import re
 
-
-
 CONF_LIMIT = 2.4148
 # Output of the learning process losses directory
 gat_model_stats = os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))), 'Diagrams')
@@ -25,7 +23,7 @@ def plt_learn_proc(model_GAT_config: HyperparametersGAT) -> None:
     df = pd.DataFrame({'epoch': list(range(1, nb_epochs + 1)), 'train': np.array(tr_loss), 'val': np.array(vl_loss)})
     plt.plot('epoch', 'train', data=df, color='blue', label='training loss', linewidth=1.0)
     plt.plot('epoch', 'val', data=df, color='green', label='validation loss', linewidth=1.0)
-    #plt.title(str(model_GAT_config))
+    # plt.title(str(model_GAT_config))
     plt.xlabel('epoch')
     plt.ylabel('MSE loss')
     plt.legend(loc='upper right')
@@ -86,7 +84,6 @@ def plt_all_learn_curves(plot_funct):
                 true_config = pkl.load(checkpoint)['params']
                 config.update(true_config)
                 plot_funct(config)
-
 
 
 def plot_edge_weight_hist(log_scale=10, get_adjs_loader=get_structural_adjs):
@@ -150,11 +147,69 @@ def plot_pers_scores_hist():
         plt.show()
 
 
-def draw_adjacency_heatmap(adjacency_matrix):
-    im = plt.imshow(adjacency_matrix, cmap='YlGn', interpolation='nearest', )
-    plt.colorbar(im)
+def get_results(config: HyperparametersGAT):
+    with open(config.results_file(), 'rb') as results:
+        ts_loss = np.mean(np.array(list(pkl.load(results)['test_loss'].values())))
+    return ts_loss
+
+
+def plot_error_ncv(hyper_param='attn_drop'):
+    losses = {}
+    config = HyperparametersGAT()
+    for file in sorted(os.listdir(checkpts_dir)):
+        if file.startswith('logs_'):
+            with open(os.path.join(checkpts_dir, file), 'rb') as checkpoint:
+                true_config = pkl.load(checkpoint)['params']
+                config.update(true_config)
+            out_split = true_config['eval_fold_out']
+            hyper_choice = true_config[hyper_param]
+            if out_split not in losses.keys():
+                losses[out_split] = {}
+            if hyper_choice not in losses[out_split].keys():
+                losses[out_split][hyper_choice] = {}
+            if config.get_name() not in losses[out_split][hyper_choice].keys():
+                losses[out_split][hyper_choice][config.get_name()] = []
+            losses[out_split][hyper_choice][config.get_name()].append(get_results(config))
+
+    colours = ['b', 'r', 'c', 'm', 'y']
+    no_param_choices = max([len(list(losses[out_split].keys())) for out_split in list(losses.keys())])
+    median_each_choice = []
+    for colour, out_split in zip(colours, losses.keys()):
+        avg_median = np.zeros(shape=no_param_choices)
+        x, y = np.zeros(no_param_choices), np.zeros(no_param_choices)
+        yerr = np.zeros(no_param_choices)
+        for index, hyper_choice in enumerate(sorted(list(losses[out_split].keys()))):
+            losses_choice = [np.mean(np.array(losses[out_split][hyper_choice][model])) for model in
+                             losses[out_split][hyper_choice].keys()]
+            x[index] = hyper_choice
+            y[index] = np.mean(losses_choice)
+            yerr[index] = np.std(losses_choice)
+
+        avg_median += y
+        print(yerr)
+        median_each_choice.append(avg_median)
+        markers, caps, bars = plt.errorbar(x, y, yerr=yerr, fmt='none',
+                                           ecolor=colour,
+                                           label='Split %d' % out_split,
+                                           elinewidth=3,
+                                           capsize=10)
+        [bar.set_alpha(0.3) for bar in bars]
+        [cap.set_alpha(0.5) for cap in caps]
+
+    # Adding legend to the plot
+    param_choices = sorted(list(losses[0].keys()))
+    medians_out_split = np.transpose(median_each_choice)
+    medians_out_split = np.true_divide(medians_out_split.sum(1), (medians_out_split != 0).sum(1))
+
+    plt.plot(param_choices, medians_out_split, color='red', linewidth=2)
+    plt.legend(loc='best', frameon=True)
+    # Adding plotting parameters
+    plt.title('Error bars for LR', fontsize=14)
+    plt.ylabel('Evaluation Loss', fontsize=12)
+    plt.xlabel('Log10 Learning Rate', fontsize=12)
+    plt.ylim(35, 50)
     plt.show()
 
 
 if __name__ == "__main__":
-    plt_all_learn_curves(plt_learn_proc)
+    plot_error_ncv()

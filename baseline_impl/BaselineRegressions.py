@@ -13,7 +13,7 @@ if not os.path.exists(baseline_result_dir):
     os.makedirs(baseline_result_dir)
 
 
-def nested_cross_validation(pers_trait, base_model, hyper_search_space):
+def nested_cross_validation_baselines(pers_trait, base_model, hyper_search_space):
     if base_model is LinearRegression:
         model_name = 'LR'
     elif base_model is svm.SVR:
@@ -80,4 +80,4 @@ if __name__ == "__main__":
     rvm_search = {'kernel': ['rbf', 'linear', 'poly', 'sigmoid'],
                   'n_iter': [500, 1000, 1500, 3000],
                   'alpha': [1e-06]}
-    nested_cross_validation(pers_trait='NEO.NEOFAC_A', base_model=rvm_reg, hyper_search_space=rvm_search)
+    nested_cross_validation_baselines(pers_trait='NEO.NEOFAC_A', base_model=rvm_reg, hyper_search_space=rvm_search)
