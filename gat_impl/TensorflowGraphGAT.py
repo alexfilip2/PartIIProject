@@ -6,8 +6,8 @@ from keras.models import Model
 
 
 class TensorflowGraphGAT(object):
-
-    def average_feature_aggregator(self, model_gat_output, **kwargs):
+    @staticmethod
+    def average_feature_aggregator(model_gat_output, **kwargs):
         """ Averages the node features produced by GAT and feeds them into a single layer of MLP
                 Parameters
                 ----------
@@ -31,7 +31,8 @@ class TensorflowGraphGAT(object):
                         use_bias=True)(in_mlp)
         return out_avg
 
-    def concat_feature_aggregator(self, model_gat_output, **kwargs):
+    @staticmethod
+    def concat_feature_aggregator(model_gat_output, **kwargs):
         """ Concatenates the node features produced by GAT and feed them into a single layer of MLP
                 Parameters
                 ----------
@@ -57,7 +58,8 @@ class TensorflowGraphGAT(object):
                            use_bias=True)(in_mlp)
         return out_concat
 
-    def master_node_aggregator(self, model_gat_output, **kwargs):
+    @staticmethod
+    def master_node_aggregator(model_gat_output, **kwargs):
         """ Aggregate the node features produced by GAT via a Master node
                 Parameters
                 ----------
@@ -84,14 +86,15 @@ class TensorflowGraphGAT(object):
         batch_ext_bias = Lambda(function=prepare_biases)(model_gat_output)
 
         # master GAT layer
-        master_layer = GraphAttention(F_=kwargs['master_feats'],
-                                      attn_heads=kwargs['master_heads'],
-                                      attn_heads_reduction='average',
-                                      flag_batch_norm=False,
-                                      flag_include_ew=False,
-                                      dropout_rate=kwargs['attn_drop'],
-                                      decay_rate=kwargs['decay_rate'],
-                                      activation=lambda x: x)([model_gat_output, batch_ext_adjs, batch_ext_bias])
+        master_layer = GATLayer(F_=kwargs['master_feats'],
+                                attn_heads=kwargs['master_heads'],
+                                attn_heads_reduction='average',
+                                flag_batch_norm=False,
+                                flag_include_ew=False,
+                                flag_edge_weights=False,
+                                dropout_rate=kwargs['attn_drop'],
+                                decay_rate=kwargs['decay_rate'],
+                                activation=lambda x: x)([model_gat_output, batch_ext_adjs, batch_ext_bias])
 
         # extract only the high-level features produced for the master node (in each batch graph)
         def extract_master_feats(inputs):
@@ -106,7 +109,8 @@ class TensorflowGraphGAT(object):
 
         return out_master
 
-    def inference_keras(self, dim_nodes, dim_feats, hidden_units, attention_heads, attn_drop, decay_rate,
+    @staticmethod
+    def inference_keras(dim_nodes, dim_feats, hidden_units, attention_heads, attn_drop, decay_rate,
                         use_batch_norm, include_ew, non_linearity, readout_aggregator, target_score_type, **kwargs):
         """ Builds the GAT architecture
                 Parameters
@@ -141,9 +145,9 @@ class TensorflowGraphGAT(object):
 
         """
         # Define the input placeholders into which data will be fed (batch shape included by default)
-        batch_node_features = Input(shape=(dim_nodes, dim_feats))
-        batch_adj_mats = Input(shape=(dim_nodes, dim_nodes))
-        batch_bias_mats = Input(shape=(dim_nodes, dim_nodes))
+        batch_node_features = Input(shape=(dim_nodes, dim_feats), name='node_features')
+        batch_adj_mats = Input(shape=(dim_nodes, dim_nodes), name='adjacency_matrices')
+        batch_bias_mats = Input(shape=(dim_nodes, dim_nodes), name='masks')
 
         # integrate the hyper-parameters of the arch. depending on the type of READOUT used
         mutable_hu = hidden_units.copy()
@@ -151,7 +155,7 @@ class TensorflowGraphGAT(object):
         layer_args = {'dropout_rate': attn_drop,
                       'flag_batch_norm': use_batch_norm,
                       'decay_rate': decay_rate,
-                      'flag_include_ew': include_ew}
+                      'flag_edge_weights': include_ew}
         master_heads = master_feats = 0
         if readout_aggregator is TensorflowGraphGAT.master_node_aggregator:
             master_heads = mutable_ah.pop()
@@ -162,7 +166,7 @@ class TensorflowGraphGAT(object):
                            'attn_heads': mutable_ah[0],
                            'attn_heads_reduction': 'concat',
                            'activation': non_linearity})
-        input_layer = GraphAttention(**layer_args)(inputs=[batch_node_features, batch_adj_mats, batch_bias_mats])
+        input_layer = GATLayer(**layer_args)([batch_node_features, batch_adj_mats, batch_bias_mats])
         # hidden GAT layers
         prev_out = input_layer
         for i in range(1, len(mutable_ah) - 1):
@@ -170,7 +174,7 @@ class TensorflowGraphGAT(object):
                                'attn_heads': mutable_ah[i],
                                'attn_heads_reduction': 'concat',
                                'activation': non_linearity})
-            i_th_layer = GraphAttention(**layer_args)(
+            i_th_layer = GATLayer(**layer_args)(
                 inputs=[prev_out, batch_adj_mats, batch_bias_mats])
             prev_out = i_th_layer
             # accumulate the regularization losses
@@ -186,13 +190,13 @@ class TensorflowGraphGAT(object):
             layer_args.update({'flag_batch_norm': False,
                                'attn_heads_reduction': 'average',
                                'activation': lambda x: x})
-        last_layer = GraphAttention(**layer_args)(
+        last_layer = GATLayer(**layer_args)(
             inputs=[prev_out, batch_adj_mats, batch_bias_mats])
 
         # average the regularization losses by the total nr of attention heads
 
         # aggregate all the output node features using the specified strategy
-        gat_output = readout_aggregator(self, model_gat_output=last_layer, target_score_type=target_score_type,
+        gat_output = readout_aggregator(model_gat_output=last_layer, target_score_type=target_score_type,
                                         decay_rate=decay_rate, dim_nodes=dim_nodes, attn_drop=attn_drop,
                                         master_heads=master_heads, master_feats=master_feats)
         # define the Keras Model based on the Functional API

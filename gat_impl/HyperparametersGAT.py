@@ -4,9 +4,9 @@ from gat_impl.TensorflowGraphGAT import *
 
 from keras.activations import relu
 
-checkpts_dir = os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))), 'Results', 'GAT_results')
-if not os.path.exists(checkpts_dir):
-    os.makedirs(checkpts_dir)
+gat_result_dir = os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))), 'Results', 'GAT_results')
+if not os.path.exists(gat_result_dir):
+    os.makedirs(gat_result_dir)
 
 
 # class embodying the hyperparameter choice of a GAT model
@@ -40,6 +40,7 @@ class HyperparametersGAT(object):
             'k_strip_epochs': 5,
             'low_ew_limit': 2.4148,
             'num_epochs': 150}
+
         # update the default hyper-parameters
         self.update(update_hyper=updated_params)
         if self.params['nested_CV_level'] not in {'inner', 'outer'}:
@@ -81,20 +82,21 @@ class HyperparametersGAT(object):
         return '_'.join(str_params)
 
     def get_name(self):
-        return str(self).split('CV_')[0]
+        import re
+        return re.compile(re.escape('_CV') + '.*').sub('', re.sub(r"PT_[A-Z]{1,5}_", "", str(self)))
 
     def update(self, update_hyper):
         if update_hyper is not None:
             self.params.update(update_hyper)
 
-    def checkpt_file(self):
-        return os.path.join(checkpts_dir, 'checkpoint_' + str(self) + '.h5')
+    def checkpoint_file(self):
+        return os.path.join(gat_result_dir, 'checkpoint_' + str(self) + '.h5')
 
     def logs_file(self):
-        return os.path.join(checkpts_dir, 'logs_' + str(self) + '.pck')
+        return os.path.join(gat_result_dir, 'logs_' + str(self) + '.pck')
 
     def results_file(self):
-        return os.path.join(checkpts_dir, 'predictions_' + str(self))
+        return os.path.join(gat_result_dir, 'predictions_' + str(self))
 
     def proc_data_dir(self):
         if self.params['load_specific_data'] is load_struct_data:

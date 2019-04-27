@@ -175,18 +175,3 @@ def load_struct_data(hyparams):
     print('Data set for the structural graphs was computed and persisted on disk.')
 
     return dict_dataset, sorted(available_subjs)
-
-
-# load the STRUCTURAL DATA for the BASELINE MODEL
-def load_baseline_struct_data(trait_choice):
-    hyparams = {'ew_limits': 2.4148,
-                'edgeWeights_filter': lower_bound_filter,
-                'pers_traits_selection': trait_choice
-                }
-    data, subjs = load_struct_data(hyparams)
-    adj_matrices, scores = [], []
-
-    for subj_id in sorted(subjs):
-        adj_matrices.append(data[subj_id]['ftr_in'].flatten().tolist())
-        scores.append(np.squeeze(data[subj_id]['score_in'].flatten()))
-    return np.array(adj_matrices), np.array(scores)

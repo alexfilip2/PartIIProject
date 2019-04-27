@@ -3,7 +3,6 @@ import os
 import pandas as pd
 import random
 import sys
-from itertools import product
 
 # Excel file containing per-subject personality scores
 pers_scores = os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))), 'Data', 'TIVscores',
@@ -96,23 +95,6 @@ def check_symmetric(a: np.ndarray, tol=1e-8):
     return np.allclose(a, a.T, atol=tol)
 
 
-# flatten the adjacency matrices storing the edge weights and store them on disk
-def persist_ew_data(get_adjs_loader):
-    data_type = get_adjs_loader.__name__.split('_')[1]
-    dataset_dir = os.path.join(os.getcwd(), os.pardir, 'PartIIProject', data_type + '_data')
-    ew_file = os.path.join(dataset_dir, 'flatten_edge_weigths_%s.npy' % data_type)
-    if os.path.exists(ew_file):
-        print('Loading the serialized edge weights data...')
-        edge_weights = np.load(ew_file)
-        print('Edge weights data was loaded.')
-    else:
-        print('Creating and serializing edge weights data...')
-        adjs = list(get_adjs_loader().values())
-        edge_weights = [np.array(mat)[np.triu_indices(len(mat))] for mat in adjs]
-        edge_weights = np.array(edge_weights).flatten()
-        np.save(ew_file, edge_weights)
-        print('Edge weights data was persisted on disk.')
-    return edge_weights
 
 
 ################### util functions for processing NODE FEATURES ########################
@@ -121,7 +103,3 @@ def rescale_feats(min, max, x):
     return float(x - min) / float(max - min)
 
 
-def assert_disjoint(sets):
-    for set_1, set_2 in product(sets, sets):
-        if set_1 is not set_2:
-            assert set(set_1).isdisjoint(set(set_2))

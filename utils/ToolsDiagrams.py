@@ -2,7 +2,8 @@ import matplotlib.pyplot as plt
 import networkx as nx
 from matplotlib import pyplot, patches
 import seaborn as sns
-from NestedCrossValGAT import *
+from gat_impl.HyperparametersGAT import *
+
 import math
 import re
 
@@ -16,7 +17,7 @@ if not os.path.exists(gat_model_stats):
 def plt_learn_proc(model_GAT_config: HyperparametersGAT) -> None:
     print("Restoring training logs from file %s." % model_GAT_config.logs_file())
     with open(model_GAT_config.logs_file(), 'rb') as in_file:
-        logs = pickle.load(in_file)
+        logs = pkl.load(in_file)
     tr_loss, vl_loss = logs['history']['loss'], logs['history']['val_loss']
     nb_epochs = len(tr_loss)
     # Create data
@@ -35,7 +36,7 @@ def plt_residuals(model_GAT_config: HyperparametersGAT) -> None:
     sns.set(style="whitegrid")
     print("Restoring prediction results from file %s." % model_GAT_config.results_file())
     with open(model_GAT_config.results_file(), 'rb') as in_file:
-        results = pickle.load(in_file)
+        results = pkl.load(in_file)
     for pers_trait in model_GAT_config.params['pers_traits_selection']:
         true_score, predicted_score = map(lambda x: np.array(x), zip(*results[pers_trait]))
         plt.figure()
@@ -58,7 +59,7 @@ def plot_pq_ratio(model_GAT_config: HyperparametersGAT) -> None:
         model_GAT_config.update({'eval_fold_out': out_split})
         if os.path.exists(model_GAT_config.logs_file()):
             with open(model_GAT_config.logs_file(), 'rb') as in_file:
-                logs['split_' + str(out_split)] = np.array(pickle.load(in_file)['early_stop']['pq_ratio'])
+                logs['split_' + str(out_split)] = np.array(pkl.load(in_file)['early_stop']['pq_ratio'])
         else:
             return
     logs['epoch'] = list(range(1, min(map(len, list(logs.values()))) + 1))
@@ -131,19 +132,20 @@ def plot_node_degree_hist(get_adjs_loader=get_structural_adjs, filter_flag=True)
 
 
 def plot_pers_scores_hist():
-    scores_data, trait_names = get_NEO5_scores(HyperparametersGAT().params)
+    scores_data = get_NEO5_scores(HyperparametersGAT().params['pers_traits_selection'])
     all_traits = np.array(list(scores_data.values())).transpose()
-
+    trait_names = HyperparametersGAT().params['pers_traits_selection']
     packed_scores = zip(all_traits, trait_names)
     for trait_vals, trait_n in packed_scores:
         n, bins, patches = plt.hist(x=trait_vals, bins='auto', color='#0504aa', alpha=0.7, rwidth=0.85)
         plt.grid(axis='y', alpha=0.75)
-        plt.xlabel('Peronality trait value')
-        plt.ylabel('Frequency')
-        plt.title('Histogram of the distribution of %s trait' % trait_n)
+        plt.xlabel('Personality Trait Value')
+        plt.ylabel('Population Frequency')
+        plt.title('Distribution of the %s trait' % trait_n)
         maxfreq = n.max()
         # Set a clean upper y-axis limit.
         plt.ylim(top=np.ceil(maxfreq / 10) * 10 if maxfreq % 10 else maxfreq + 10)
+        plt.savefig(os.path.join(gat_model_stats, 'distribution_%s.pdf' % trait_n.split('.')[-1]))
         plt.show()
 
 
@@ -153,7 +155,7 @@ def get_results(config: HyperparametersGAT):
     return ts_loss
 
 
-def plot_error_ncv(hyper_param='attn_drop'):
+def plot_error_ncv(hyper_param='learning_rate'):
     losses = {}
     config = HyperparametersGAT()
     for file in sorted(os.listdir(checkpts_dir)):
@@ -211,5 +213,7 @@ def plot_error_ncv(hyper_param='attn_drop'):
     plt.show()
 
 
+
+
 if __name__ == "__main__":
-    plot_error_ncv()
+    plot_pers_scores_hist()

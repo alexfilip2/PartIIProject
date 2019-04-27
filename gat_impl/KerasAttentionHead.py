@@ -1,22 +1,20 @@
 from __future__ import absolute_import
 import tensorflow as tf
-from keras import activations, constraints, initializers, regularizers
+from keras import initializers, regularizers
 from keras import backend as K
-
 from keras.layers import Layer, LeakyReLU, Multiply, Dropout, BatchNormalization
 
 
-class GraphAttention(Layer):
-
+class GATLayer(Layer):
     def __init__(self,
                  F_,
-                 attn_heads=1,
-                 attn_heads_reduction='concat',  # {'concat', 'average'}
-                 dropout_rate=0.4,
-                 decay_rate=0.0005,
-                 activation=activations.relu,
-                 flag_batch_norm=True,
-                 flag_include_ew=True,
+                 attn_heads,
+                 attn_heads_reduction,  # {'concat', 'average'}
+                 dropout_rate,
+                 decay_rate,
+                 activation,
+                 flag_batch_norm,
+                 flag_edge_weights,
                  use_bias=True,
                  kernel_initializer='glorot_uniform',
                  bias_initializer='zeros',
@@ -24,12 +22,8 @@ class GraphAttention(Layer):
                  kernel_regularizer=regularizers.l2,
                  bias_regularizer=regularizers.l2,
                  attn_kernel_regularizer=regularizers.l2,
-                 activity_regularizer=None,
-                 kernel_constraint=None,
-                 bias_constraint=None,
-                 attn_kernel_constraint=None,
                  **kwargs):
-        super(GraphAttention, self).__init__(**kwargs)
+        super(GATLayer, self).__init__(**kwargs)
         if attn_heads_reduction not in {'concat', 'average'}:
             raise ValueError('Possbile reduction methods: concat, average')
 
@@ -40,7 +34,7 @@ class GraphAttention(Layer):
         self.activation = activation  # Eq. 4 in the paper
         self.use_bias = use_bias
         self.use_batch_norm = flag_batch_norm
-        self.use_ew = flag_include_ew
+        self.use_ew = flag_edge_weights
         self.decay_rate = decay_rate
 
         self.kernel_initializer = initializers.get(kernel_initializer)
@@ -50,12 +44,6 @@ class GraphAttention(Layer):
         self.kernel_regularizer = kernel_regularizer(decay_rate)
         self.bias_regularizer = bias_regularizer(decay_rate)
         self.attn_kernel_regularizer = attn_kernel_regularizer(decay_rate)
-        self.activity_regularizer = regularizers.get(activity_regularizer)
-
-        self.kernel_constraint = constraints.get(kernel_constraint)
-        self.bias_constraint = constraints.get(bias_constraint)
-        self.attn_kernel_constraint = constraints.get(attn_kernel_constraint)
-        self.supports_masking = False
 
         # Populated by build()
         self.kernels = []  # Layer kernels for attention heads
@@ -79,7 +67,6 @@ class GraphAttention(Layer):
             kernel = self.add_weight(shape=(F, self.F_),
                                      initializer=self.kernel_initializer,
                                      regularizer=self.kernel_regularizer,
-                                     constraint=self.kernel_constraint,
                                      name='kernel_{}'.format(head))
             self.kernels.append(kernel)
 
@@ -88,7 +75,6 @@ class GraphAttention(Layer):
                 bias = self.add_weight(shape=(self.F_,),
                                        initializer=self.bias_initializer,
                                        regularizer=self.bias_regularizer,
-                                       constraint=self.bias_constraint,
                                        name='bias_{}'.format(head))
                 self.biases.append(bias)
 
@@ -96,22 +82,19 @@ class GraphAttention(Layer):
             attn_kernel_self = self.add_weight(shape=(self.F_, 1),
                                                initializer=self.attn_kernel_initializer,
                                                regularizer=self.attn_kernel_regularizer,
-                                               constraint=self.attn_kernel_constraint,
                                                name='attn_kernel_self_{}'.format(head), )
             attn_kernel_neighs = self.add_weight(shape=(self.F_, 1),
                                                  initializer=self.attn_kernel_initializer,
                                                  regularizer=self.attn_kernel_regularizer,
-                                                 constraint=self.attn_kernel_constraint,
                                                  name='attn_kernel_neigh_{}'.format(head))
             self.attn_kernels.append([attn_kernel_self, attn_kernel_neighs])
-        self.built = True
 
-    def call(self, inputs, **kwargs):
-        input_node_feats, adjacency_mat, attn_mask = inputs
+    def call(self, inputs, **kwargs) -> tf.Tensor:
         # input_node_feats: Node features (? x N x F)
         # adjacency_mat: Adjacency matrix (? x N x N)
         # attn_mask : Bias matrix (? x N x N)
-        # is_train: bool - specifies if dropout is active/inactive
+        input_node_feats, adjacency_mat, attn_mask = inputs
+
         outputs, layer_u_loss, layer_e_loss = [], [], []
         for head in range(self.attn_heads):
             kernel = self.kernels[head]  # W in the paper (F x F')
@@ -128,7 +111,7 @@ class GraphAttention(Layer):
             # Attention head a(Wh_i, Wh_j) = a^T [[Wh_i], [Wh_j]]
             dense = attn_for_self + tf.transpose(attn_for_neighs, perm=[0, 2, 1])  # (? x N x N) via broadcasting
 
-            # Add nonlinearty
+            # Add non-linearty
             dense = LeakyReLU(alpha=0.2)(dense)
 
             # Mask values before activation (Vaswani et al., 2017)
@@ -193,6 +176,6 @@ class GraphAttention(Layer):
 
         return activation_out
 
-    def compute_output_shape(self, input_shape):
-        output_shape = [(input_shape[0][0], input_shape[0][1], self.output_dim), (), ()]
+    def compute_output_shape(self, input_shape) -> list:
+        output_shape = [(input_shape[0][0], input_shape[0][1], self.output_dim)]
         return output_shape
