@@ -1,132 +1,147 @@
 from utils.ToolsDataProcessing import *
-from utils.Node2VecEmbedding import create_node_embedding
 import pickle as pkl
 
-ptnMAT_colab = os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))), 'Data', 'functional_data')
-dir_proc_funct_data = os.path.join(ptnMAT_colab, 'processed_data')
-if not os.path.exists(dir_proc_funct_data):
-    os.makedirs(dir_proc_funct_data)
+root_functional_data = os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))), 'Data', 'functional_data')
+dir_functional_data = os.path.join(root_functional_data, 'processed_data')
+if not os.path.exists(dir_functional_data):
+    os.makedirs(dir_functional_data)
 
-ptnMAT_dim_sess_file = os.path.join(ptnMAT_colab, '3T_HCP1200_MSMAll_d%d_ts2', 'netmats%d.txt')
-subj_id_file = os.path.join(ptnMAT_colab, 'subjectIDs.txt')
+ptnMAT_dim_sess_file = os.path.join(root_functional_data, '3T_HCP1200_MSMAll_d%d_ts2', 'netmats%d.txt')
+subj_ids_file = os.path.join(root_functional_data, 'subjectIDs.txt')
 
 
-# load the FUNCTIONAL ADJACENCY MATRICES
-def get_functional_adjs(matrices_dim=50, session_id=1):
-    adjs_file = os.path.join(dir_proc_funct_data, 'adjs_matrices_dim%d_sess%d.pkl' % (matrices_dim, session_id))
-    if os.path.exists(adjs_file):
-        print('Loading the serialized adjacency matrices for the functional data...')
-        with open(adjs_file, 'rb') as handle:
-            dict_adj = pkl.load(handle)
+def get_functional_adjacency(matrices_dim: int = 50, session_id: int = 1) -> dict:
+    '''
+     Retrieves the raw structural weighted adjacency matrices.
+    :param matrices_dim: int specifying the dimension of the loaded matrices
+    :param session_id: int the scan session from which they were generated
+    :return: dict storing rank 2 ndarrays adjacency matrices, keyed by str HCP subject ID
+    '''
+    if matrices_dim not in [15, 25, 50, 100, 200, 300]:
+        raise ValueError('Incorrect dimensionality for functional matrices: %d' % matrices_dim)
+    if session_id not in [1, 2]:
+        raise ValueError('Non-existent scan session for functional matrices: %d' % session_id)
+
+    saved_processed_adjs = os.path.join(dir_functional_data,
+                                        'adjacency_matrices_dim%d_sess%d.pkl' % (matrices_dim, session_id))
+    if os.path.exists(saved_processed_adjs):
+        print('Adjacency matrices for the functional data are already processed, loading them from disk...')
+        with open(saved_processed_adjs, 'rb') as fp:
+            processed_adjs = pkl.load(fp)
         print('Adjacency matrices for the functional data was loaded.')
-        return dict_adj
+        return processed_adjs
 
-    print('Creating and serializing adjacency matrices for functional data...')
-    subj_ids = []
-    with open(subj_id_file, 'r', encoding='UTF-8') as data:
-        for line in data:
-            subj_ids.append(line.split()[0])
-    dict_adj = {}
-    with open(ptnMAT_dim_sess_file % (matrices_dim, session_id), 'r', encoding='UTF-8') as data:
-        for line_nr, line in enumerate(data):
+    print('Adjacency matrices for the functional data were not processed before, computing them now...')
+    # get all the hcp subjects for which there is functional data
+    subjects = []
+    with open(subj_ids_file, 'r', encoding='UTF-8') as fp:
+        for line in fp:
+            subjects.append(line.split()[0])
+
+    # initialize the dict as it is the first time we compute it
+    processed_adjs = {}
+    with open(ptnMAT_dim_sess_file % (matrices_dim, session_id), 'r', encoding='UTF-8') as fp:
+        for line_nr, line in enumerate(fp):
             graph = np.zeros(shape=(matrices_dim, matrices_dim))
             for index, str_edge_weight in enumerate(line.split()):
                 edge_entry = float(str_edge_weight)
                 graph[index // matrices_dim][index % matrices_dim] = edge_entry
             # discard negative edge weights
-            dict_adj[subj_ids[line_nr]] = graph.clip(min=0.0)
+            processed_adjs[subjects[line_nr]] = graph.clip(min=0.0)
 
-    with open(adjs_file, 'wb') as handle:
-        pkl.dump(dict_adj, handle, protocol=pkl.HIGHEST_PROTOCOL)
+    with open(saved_processed_adjs, 'wb') as fp:
+        pkl.dump(processed_adjs, fp, protocol=pkl.HIGHEST_PROTOCOL)
     print('Adjacency matrices for the functional data was computed and persisted on disk.')
+    return processed_adjs
 
-    return dict_adj
 
-
-# load the FUNCTIONAL NODE FEATURES
-def get_functional_node_feat(matrices_dim=50, session_id=1):
-    node_feats_file = os.path.join(dir_proc_funct_data, 'node_feats_dim%d_sess%d.pkl' % (matrices_dim, session_id))
-    if os.path.exists(node_feats_file):
-        print('Node features for the functional data already processed, loading them from disk...')
-        with open(node_feats_file, 'rb') as handle:
-            all_node_feats = pkl.load(handle)
-        print('Node features for the functional data was loaded.')
-        return all_node_feats
+def get_functional_features(matrices_dim: int = 50, session_id: int = 1) -> dict:
+    '''
+     Retrieves the un-standardized and un-normalized node features for each functional graph.
+    :param matrices_dim: int specifying the dimension of the loaded feature matrices
+    :param session_id: int the scan session from which they were generated
+    :return: dict storing rank 2 ndarrays node features matrices, keyed by str HCP subject ID
+    '''
+    from utils.Node2VecEmbedding import create_node_embedding
+    if matrices_dim not in [15, 25, 50, 100, 200, 300]:
+        raise ValueError('Incorrect dimensionality for functional feature matrices: %d' % matrices_dim)
+    if session_id not in [1, 2]:
+        raise ValueError('Non-existent scan session for functional feature matrices: %d' % session_id)
+    saved_processed_feats = os.path.join(dir_functional_data,
+                                         'node_features_dim%d_sess%d.pkl' % (matrices_dim, session_id))
+    if os.path.exists(saved_processed_feats):
+        print('Node features for the functional data are already processed, loading them from disk...')
+        with open(saved_processed_feats, 'rb') as handle:
+            processed_feats = pkl.load(handle)
+        print('Node features for the functional data were loaded.')
+        return processed_feats
 
     print('Creating and serializing node features for the functional data...')
+    # extract the feature matrices from Node2Vec embeddings or if non-existent generate them
     node2vec_emb_dir = os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))), 'Data', 'node2vec_embeds',
                                     'emb_dim%d_sess%d' % (matrices_dim, session_id))
     if not os.path.exists(node2vec_emb_dir):
-        create_node_embedding(matrices_dim=matrices_dim, session_id=session_id)
-    all_node_feats = {}
-    feats_limits = {}
-    feat_size = 0
-    for embed in os.listdir(node2vec_emb_dir):
-        with open(os.path.join(node2vec_emb_dir, embed), 'r') as emb_handle:
-            format = emb_handle.readline().split()
-            nr_nodes, feat_size = int(format[0]), int(format[1])
+        if len(os.listdir(node2vec_emb_dir)) == 0:
+            create_node_embedding(matrices_dim=matrices_dim, session_id=session_id)
+    # dictionary of string subject id : ndarray of shape (nr_of_nodes, nr_of_features_per_node)
+    processed_feats = {}
+    for embedding in os.listdir(node2vec_emb_dir):
+        with open(os.path.join(node2vec_emb_dir, embedding), 'r') as fp:
+            graph_format = fp.readline().split()
+            nr_nodes, feat_size = int(graph_format[0]), int(graph_format[1])
             graph_feats = np.zeros((nr_nodes, feat_size))
             for _ in range(nr_nodes):
-                node_str_feat = emb_handle.readline().split()
-                curr_node = int(node_str_feat[0]) - 1
+                node_features = fp.readline().split()
+                node_name = int(node_features[0]) - 1
                 for feat_index in range(feat_size):
-                    curr_feat_val = float(node_str_feat[feat_index])
-                    graph_feats[curr_node][feat_index] = curr_feat_val
-                    if feat_index not in feats_limits.keys():
-                        feats_limits[feat_index] = {}
-                        feats_limits[feat_index]['min'] = curr_feat_val
-                        feats_limits[feat_index]['max'] = curr_feat_val
-                    else:
-                        feats_limits[feat_index]['min'] = min(curr_feat_val, feats_limits[feat_index]['min'])
-                        feats_limits[feat_index]['max'] = max(curr_feat_val, feats_limits[feat_index]['max'])
-            # retrieve the subject name and stroe its features matrix
-            all_node_feats[embed.split('embeddings')[0]] = graph_feats
+                    graph_feats[node_name][feat_index] = float(node_features[feat_index])
+            # retrieve the subject name and store its features matrix
+            processed_feats[embedding.split('embeddings')[0]] = graph_feats
 
-    for subj in all_node_feats.keys():
-        for node_vect in all_node_feats[subj]:
-            for feat_index in range(feat_size):
-                node_vect[feat_index] = rescale_feats(feats_limits[feat_index]['min'],
-                                                      feats_limits[feat_index]['max'],
-                                                      node_vect[feat_index])
-    with open(node_feats_file, 'wb') as handle:
-        pkl.dump(all_node_feats, handle, protocol=pkl.HIGHEST_PROTOCOL)
-        print('Node features for the functional data was computed and persisted on disk.')
-
-    return all_node_feats
+    with open(saved_processed_feats, 'wb') as fp:
+        pkl.dump(processed_feats, fp, protocol=pkl.HIGHEST_PROTOCOL)
+        print('Node features for the functional data were computed and persisted on disk.')
+    return processed_feats
 
 
-# load the FUNCTIONAL DATA for the GAT MODEL
-def load_funct_data(hyparams):
-    str_traits = ''.join([trait.replace('NEO.NEOFAC_', '') for trait in hyparams['pers_traits_selection']])
-    binary_prefix = '%s_d%d_s%d.pkl' % (str_traits, hyparams['functional_dim'], hyparams['scan_session'])
+def load_funct_data(data_params: dict) -> dict:
+    '''
+     Retrieve the entire functional data: dict keyed by str HCP subject ID storing a dict with each specific input for
+    the subject; adjacency matrix, attention mask, feature matrix, targeted scores.
+    :param data_params: dict specifying the choice of personality traits targeted, scan session and
+    matrix dimensionality
+    :return: dict containing the whole data-set
+    '''
+    saved_data_file = ''.join([trait.replace('NEO.NEOFAC_', '') for trait in data_params['pers_traits_selection']])
+    saved_data_file = '%s_dim%d_sess%d.pkl' % (
+        saved_data_file, data_params['functional_dim'], data_params['scan_session'])
 
-    dataset_binary = os.path.join(dir_proc_funct_data, binary_prefix)
-    if os.path.exists(dataset_binary):
-        print('Loading the serialized data for the functional graphs...')
-        with open(dataset_binary, 'rb') as handle:
-            data = pkl.load(handle)
+    saved_data_file = os.path.join(dir_functional_data, saved_data_file)
+    if os.path.exists(saved_data_file):
+        print('Loading the serialized data set of the functional graphs...')
+        with open(saved_data_file, 'rb') as fp:
+            data = pkl.load(fp)
         print('Data set for the functional graphs was loaded.')
-        return data['data'], data['subjs']
+        return data
 
-    dict_adj = get_functional_adjs()
-    dict_node_feat = get_functional_node_feat()
-    dict_tiv_score = get_NEO5_scores(hyparams['pers_traits_selection'])
-
-    dict_dataset = {}
-    available_subjs = []
-    subjects = sorted(list(dict_adj.keys()))
-    for subj_id in subjects:
+    dict_adj = get_functional_adjacency()
+    dict_node_feat = get_functional_features()
+    dict_tiv_score = get_NEO5_scores(data_params['pers_traits_selection'])
+    dict_data = {}
+    all_subjects = sorted(list(dict_adj.keys()))
+    for subj_id in all_subjects:
         if subj_id in dict_node_feat.keys() and subj_id in dict_tiv_score.keys():
-            dict_dataset[subj_id] = {}
-            dict_dataset[subj_id]['bias_in'] = adj_to_bias(dict_adj[subj_id], nhood=1)
+            dict_data[subj_id] = {}
+            dict_data[subj_id]['bias_in'] = adj_to_bias(dict_adj[subj_id], nhood=1)
             norm_adj = norm_rows_adj(dict_adj[subj_id])
-            dict_dataset[subj_id]['adj_in'] = norm_adj
-            dict_dataset[subj_id]['ftr_in'] = dict_node_feat[subj_id]
-            dict_dataset[subj_id]['score_in'] = dict_tiv_score[subj_id]
-            available_subjs.append(subj_id)
+            dict_data[subj_id]['adj_in'] = norm_adj
+            dict_data[subj_id]['ftr_in'] = dict_node_feat[subj_id]
+            dict_data[subj_id]['score_in'] = dict_tiv_score[subj_id]
 
-    with open(dataset_binary, 'wb') as handle:
-        pkl.dump({'data': dict_dataset, 'subjs': sorted(available_subjs)}, handle, protocol=pkl.HIGHEST_PROTOCOL)
+    # standardise and normalize the raw node features
+    preprocess_features(dict_data)
+
+    with open(saved_data_file, 'wb') as fp:
+        pkl.dump(dict_data, fp, protocol=pkl.HIGHEST_PROTOCOL)
     print('Data set for the functional graphs was computed and persisted on disk.')
-
-    return dict_dataset, available_subjs
+    return dict_data

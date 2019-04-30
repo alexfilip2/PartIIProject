@@ -1,8 +1,8 @@
 from gat_impl.KerasAttentionHead import *
-from utils.ToolsDataProcessing import attach_master
 import numpy as np
 from keras.layers import Input, Lambda, Dense
 from keras.models import Model
+from utils.ToolsDataProcessing import adj_to_bias
 
 
 class TensorflowGraphGAT(object):
@@ -71,6 +71,15 @@ class TensorflowGraphGAT(object):
                 out_avg : tensor of shape (?, F'),
                             The tensor storing the average of the feat. vectors across the entire node set
         """
+
+        def attach_master(nb_nodes):
+            mast_mat = np.zeros((nb_nodes, nb_nodes))
+            for i in range(nb_nodes):
+                mast_mat[nb_nodes - 1][i] = 1.0
+                mast_mat[i][nb_nodes - 1] = 1.0
+
+            return np.expand_dims(mast_mat, axis=0), np.expand_dims(adj_to_bias(mast_mat), axis=0)
+
         # connect the master to all the nodes and  pairwise disconnect these
         extended_adj, extended_bias = attach_master(kwargs['dim_nodes'])
 
@@ -90,7 +99,6 @@ class TensorflowGraphGAT(object):
                                 attn_heads=kwargs['master_heads'],
                                 attn_heads_reduction='average',
                                 flag_batch_norm=False,
-                                flag_include_ew=False,
                                 flag_edge_weights=False,
                                 dropout_rate=kwargs['attn_drop'],
                                 decay_rate=kwargs['decay_rate'],

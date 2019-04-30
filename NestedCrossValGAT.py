@@ -1,13 +1,10 @@
-from gat_impl.ExecuteGAT import *
-from utils.LoadFunctionalData import load_funct_data
-from utils.LoadStructuralData import load_struct_data
-from gat_impl.HyperparametersGAT import gat_result_dir
+from gat_impl.HyperparametersGAT import *
 from sklearn.model_selection import ParameterGrid
 import itertools
-import math
 import pickle as pkl
 from itertools import product
-import random
+import numpy as np
+import os
 
 
 def sorted_stratification(gat_config, data_dict, unbalanced_sub, nesting_level):
@@ -28,7 +25,7 @@ def sorted_stratification(gat_config, data_dict, unbalanced_sub, nesting_level):
     if os.path.exists(split_file):
         print('Reload the split of sorted stratification for the model %s' % gat_config)
         with open(split_file, 'rb') as split_binary:
-            stratified_sub = pickle.load(split_binary)
+            stratified_sub = pkl.load(split_binary)
     else:
         from random import randint
         # sort the subject ID's by their attached personality scores
@@ -48,7 +45,7 @@ def sorted_stratification(gat_config, data_dict, unbalanced_sub, nesting_level):
             stratified_sub[dump_fold_id].append(sorted_subjects[unassigned_elem])
         # save the randomized split on disk
         with open(split_file, 'wb') as split_binary:
-            pickle.dump(stratified_sub, split_binary, protocol=pkl.HIGHEST_PROTOCOL)
+            pkl.dump(stratified_sub, split_binary, protocol=pkl.HIGHEST_PROTOCOL)
 
     # retrieve the particular train/val/test sets of this split
     test_sub = stratified_sub.pop(eval_fold)
@@ -91,7 +88,8 @@ def format_for_keras(data_dict, list_sub):
 
 def load_cv_data(gat_config):
     # load the entire data set into main memory
-    data, subjects = gat_config.params['load_specific_data'](gat_config.params)
+    data = gat_config.params['load_specific_data'](gat_config.params)
+    subjects = list(data.keys())
     # prepare the outer split subjects
     train_sub, val_sub, test_sub = sorted_stratification(unbalanced_sub=subjects,
                                                          data_dict=data,
@@ -111,125 +109,30 @@ def load_cv_data(gat_config):
     return tr_data, vl_data, ts_data
 
 
-def sample_hyper_params(max_samples=18000):
-    sampled_models_file = os.path.join(os.path.join(os.path.dirname(__file__)), 'sampled_models.pck')
-    if os.path.exists(sampled_models_file):
-        with open(sampled_models_file, 'rb') as handle:
-            hyparam_choices = pickle.load(handle)
-            return ParameterGrid(hyparam_choices)
-    choices = {
-        'learning_rate': [0.005, 0.001, 0.0005, 0.0001],
-        'decay_rate': [0.0005],
-        'attn_drop': [0.0, 0.2, 0.4, 0.6, 0.8],
-        'readout_aggregator': [GATModel.average_feature_aggregator, GATModel.master_node_aggregator,
-                               GATModel.concat_feature_aggregator],
-        'load_specific_data': [load_struct_data, load_funct_data],
-        'include_ew': [True, False],
-        'batch_size': [32]}
-    models_so_far = np.prod(np.array([len(choices[x]) for x in choices.keys()])) * 25
-    sampling_left = math.floor(max_samples / models_so_far)
-    NO_LAYERS = 3
-    sample_ah = list(itertools.product(range(3, 7), repeat=NO_LAYERS))
-    sample_hu = list(itertools.product(range(12, 48), repeat=NO_LAYERS))
-
-    def check_feat_expansion(ah_hu_choice):
-        for i in range(1, NO_LAYERS - 1):
-            if ah_hu_choice[0][i] * ah_hu_choice[1][i] > ah_hu_choice[0][i - 1] * ah_hu_choice[1][i - 1]:
-                return False
-        # the last GAT layer averages node features (no multiplication with no of attention heads)
-        if ah_hu_choice[1][-1] > ah_hu_choice[0][-2] * ah_hu_choice[1][-2]:
-            return False
-        return True
-
-    valid_ah_hu = set(filter(lambda ah_hu_choice: check_feat_expansion(ah_hu_choice),
-                             list(itertools.product(sample_ah, sample_hu))))
-    choices['arch_width'] = list(map(lambda x: [list(x[0]), list(x[1])], random.sample(valid_ah_hu, sampling_left)))
-    with open(sampled_models_file, 'wb') as handle:
-        pickle.dump(choices, handle)
-
-    return ParameterGrid(choices)
-
-
 # perform the Nested Cross Validation
-def nested_cross_validation_gat(test_flag=True):
-    if test_flag:
-        param_grid = {'arch_width': [[[2, 3, 2], [20, 15, 10]]],
-                      'readout_aggregator': [GATModel.average_feature_aggregator],
-                      'load_specific_data': [load_funct_data],
-                      'include_ew': [True],
-                      'attn_drop': [0.4],
-                      'learning_rate': [0.0001],
-                      'decay_rate': [0.0005],
-                      'batch_size': [8]}
-        grid = ParameterGrid(param_grid)
-    else:
-        grid = sample_hyper_params()
-    dict_param = {
-        'k_outer': 5,
-        'k_inner': 5,
-        'nested_CV_level': 'inner'}
-    gat_model_config = HyperparametersGAT(dict_param)
-    for eval_out in range(dict_param['k_outer']):
-        gat_model_config.params['eval_fold_out'] = eval_out
-        for params in grid:
-            params['attention_heads'] = params['arch_width'][0]
-            params['hidden_units'] = params['arch_width'][1]
-            for eval_in in range(dict_param['k_inner']):
+def nested_cross_validation_gat():
+    grid = ParameterGrid(HyperparametersGAT.get_sampled_models())
+    ncv_params = {'k_outer': HyperparametersGAT().params['k_outer'],
+                  'k_inner': HyperparametersGAT().params['k_inner'],
+                  'nested_CV_level': 'inner'}
+    for params in grid:
+        params['attention_heads'] = params['arch_width'][0]
+        params['hidden_units'] = params['arch_width'][1]
+        params['learning_rate'] = 0.0001
+        gat_model_config = HyperparametersGAT(params)
+        gat_model_config.update(ncv_params)
+        for eval_out in range(ncv_params['k_outer']):
+            gat_model_config.params['eval_fold_out'] = eval_out
+            for eval_in in range(ncv_params['k_inner']):
                 gat_model_config.params['eval_fold_in'] = eval_in
-                gat_model_config.update(params)
                 if os.path.exists(gat_model_config.checkpoint_file()):
-                    continue
+                    pass
                 tr_data, vl_data, ts_data = load_cv_data(gat_config=gat_model_config)
                 model = GATModel(config=gat_model_config)
                 model.fit(training_data=tr_data, validation_data=vl_data)
                 model.evaluate(test_data=ts_data)
-
-
-def gat_eval_losses():
-    inner_results = {}
-    for log_file in os.listdir(gat_result_dir):
-        if log_file.startswith('logs_'):
-            # load the results for a suitable model into main memory
-            with open(os.path.join(gat_result_dir, log_file), 'rb') as logs_file:
-                config = HyperparametersGAT(pkl.load(logs_file)['params'])
-            with open(config.results_file(), 'rb') as out_result_file:
-                results = pkl.load(out_result_file)
-                model_name = config.get_name()
-                outer_split = config.params['eval_fold_out']
-                inner_split = config.params['eval_fold_in']
-            if outer_split not in inner_results.keys():
-                inner_results[outer_split] = {}
-            if model_name not in inner_results[outer_split].keys():
-                inner_results[outer_split][model_name] = {}
-            # save the test losses for the particular inner split
-            inner_results[outer_split][model_name][inner_split] = results['test_loss']
-
-    # print out the best average test loss (as a progress ?/nr of splits)
-    best_losses = {}
-    for out_split in inner_results.keys():
-        best_losses[out_split] = {}
-        avg_loss = {}
-        print('The results for the outer split of ID %s are: ' % out_split)
-        print()
-        for model in inner_results[out_split].keys():
-            avg_loss[model] = {}
-            for trait in HyperparametersGAT().params['pers_traits_selection']:
-                trait_inner_losses = []
-                for in_split in inner_results[out_split][model].keys():
-                    if trait in inner_results[out_split][model][in_split]:
-                        trait_inner_losses.append(inner_results[out_split][model][in_split][trait])
-                avg_loss[model][trait] = np.mean(np.array(trait_inner_losses))
-
-        for trait in HyperparametersGAT().params['pers_traits_selection']:
-            sort_by_trait = list(sorted(avg_loss.keys(), key=lambda key: avg_loss[key][trait]))
-            best_losses[out_split][trait] = (sort_by_trait[0], avg_loss[sort_by_trait[0]][trait])
-            print(
-                'The BEST average test loss for trait %s is  %.3f' % (trait, avg_loss[sort_by_trait[0]][trait]))
-            print('The model achieving this score is %s' % sort_by_trait[0])
-
-            for t, loss in avg_loss[sort_by_trait[0]].items():
-                print(t, loss)
+                model.delete()
 
 
 if __name__ == "__main__":
-    gat_eval_losses()
+    nested_cross_validation_gat()

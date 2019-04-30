@@ -2,7 +2,6 @@ import time
 import pickle
 import os
 from gat_impl.TensorflowGraphGAT import *
-from gat_impl.HyperparametersGAT import HyperparametersGAT
 from keras.optimizers import Adam
 from keras.callbacks import Callback
 from keras.backend import clear_session
@@ -12,14 +11,11 @@ from keras.utils import plot_model
 
 
 class GATModel(TensorflowGraphGAT):
-    @classmethod
-    def default_params(cls):
-        return HyperparametersGAT()
 
     def __init__(self, config):
         # Load the GAT architecture configuration object of the current model
         if config is None:
-            self.config = self.default_params()
+            return
         else:
             self.config = config
         # Load the hyper-parameter configuration of the current model
@@ -107,7 +103,7 @@ class GATModel(TensorflowGraphGAT):
             self.build()
         # if the model is already trained and persisted on disk, load it weights
         if os.path.exists(self.config.checkpoint_file()):
-            self.model.load_weights(self.config.checkpt_file())
+            self.model.load_weights(self.config.checkpoint_file())
             self.is_trained = True
             return
 
@@ -154,18 +150,19 @@ class GATModel(TensorflowGraphGAT):
                                          verbose=0,
                                          steps=None)
         # calculate the MSE for individual traits even if they were predicted all at once
-
         predictions = np.transpose(predictions)
         ts_scores = np.transpose(ts_scores)
         # save the results and losses of the evaluation on disk
         with open(self.config.results_file(), 'wb') as results_binary:
-            results = {'predictions': {}, 'test_loss': {}}
+            results = {'predictions': {}, 'test_loss': {}, 'params': self.config.params}
             for index, pers_trait in enumerate(self.config.params['pers_traits_selection']):
+                print(r2_score(ts_scores[index], predictions[index]))
                 results['predictions'][pers_trait] = list(zip(ts_scores[index], predictions[index]))
                 results['test_loss'][pers_trait] = mean_squared_error(y_true=ts_scores[index],
                                                                       y_pred=predictions[index])
                 print('The test loss for trait %s is  %.5f:' % (pers_trait, results['test_loss'][pers_trait]))
             pickle.dump(results, results_binary)
+        return results
 
     def delete(self):
         # clear the main memory of the TensorFlow graph
