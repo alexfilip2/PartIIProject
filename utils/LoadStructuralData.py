@@ -136,7 +136,7 @@ def load_struct_data(data_params: dict) -> dict:
      for the edge weights
     :return: dict containing the whole data-set
     '''
-    str_traits = ''.join([trait.replace('NEO.NEOFAC_', '') for trait in data_params['pers_traits_selection']])
+    str_traits = ''.join(data_params['pers_traits_selection']).replace('NEO.NEOFAC_', '')
     str_limits = '' if data_params['edgeWeights_filter'] is None else str(data_params['low_ew_limit'])
     saved_data_file = os.path.join(dir_structural_data, '%s_%s.pkl' % (str_traits, str_limits))
     if os.path.exists(saved_data_file):

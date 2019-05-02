@@ -73,6 +73,27 @@ def load_cv_baseline_data(baseline_config: HyperparametersBaselines):
     return tr_data, ts_data
 
 
+def evaluate_baseline(baseline_config: HyperparametersBaselines):
+    tr_data, ts_data = load_cv_baseline_data(baseline_config)
+    # create the ML model
+    estimator = baseline_config.params['model'](**baseline_config.get_suitable_args())
+    # train it on the specific folds
+    estimator.fit(X=tr_data['ftr_in'], y=tr_data['score_in'])
+    # get its predictions on the designated  inner evaluation fold
+    predictions = estimator.predict(X=ts_data['ftr_in'])
+    # compute the MSE loss on predicting that personality trait
+    test_loss = mean_squared_error(predictions, ts_data['score_in'])
+    print('Test loss for the model %s is %.2f: ' % (baseline_config, test_loss))
+    # save the predictions, loss and hyper-parameter config object together
+    with open(baseline_config.results_file(), 'wb') as results_binary:
+        trait, = baseline_config.params['pers_traits_selection']
+        results = {'predictions': {trait: predictions},
+                   'test_loss': {trait: test_loss},
+                   'config': baseline_config}
+        pkl.dump(results, results_binary)
+    return test_loss
+
+
 def nested_cross_validation_baselines(baseline_name):
     # the baseline model to be evaluated
     ncv_params = {'k_outer': HyperparametersBaselines().params['k_outer'],
@@ -90,23 +111,7 @@ def nested_cross_validation_baselines(baseline_name):
                 # check if the baseline already inner evaluated
                 if os.path.exists(config.results_file()):
                     continue
-                tr_data, ts_data = load_cv_baseline_data(config)
-                # create the ML model
-                estimator = config.params['model'](**config.get_suitable_args())
-                # train it on the specific folds
-                estimator.fit(X=tr_data['ftr_in'], y=tr_data['score_in'])
-                # get its predictions on the designated  inner evaluation fold
-                predictions = estimator.predict(X=ts_data['ftr_in'])
-                # compute the MSE loss on predicting that personality trait
-                test_loss = mean_squared_error(predictions, ts_data['score_in'])
-                print('Test loss for the model %s is %.2f: ' % (config, test_loss))
-                # save the predictions, loss and hyper-parameter config object together
-                with open(config.results_file(), 'wb') as results_binary:
-                    trait, = config.params['pers_traits_selection']
-                    results = {'predictions': {trait: predictions},
-                               'test_loss': {trait: test_loss},
-                               'config': config}
-                    pkl.dump(results, results_binary)
+                evaluate_baseline(baseline_config=config)
 
 
 if __name__ == "__main__":

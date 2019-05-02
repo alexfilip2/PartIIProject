@@ -5,29 +5,38 @@ import pickle as pkl
 from itertools import product
 import numpy as np
 import os
+from random import randint
 
 
-def sorted_stratification(gat_config, data_dict, unbalanced_sub, nesting_level):
+def reload_splits(gat_config: HyperparametersGAT, nesting_level: str):
     # identify the particular folds determined by the configuration of the model
     if gat_config.params['nested_CV_level'] == 'outer':
-        k_split = gat_config.params['k_outer']
-        eval_fold = gat_config.params['eval_fold_out']
+        k_split, eval_fold = gat_config.params['k_outer'], gat_config.params['eval_fold_out']
     else:
-        k_split = gat_config.params['k_inner']
-        eval_fold = gat_config.params['eval_fold_in']
-    # check if the split was already generated and present on disk and load if it is so
-    split_id = 'split_%s_%d_%d_%d_%d_%s' % (nesting_level, gat_config.params['k_outer'], gat_config.params['k_inner'],
-                                            gat_config.params['eval_fold_out'], gat_config.params['eval_fold_in'],
-                                            ''.join(gat_config.params['pers_traits_selection']).replace('NEO.NEOFAC_',
-                                                                                                        ''))
+        k_split, eval_fold = gat_config.params['k_inner'], gat_config.params['eval_fold_in']
+    # check if the split was already generated and persisted on disk and load it
+    split_id = 'split_%s_%d_%d_%d_%d_%s' % (nesting_level,
+                                            gat_config.params['k_outer'],
+                                            gat_config.params['k_inner'],
+                                            gat_config.params['eval_fold_out'],
+                                            gat_config.params['eval_fold_in'],
+                                            gat_config.get_summarized_traits())
 
-    split_file = os.path.join(gat_config.proc_data_dir(), split_id + '.pck')
-    if os.path.exists(split_file):
+    saved_split_file = os.path.join(gat_config.processed_data_dir(), split_id + '.pck')
+    if os.path.exists(saved_split_file):
         print('Reload the split of sorted stratification for the model %s' % gat_config)
-        with open(split_file, 'rb') as split_binary:
+        with open(saved_split_file, 'rb') as split_binary:
             stratified_sub = pkl.load(split_binary)
     else:
-        from random import randint
+        stratified_sub = None
+
+    return stratified_sub, k_split, eval_fold, saved_split_file
+
+
+def generate_splits(gat_config: HyperparametersGAT, data_dict: dict, unbalanced_sub: list, nesting_level: str):
+    stratified_sub, k_split, eval_fold, saved_split_file = reload_splits(gat_config, nesting_level)
+
+    if stratified_sub is None:
         # sort the subject ID's by their attached personality scores
         sorted_subjects = sorted(unbalanced_sub, key=lambda subj_name: sum(data_dict[subj_name]['score_in']))
         stratified_sub = [[] for _ in range(k_split)]
@@ -40,11 +49,11 @@ def sorted_stratification(gat_config, data_dict, unbalanced_sub, nesting_level):
                 stratified_sub[fold].append(window[random_index_window])
                 del window[random_index_window]
         # dump the rest of examples uniformly at random to the folds constructed so far
-        for unassigned_elem in range(len(sorted_subjects) // k_split * k_split, len(sorted_subjects)):
+        for unassigned_elem in range(window_nr, len(sorted_subjects)):
             dump_fold_id = randint(0, k_split - 1)
             stratified_sub[dump_fold_id].append(sorted_subjects[unassigned_elem])
         # save the randomized split on disk
-        with open(split_file, 'wb') as split_binary:
+        with open(saved_split_file, 'wb') as split_binary:
             pkl.dump(stratified_sub, split_binary, protocol=pkl.HIGHEST_PROTOCOL)
 
     # retrieve the particular train/val/test sets of this split
@@ -55,7 +64,7 @@ def sorted_stratification(gat_config, data_dict, unbalanced_sub, nesting_level):
     # delete the val/test sets from the entire data and concatenate it into a list of training subjects
     train_sub = list(itertools.chain.from_iterable(stratified_sub))
 
-    def assert_disjoint(sets):
+    def assert_disjoint(sets: list):
         for set_1, set_2 in product(sets, sets):
             if set_1 is not set_2:
                 assert set(set_1).isdisjoint(set(set_2))
@@ -64,44 +73,36 @@ def sorted_stratification(gat_config, data_dict, unbalanced_sub, nesting_level):
     return train_sub, val_sub, test_sub
 
 
-def format_for_keras(data_dict, list_sub):
-    # the number of nodes of each graph
+def format_for_keras(data_dict: dict, list_sub: list) -> tuple:
+    # the number of nodes of each graph, dimension F of node feature, personality traits targeted at once
     N = data_dict[list_sub[0]]['adj_in'].shape[-1]
-    # the initial dimension F of each node's feature vector
     F = data_dict[list_sub[0]]['ftr_in'].shape[-1]
-    # the number of personality traits targeted at once
     S = len(data_dict[list_sub[0]]['score_in'])
-
     dataset_sz = len(list_sub)
-    keras_formatted = {'ftr_in': np.empty(shape=(dataset_sz, N, F), dtype=np.float32),
-                       'bias_in': np.empty(shape=(dataset_sz, N, N), dtype=np.float32),
-                       'adj_in': np.empty(shape=(dataset_sz, N, N), dtype=np.float32),
-                       'score_in': np.empty(shape=(dataset_sz, S), dtype=np.float32)}
+    formatted = {'ftr_in': np.empty(shape=(dataset_sz, N, F), dtype=np.float32),
+                 'bias_in': np.empty(shape=(dataset_sz, N, N), dtype=np.float32),
+                 'adj_in': np.empty(shape=(dataset_sz, N, N), dtype=np.float32),
+                 'score_in': np.empty(shape=(dataset_sz, S), dtype=np.float32)}
 
     for example_index, s_key in enumerate(list_sub):
-        for input_type in keras_formatted.keys():
-            keras_formatted[input_type][example_index] = data_dict[s_key][input_type]
+        for input_type in formatted.keys():
+            formatted[input_type][example_index] = data_dict[s_key][input_type]
 
-    return (keras_formatted['ftr_in'], keras_formatted['adj_in'],
-            keras_formatted['bias_in'], keras_formatted['score_in'])
+    return (formatted['ftr_in'], formatted['adj_in'], formatted['bias_in'], formatted['score_in'])
 
 
-def load_cv_data(gat_config):
+def load_cv_data(gat_config: HyperparametersGAT):
     # load the entire data set into main memory
     data = gat_config.params['load_specific_data'](gat_config.params)
     subjects = list(data.keys())
     # prepare the outer split subjects
-    train_sub, val_sub, test_sub = sorted_stratification(unbalanced_sub=subjects,
-                                                         data_dict=data,
-                                                         gat_config=gat_config,
-                                                         nesting_level='outer')
+    train_sub, val_sub, test_sub = generate_splits(unbalanced_sub=subjects, data_dict=data, gat_config=gat_config,
+                                                   nesting_level='outer')
     # prepare the inner split subjects
     if gat_config.params['nested_CV_level'] == 'inner':
         inner_sub = list(itertools.chain.from_iterable([train_sub, val_sub]))
-        train_sub, val_sub, test_sub = sorted_stratification(unbalanced_sub=inner_sub,
-                                                             data_dict=data,
-                                                             gat_config=gat_config,
-                                                             nesting_level='inner')
+        train_sub, val_sub, test_sub = generate_splits(unbalanced_sub=inner_sub, data_dict=data, gat_config=gat_config,
+                                                       nesting_level='inner')
     # format the data for compatibility with the Keras GAT model
     tr_data = format_for_keras(data, train_sub)
     vl_data = format_for_keras(data, val_sub)
@@ -118,21 +119,24 @@ def nested_cross_validation_gat():
     for params in grid:
         params['attention_heads'] = params['arch_width'][0]
         params['hidden_units'] = params['arch_width'][1]
-        params['learning_rate'] = 0.0001
         gat_model_config = HyperparametersGAT(params)
         gat_model_config.update(ncv_params)
         for eval_out in range(ncv_params['k_outer']):
             gat_model_config.params['eval_fold_out'] = eval_out
             for eval_in in range(ncv_params['k_inner']):
                 gat_model_config.params['eval_fold_in'] = eval_in
-                if os.path.exists(gat_model_config.checkpoint_file()):
-                    pass
+                if os.path.exists(gat_model_config.results_file()):
+                    continue
                 tr_data, vl_data, ts_data = load_cv_data(gat_config=gat_model_config)
                 model = GATModel(config=gat_model_config)
                 model.fit(training_data=tr_data, validation_data=vl_data)
                 model.evaluate(test_data=ts_data)
-                model.delete()
 
 
 if __name__ == "__main__":
-    nested_cross_validation_gat()
+    gat_model_config = HyperparametersGAT()
+    tr_data, vl_data, ts_data = load_cv_data(gat_config=gat_model_config)
+    model = GATModel(config=gat_model_config)
+    model.fit(training_data=tr_data, validation_data=vl_data)
+    model.evaluate(test_data=ts_data)
+    model.delete()

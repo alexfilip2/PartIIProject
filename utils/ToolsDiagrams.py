@@ -77,19 +77,20 @@ def plot_pq_ratio(model_gat_config: HyperparametersGAT) -> None:
     plt.show()
 
 
-def plot_edge_weight_distribution(log_scale=10, get_adjs_loader=get_structural_adjacency()):
+def plot_edge_weight_distribution(log_scale=10, get_adjs_loader=get_structural_adjacency):
     data_type = get_adjs_loader.__name__.split('_')[1]
     # log-scale values of the weights, excluding the 0 edges (self-edges still have weigth 0)
-    edge_weights = np.array([math.log(x, log_scale) for x in persist_ew_data(get_adjs_loader) if x != 0])
+    dict_adjs = get_structural_adjacency()
+    adjs = np.concatenate([dict_adjs[subj].flatten() for subj in dict_adjs.keys()])
+    edge_weights = np.array([math.log(x, log_scale) for x in adjs.flatten() if x != 0])
     lower_conf = np.percentile(edge_weights, 10)
-    print('Tail limit is %.4f' % lower_conf)
     n, bins, patches = plt.hist(x=edge_weights, bins='auto', color='#0504aa', alpha=0.7, rwidth=None)
     for index, patch in enumerate(patches):
         patch.set_facecolor('#0504aa' if lower_conf <= bins[index] else 'black')
     plt.grid(axis='y', alpha=0.75)
     plt.xlabel('Log %d edge weight value' % log_scale)
     plt.ylabel('Frequency')
-    plt.title('Edge Weight Histogram for %s graphs' % data_type)
+    plt.title('Distribution of edge weights in %s graphs' % data_type)
     maxfreq = n.max()
     # Set a clean upper y-axis limit.
     plt.ylim(top=np.ceil(maxfreq / 10) * 10 if maxfreq % 10 else maxfreq + 10)
@@ -97,12 +98,12 @@ def plot_edge_weight_distribution(log_scale=10, get_adjs_loader=get_structural_a
     plt.show()
 
 
-def plot_node_degree_distribution(get_adjs_loader=get_structural_adjacency(), filter_flag=True):
+def plot_node_degree_distribution(get_adjs_loader=get_functional_adjacency, filter_flag=False):
     data_type = get_adjs_loader.__name__.split('_')[1]
     adjs = np.array(list(get_adjs_loader().values()))
     if filter_flag:
         for i in range(len(adjs)):
-            adjs[i] = lower_bound_filter(CONF_LIMIT, adjs[i])
+            adjs[i] = lower_bound_filter(adjs[i], CONF_LIMIT)
 
     binary_adjs = [get_binary_adj(g) for g in adjs]
     degrees = np.array([[np.sum(curr_node_edges) for curr_node_edges in g] for g in binary_adjs]).flatten()
@@ -110,10 +111,10 @@ def plot_node_degree_distribution(get_adjs_loader=get_structural_adjacency(), fi
     plt.grid(axis='y', alpha=0.75)
     plt.xlabel('Node degree value')
     plt.ylabel('Frequency')
-    plt.title('Node degrees Histogram for %s data when filtering is %r' % (data_type, filter_flag))
+    plt.title('Distribution of functional node degrees')
     mean = np.mean(degrees)
     var = np.var(degrees)
-    plt.text(x=5, y=n.max() * 0.5, s=r'$\mu=%.2f, b=%.2f$' % (mean, var))
+    plt.text(x=5, y=n.max() * 0.45, s=r'$\mu=%.2f, b=%.2f$' % (mean, var))
     maxfreq = n.max()
     # Set a clean upper y-axis limit.
     plt.ylim(top=np.ceil(maxfreq / 10) * 10 if maxfreq % 10 else maxfreq + 10)
@@ -231,4 +232,4 @@ def plot_comparison():
 
 
 if __name__ == "__main__":
-    plot_error_ncv(model_name='GAT', hyper_param='load_specific_data')
+    plot_error_ncv(hyper_param='readout_aggregator',model_name='GAT')

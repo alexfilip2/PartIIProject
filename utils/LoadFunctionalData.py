@@ -112,7 +112,7 @@ def load_funct_data(data_params: dict) -> dict:
     matrix dimensionality
     :return: dict containing the whole data-set
     '''
-    saved_data_file = ''.join([trait.replace('NEO.NEOFAC_', '') for trait in data_params['pers_traits_selection']])
+    saved_data_file = ''.join(data_params['pers_traits_selection']).replace('NEO.NEOFAC_', '')
     saved_data_file = '%s_dim%d_sess%d.pkl' % (
         saved_data_file, data_params['functional_dim'], data_params['scan_session'])
 

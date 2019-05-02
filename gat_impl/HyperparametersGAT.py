@@ -13,7 +13,7 @@ if not os.path.exists(gat_result_dir):
     os.makedirs(gat_result_dir)
 
 
-# class embodying the hyperparameter choice of a GAT model
+# utility class for storing together the hyper-parameters of a GAT model into an object
 class HyperparametersGAT(object):
 
     def __init__(self, updated_params=None):
@@ -61,7 +61,7 @@ class HyperparametersGAT(object):
         self.params['pq_threshold'] = pq_alpha[self.params['readout_aggregator']][self.params['include_ew']][
             self.params['load_specific_data']]
 
-        # keep an order on the personality traits predicted at once (so we can decode them from the vectors inferred)
+        # keep a fixed order on the personality traits so we can decode when predicting them all at once
         self.params['pers_traits_selection'] = sorted(self.params['pers_traits_selection'])
         self.params['target_score_type'] = len(self.params['pers_traits_selection'])
 
@@ -79,83 +79,18 @@ class HyperparametersGAT(object):
         str_dropout = 'DROP_' + str(self.params['attn_drop'])
         str_learn_rate = 'LR_' + str(self.params['learning_rate'])
         str_decay_rate = 'DR_' + str(self.params['decay_rate'])
-
         str_params = [str_dataset, str_dim_sess, str_attn_heads, str_hid_units, str_traits, str_aggregator,
                       str_include_ew, str_batch_sz, str_dropout, str_learn_rate, str_decay_rate, str_cross_val]
         if self.params['load_specific_data'].__name__.split('_')[1] == 'struct':
             str_params.remove(str_dim_sess)
-
         return '_'.join(str_params)
 
-    def get_name(self):
-        import re
-        return re.compile(re.escape('_CV') + '.*').sub('', re.sub(r"PT_[A-Z]{1,5}_", "", str(self)))
-
-    def update(self, update_hyper):
-        if update_hyper is not None:
-            self.params.update(update_hyper)
-
-    def checkpoint_file(self):
-        return os.path.join(gat_result_dir, 'checkpoint_' + str(self) + '.h5')
-
-    def logs_file(self):
-        return os.path.join(gat_result_dir, 'logs_' + str(self) + '.pck')
-
-    def results_file(self):
-        return os.path.join(gat_result_dir, 'predictions_' + str(self))
-
-    def proc_data_dir(self):
-        if self.params['load_specific_data'] is load_struct_data:
-            return dir_structural_data
-        else:
-            return dir_functional_data
-
-    @staticmethod
-    def get_samples_file():
-        return os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))), 'Results',
-                            'gat_sampled_models.pck')
-
-    @staticmethod
-    def get_sampled_models(max_samples=18000, **kwargs):
-        if os.path.exists(HyperparametersGAT.get_samples_file()):
-            with open(HyperparametersGAT.get_samples_file(), 'rb') as handle:
-                hyparam_choices = pkl.load(handle)
-                return hyparam_choices
-        choices = {
-            'learning_rate': [0.005, 0.001, 0.0005, 0.0001],
-            'decay_rate': [0.0005],
-            'attn_drop': [0.0, 0.2, 0.4, 0.6, 0.8],
-            'readout_aggregator': [GATModel.average_feature_aggregator, GATModel.master_node_aggregator,
-                                   GATModel.concat_feature_aggregator],
-            'load_specific_data': [load_struct_data, load_funct_data],
-            'include_ew': [True, False],
-            'batch_size': [32]}
-        models_so_far = np.prod(np.array([len(choices[x]) for x in choices.keys()])) * 25
-        sampling_left = math.floor(max_samples / models_so_far)
-        NO_LAYERS = 3
-        sample_ah = list(itertools.product(range(3, 7), repeat=NO_LAYERS))
-        sample_hu = list(itertools.product(range(12, 48), repeat=NO_LAYERS))
-
-        def check_feat_expansion(ah_hu_choice):
-            for i in range(1, NO_LAYERS - 1):
-                if ah_hu_choice[0][i] * ah_hu_choice[1][i] > ah_hu_choice[0][i - 1] * ah_hu_choice[1][i - 1]:
-                    return False
-            # the last GAT layer averages node features (no multiplication with no of attention heads)
-            if ah_hu_choice[1][-1] > ah_hu_choice[0][-2] * ah_hu_choice[1][-2]:
-                return False
-            return True
-
-        valid_ah_hu = set(filter(lambda ah_hu_choice: check_feat_expansion(ah_hu_choice),
-                                 list(itertools.product(sample_ah, sample_hu))))
-        choices['arch_width'] = list(map(lambda x: [list(x[0]), list(x[1])], random.sample(valid_ah_hu, sampling_left)))
-        with open(HyperparametersGAT.get_samples_file(), 'wb') as handle:
-            pickle.dump(choices, handle)
-
-        return choices
-
     def print_model_details(self):
+        '''
+         Prints the details of the current GAT model as hyper-parameters of architecture, training process and nested CV
+        :return: void
+        '''
         params = self.params
-        # GAT hyper-parameters
         print('Name of the current GAT model is %s' % self)
         if params['load_specific_data'] == load_struct_data:
             print('Dataset: structural HCP graphs')
@@ -183,8 +118,117 @@ class HyperparametersGAT(object):
         print('Outer evaluation fold id: ' + str(self.params['eval_fold_out']))
         print('Inner evaluation fold id: ' + str(self.params['eval_fold_in']))
 
+    def get_name(self):
+        '''
+         Get the name of the GAT model discarding the hyper-parameters of the Nested Cross Validation
+        :return: str of the base name of the model
+        '''
+        import re
+        return re.compile(re.escape('_CV') + '.*').sub('', re.sub(r"PT_[A-Z]{1,5}_", "", str(self)))
+
+    def get_summarized_traits(self):
+        return ''.join(self.params['pers_traits_selection']).replace('NEO.NEOFAC_', '')
+
+    def update(self, update_hyper):
+        '''
+         Updates the default hyper-parameters of the GAT configuration object
+        :param update_hyper: dict of new hyper-parameters
+        :return: void, it's changing the internal state of the object
+        '''
+        if update_hyper is not None:
+            self.params.update(update_hyper)
+
+    def checkpoint_file(self):
+        '''
+        Retrieves the path to the checkpoint file where the model (its parameters) is/should be saved
+        :return: str path
+        '''
+        return os.path.join(gat_result_dir, 'checkpoint_' + str(self) + '.h5')
+
+    def logs_file(self):
+        '''
+        Retrieves the path to the logs file where the training history of the model is/should be saved
+        :return: str path
+        '''
+        return os.path.join(gat_result_dir, 'logs_' + str(self) + '.pck')
+
+    def results_file(self):
+        '''
+         Retrieves the path to the results file where the evaluation data: test loss, predictions is/should be saved
+        :return: str path
+        '''
+        return os.path.join(gat_result_dir, 'predictions_' + str(self))
+
+    def processed_data_dir(self):
+        '''
+         Retrieves the path to the directory where the dataset used by this GAT model is stored
+        :return: str path
+        '''
+        if self.params['load_specific_data'] is load_struct_data:
+            return dir_structural_data
+        else:
+            return dir_functional_data
+
+    @staticmethod
+    def get_sampled_models(max_samples=18000, **kwargs):
+        '''
+         Samples a pre-defined number of GAT configurations for the inner CV of the nested CV phase
+        :param max_samples: maximum number of sampled models
+        :param kwargs: compatibility with the sampling function of baseline models
+        :return: dict of hyper-parameters choices to be converted to a Grid Search
+        '''
+        samples_file = os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))), 'Results',
+                                    'gat_sampled_models.pck')
+        if os.path.exists(samples_file):
+            with open(samples_file, 'rb') as handle:
+                return pkl.load(handle)
+
+        choices = {
+            'learning_rate': [0.005, 0.001, 0.0005, 0.0001],
+            'decay_rate': [0.0005],
+            'attn_drop': [0.0, 0.2, 0.4, 0.6, 0.8],
+            'readout_aggregator': [GATModel.average_feature_aggregator, GATModel.master_node_aggregator,
+                                   GATModel.concat_feature_aggregator],
+            'load_specific_data': [load_struct_data, load_funct_data],
+            'include_ew': [True, False],
+            'batch_size': [32]}
+        models_so_far = np.prod(np.array([len(choices[x]) for x in choices.keys()])) * 25
+        sampling_left = math.floor(max_samples / models_so_far)
+        NO_LAYERS = 3
+        sample_ah = list(itertools.product(range(3, 7), repeat=NO_LAYERS))
+        sample_hu = list(itertools.product(range(12, 48), repeat=NO_LAYERS))
+
+        def check_feat_expansion(ah_hu_choice):
+            '''
+             Checks if the particular choice of attention heads and units per GAT layer follows an expansion approach
+             of the node features' dimensionality
+            :param ah_hu_choice: tuple of two lists of the choices of attention heads and hidden units
+            :return: bool, the validity of the choice
+            '''
+            for i in range(1, NO_LAYERS - 1):
+                if ah_hu_choice[0][i] * ah_hu_choice[1][i] > ah_hu_choice[0][i - 1] * ah_hu_choice[1][i - 1]:
+                    return False
+            # the last GAT layer averages node features (no multiplication with no of attention heads)
+            if ah_hu_choice[1][-1] > ah_hu_choice[0][-2] * ah_hu_choice[1][-2]:
+                return False
+            return True
+
+        valid_ah_hu = set(filter(lambda ah_hu_choice: check_feat_expansion(ah_hu_choice),
+                                 list(itertools.product(sample_ah, sample_hu))))
+        choices['arch_width'] = list(map(lambda x: [list(x[0]), list(x[1])], random.sample(valid_ah_hu, sampling_left)))
+        with open(samples_file, 'wb') as handle:
+            pickle.dump(choices, handle)
+
+        return choices
+
     @staticmethod
     def inner_losses(filter_by_params: dict):
+        '''
+         Extract the inner CV test losses obtained on the inner evaluation folds for all the models sampled using
+         the values of the hyper-parameters as specified by the filter dict.
+        :param filter_by_params: dict of hyper-parameter name and filtering value
+        :return: dict of individual model test losses
+        '''
         lookup_table = {}
         inner_results = {}
         inner_losses_file = os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))), 'Results',
@@ -218,8 +262,10 @@ class HyperparametersGAT(object):
                 # save the test losses for the particular inner split (already computed for all traits)
                 inner_results[outer_split][model_name][inner_split] = results['test_loss']
 
+            # save the unfiltered inner losses
             with open(inner_losses_file, 'wb') as handle:
                 pkl.dump((inner_results, lookup_table), handle)
+
         # extract only the evaluation results of the models with specific hyper-parameters
         for out_split in inner_results.keys():
             model_names = list(inner_results[out_split].keys())
