@@ -5,7 +5,6 @@ from sklearn import svm
 from sklearn.linear_model import LinearRegression
 import inspect
 
-
 baseline_result_dir = os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))), 'Results',
                                    'Baselines_results')
 if not os.path.exists(baseline_result_dir):
@@ -130,6 +129,8 @@ class HyperparametersBaselines(object):
                     with open(os.path.join(baseline_result_dir, result_file), 'rb') as out_result_file:
                         results = pkl.load(out_result_file)
                         config_obj = results['config']
+                        if config_obj.params['nested_CV_level'] == 'outer':
+                            continue
                         model_name = config_obj.get_name()
                         # fill in the lookup table
                         lookup_table[model_name] = config_obj

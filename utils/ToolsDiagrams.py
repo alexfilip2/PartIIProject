@@ -141,6 +141,7 @@ def plot_pers_scores_distribution():
 
 
 def plot_error_ncv(hyper_param, model_name):
+    sns.set(style="whitegrid")
     if model_name == 'GAT':
         model_type = HyperparametersGAT
     else:
@@ -182,28 +183,29 @@ def plot_error_ncv(hyper_param, model_name):
             label = None
             if out_split not in labels:
                 labels.add(out_split)
-                label = 'Outer Split %d' % out_split
+                label = 'inner level #%d' % out_split
             markers, caps, bars = plt.errorbar(x, y, yerr=yerr, fmt='none', ecolor=colour, label=label, elinewidth=3,
                                                capsize=10)
             for bar in bars:
-                bar.set_alpha(0.5)
+                bar.set_alpha(1.0)
             for cap in caps:
-                cap.set_alpha(0.5)
+                cap.set_alpha(1.0)
 
     for j, colour in enumerate(colours):
         plt.plot([map_hyper_values[hyper_value] for hyper_value in hyper_values], np.transpose(avg_median)[j],
-                 color=colour, alpha=0.5,
+                 color=colour, alpha=0.75,
                  linewidth=1)
     # Adding legend to the plot
     avg_median = np.mean(avg_median, axis=-1)
-    plt.plot([map_hyper_values[hyper_value] for hyper_value in hyper_values], avg_median, color='red', linewidth=2)
+    plt.plot([map_hyper_values[hyper_value] for hyper_value in hyper_values], avg_median, color='red', linewidth=3)
     ticks = hyper_values
     if callable(hyper_values[0]):
-        ticks = list(map(lambda x: x.__name__, hyper_values))
-    plt.xticks(sorted(list(map_hyper_values.values())), ticks)
-    plt.legend(loc='best', frameon=True)
-    plt.ylabel('Evaluation Loss', fontsize=14)
-    plt.xlabel('Dropout rate ', fontsize=12)
+        ticks = list(map(lambda x: x.__name__.split('_')[0], hyper_values))
+    plt.xticks(sorted(list(map_hyper_values.values())), ticks, fontsize=10)
+    plt.legend(loc='upper center', frameon=True, bbox_to_anchor=(0.0, 0.0, 0.5, 1.0))
+    plt.ylabel('Evaluation Loss', fontsize=12)
+    plt.xlabel('Hyperparemeter Value', fontsize=12)
+    plt.savefig(os.path.join(gat_model_stats, 'error_bars_%s.pdf' % hyper_param))
     plt.show()
 
 
@@ -232,4 +234,4 @@ def plot_comparison():
 
 
 if __name__ == "__main__":
-    plot_error_ncv(hyper_param='readout_aggregator',model_name='GAT')
+    plot_error_ncv(hyper_param='C', model_name='SVR')

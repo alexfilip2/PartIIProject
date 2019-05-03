@@ -1,6 +1,7 @@
 from utils.LoadStructuralData import load_struct_data, dir_structural_data
 from utils.LoadFunctionalData import load_funct_data, dir_functional_data
 from utils.ToolsDataProcessing import lower_bound_filter
+from sklearn.model_selection import ParameterGrid
 from keras.activations import relu
 import pickle as pkl
 from gat_impl.ExecuteGAT import *
@@ -237,30 +238,34 @@ class HyperparametersGAT(object):
             with open(inner_losses_file, 'rb') as handle:
                 inner_results, lookup_table = pkl.load(handle)
         else:
-            for result_file in list(filter(lambda x: x.startswith('predictions_'), os.listdir(gat_result_dir))):
-                with open(os.path.join(gat_result_dir, result_file), 'rb') as result_fp:
-                    results = pkl.load(result_fp)
-                if 'params' not in results.keys():
-                    log_file = 'logs_' + result_file.split('predictions_')[0]
-                    with open(os.path.join(gat_result_dir, log_file), 'rb') as logs_file:
-                        params = pkl.load(logs_file)['params']
-                    results['params'] = params
-                    with open(os.path.join(gat_result_dir, result_file), 'wb') as result_fp:
-                        pkl.dump(results, result_fp)
-                else:
-                    params = results['params']
-                config = HyperparametersGAT(params)
-                model_name = config.get_name()
-                # load the results for a suitable model into main memory
-                lookup_table[model_name] = config
-                outer_split = config.params['eval_fold_out']
-                inner_split = config.params['eval_fold_in']
-                if outer_split not in inner_results.keys():
-                    inner_results[outer_split] = {}
-                if model_name not in inner_results[outer_split].keys():
-                    inner_results[outer_split][model_name] = {}
-                # save the test losses for the particular inner split (already computed for all traits)
-                inner_results[outer_split][model_name][inner_split] = results['test_loss']
+            grid = ParameterGrid(HyperparametersGAT.get_sampled_models())
+            ncv_params = {'k_outer': HyperparametersGAT().params['k_outer'],
+                          'k_inner': HyperparametersGAT().params['k_inner'],
+                          'nested_CV_level': 'inner'}
+            for params in grid:
+                params['attention_heads'] = params['arch_width'][0]
+                params['hidden_units'] = params['arch_width'][1]
+                gat_model_config = HyperparametersGAT(params)
+                gat_model_config.update(ncv_params)
+                for eval_out in range(ncv_params['k_outer']):
+                    gat_model_config.params['eval_fold_out'] = eval_out
+                    for eval_in in range(ncv_params['k_inner']):
+                        gat_model_config.params['eval_fold_in'] = eval_in
+                        if os.path.exists(gat_model_config.results_file()):
+                            with open(gat_model_config.results_file(), 'rb') as result_fp:
+                                results = pkl.load(result_fp)
+                        else:
+                            print('Incomplete nested CV results, missing model %s' % gat_model_config)
+                            return
+                        model_name = gat_model_config.get_name()
+                        # load the results for a suitable model into main memory
+                        lookup_table[model_name] = gat_model_config
+                        if eval_out not in inner_results.keys():
+                            inner_results[eval_out] = {}
+                        if model_name not in inner_results[eval_out].keys():
+                            inner_results[eval_out][model_name] = {}
+                        # save the test losses for the particular inner split (already computed for all traits)
+                        inner_results[eval_out][model_name][eval_in] = results['test_loss']
 
             # save the unfiltered inner losses
             with open(inner_losses_file, 'wb') as handle:

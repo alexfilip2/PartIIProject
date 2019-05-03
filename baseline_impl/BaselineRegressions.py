@@ -1,6 +1,6 @@
 from baseline_impl.HyperparametersBaselines import *
 from gat_impl.HyperparametersGAT import HyperparametersGAT
-from NestedCrossValGAT import sorted_stratification
+from NestedCrossValGAT import generate_splits
 from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import ParameterGrid
 import numpy as np
@@ -11,8 +11,8 @@ cached_data = {}
 
 
 def load_baseline_data(baseline_config: HyperparametersBaselines):
-    entire_data, subjects = baseline_config.params['load_specific_data'](baseline_config.params)
-    assert set(list(entire_data.keys())) == set(subjects)
+    entire_data = baseline_config.params['load_specific_data'](baseline_config.params)
+    subjects = list(entire_data.keys())
     dict_baseline_data = {}
     for subj_id in sorted(subjects):
         if subj_id not in dict_baseline_data.keys():
@@ -56,17 +56,17 @@ def load_cv_baseline_data(baseline_config: HyperparametersBaselines):
     baseline_params.pop('pers_traits_selection')
     gat_config = HyperparametersGAT(baseline_params)
     # prepare the outer split subjects
-    train_sub, val_sub, test_sub = sorted_stratification(unbalanced_sub=subjects,
-                                                         data_dict=dict_baseline_data,
-                                                         gat_config=gat_config,
-                                                         nesting_level='outer')
+    train_sub, val_sub, test_sub = generate_splits(unbalanced_sub=subjects,
+                                                   data_dict=dict_baseline_data,
+                                                   gat_config=gat_config,
+                                                   nesting_level='outer')
     # prepare the inner split subjects
     if gat_config.params['nested_CV_level'] == 'inner':
         inner_sub = list(itertools.chain.from_iterable([train_sub, val_sub]))
-        train_sub, val_sub, test_sub = sorted_stratification(unbalanced_sub=inner_sub,
-                                                             data_dict=dict_baseline_data,
-                                                             gat_config=gat_config,
-                                                             nesting_level='inner')
+        train_sub, val_sub, test_sub = generate_splits(unbalanced_sub=inner_sub,
+                                                       data_dict=dict_baseline_data,
+                                                       gat_config=gat_config,
+                                                       nesting_level='inner')
     # format the data for compatibility with the Keras GAT model
     tr_data = format_for_baselines(dict_baseline_data, train_sub)
     ts_data = format_for_baselines(dict_baseline_data, test_sub)
@@ -74,6 +74,9 @@ def load_cv_baseline_data(baseline_config: HyperparametersBaselines):
 
 
 def evaluate_baseline(baseline_config: HyperparametersBaselines):
+    if os.path.exists(baseline_config.results_file()):
+        with open(baseline_config.results_file(), 'rb') as fp:
+            return pkl.load(fp)
     tr_data, ts_data = load_cv_baseline_data(baseline_config)
     # create the ML model
     estimator = baseline_config.params['model'](**baseline_config.get_suitable_args())
@@ -91,7 +94,7 @@ def evaluate_baseline(baseline_config: HyperparametersBaselines):
                    'test_loss': {trait: test_loss},
                    'config': baseline_config}
         pkl.dump(results, results_binary)
-    return test_loss
+    return results
 
 
 def nested_cross_validation_baselines(baseline_name):
@@ -108,9 +111,6 @@ def nested_cross_validation_baselines(baseline_name):
                 # create the configuration object for the baseline
                 config = HyperparametersBaselines(hyper_params)
                 config.update(ncv_params)
-                # check if the baseline already inner evaluated
-                if os.path.exists(config.results_file()):
-                    continue
                 evaluate_baseline(baseline_config=config)
 
 

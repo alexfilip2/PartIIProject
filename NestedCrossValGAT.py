@@ -24,7 +24,6 @@ def reload_splits(gat_config: HyperparametersGAT, nesting_level: str):
 
     saved_split_file = os.path.join(gat_config.processed_data_dir(), split_id + '.pck')
     if os.path.exists(saved_split_file):
-        print('Reload the split of sorted stratification for the model %s' % gat_config)
         with open(saved_split_file, 'rb') as split_binary:
             stratified_sub = pkl.load(split_binary)
     else:
@@ -110,6 +109,17 @@ def load_cv_data(gat_config: HyperparametersGAT):
     return tr_data, vl_data, ts_data
 
 
+def evaluate_gat(config: HyperparametersGAT):
+    if os.path.exists(config.results_file()):
+        with open(config.results_file(), 'rb') as fp:
+            loss_result = pkl.load(fp)
+            return loss_result
+    tr_data, vl_data, ts_data = load_cv_data(gat_config=config)
+    model = GATModel(config=config)
+    model.fit(training_data=tr_data, validation_data=vl_data)
+    return model.evaluate(test_data=ts_data)
+
+
 # perform the Nested Cross Validation
 def nested_cross_validation_gat():
     grid = ParameterGrid(HyperparametersGAT.get_sampled_models())
@@ -117,26 +127,19 @@ def nested_cross_validation_gat():
                   'k_inner': HyperparametersGAT().params['k_inner'],
                   'nested_CV_level': 'inner'}
     for params in grid:
-        params['attention_heads'] = params['arch_width'][0]
-        params['hidden_units'] = params['arch_width'][1]
-        gat_model_config = HyperparametersGAT(params)
-        gat_model_config.update(ncv_params)
         for eval_out in range(ncv_params['k_outer']):
-            gat_model_config.params['eval_fold_out'] = eval_out
             for eval_in in range(ncv_params['k_inner']):
-                gat_model_config.params['eval_fold_in'] = eval_in
-                if os.path.exists(gat_model_config.results_file()):
-                    continue
-                tr_data, vl_data, ts_data = load_cv_data(gat_config=gat_model_config)
-                model = GATModel(config=gat_model_config)
-                model.fit(training_data=tr_data, validation_data=vl_data)
-                model.evaluate(test_data=ts_data)
+                # update the architecture hyper-parameters
+                params['attention_heads'] = params['arch_width'][0]
+                params['hidden_units'] = params['arch_width'][1]
+                gat_model_config = HyperparametersGAT(params)
+                # update the nested CV hyper-parameters
+                ncv_params['eval_fold_out'] = eval_out
+                ncv_params['eval_fold_in'] = eval_in
+                gat_model_config.update(ncv_params)
+                # train and evaluate the GAT model
+                evaluate_gat(gat_model_config)
 
 
 if __name__ == "__main__":
-    gat_model_config = HyperparametersGAT()
-    tr_data, vl_data, ts_data = load_cv_data(gat_config=gat_model_config)
-    model = GATModel(config=gat_model_config)
-    model.fit(training_data=tr_data, validation_data=vl_data)
-    model.evaluate(test_data=ts_data)
-    model.delete()
+    nested_cross_validation_gat()
