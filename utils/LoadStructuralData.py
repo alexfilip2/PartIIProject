@@ -137,8 +137,7 @@ def load_struct_data(data_params: dict) -> dict:
     :return: dict containing the whole data-set
     '''
     str_traits = ''.join(data_params['pers_traits_selection']).replace('NEO.NEOFAC_', '')
-    str_limits = '' if data_params['edgeWeights_filter'] is None else str(data_params['low_ew_limit'])
-    saved_data_file = os.path.join(dir_structural_data, '%s_%s.pkl' % (str_traits, str_limits))
+    saved_data_file = os.path.join(dir_structural_data, 'trait_choice_%s.pkl' % str_traits)
     if os.path.exists(saved_data_file):
         print('Loading the serialized data set of structural graphs...')
         with open(saved_data_file, 'rb') as fp:
@@ -156,11 +155,7 @@ def load_struct_data(data_params: dict) -> dict:
             dict_data[subj_id] = {}
             dict_data[subj_id]['bias_in'] = adj_to_bias(dict_adj[subj_id], nhood=1)
             # normalize the rows of the adjacency matrix, apply threshold filter for the edge weights
-            if data_params['edgeWeights_filter'] is None:
-                norm_adj = norm_rows_adj(dict_adj[subj_id])
-            else:
-                norm_adj = norm_rows_adj(
-                    data_params['edgeWeights_filter'](dict_adj[subj_id], data_params['low_ew_limit']))
+            norm_adj = norm_rows_adj(lower_bound_filter(dict_adj[subj_id]))
             dict_data[subj_id]['adj_in'] = norm_adj
             dict_data[subj_id]['ftr_in'] = dict_node_feat[subj_id]
             dict_data[subj_id]['score_in'] = dict_tiv_score[subj_id]

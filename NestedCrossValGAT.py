@@ -141,9 +141,10 @@ def nested_cross_validation_gat():
 
 
 if __name__ == "__main__":
-    evaluate_gat(HyperparametersGAT({'hidden_units': [20, 25, 10],
-                                     'attention_heads': [3, 3, 2],
-                                     'include_ew': False,
-                                     'pers_traits_selection': ['NEO.NEOFAC_A'],
-                                     'readout_aggregator': TensorflowGraphGAT.concat_feature_aggregator,
-                                     }))
+    for iew in [True, False]:
+        for data in [ TensorflowGraphGAT.concat_feature_aggregator]:
+            evaluate_gat(HyperparametersGAT({'hidden_units': [10, 5],
+                                             'attention_heads': [3, 3],
+                                             'include_ew': iew,
+                                             'eval_fold_out': 3,
+                                             'readout_aggregator': data}))

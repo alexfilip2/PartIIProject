@@ -51,6 +51,7 @@ def outer_evaluation():
     if os.path.exists(outer_results_file):
         with open(outer_results_file, 'rb') as fp:
             outer_losses = pkl.load(fp)
+            pprint.pprint(outer_losses)
             return outer_losses
 
     outer_losses = {}
@@ -87,17 +88,35 @@ def outer_evaluation():
     # save the outer evaluation losses
     with open(outer_results_file, 'wb') as handle:
         pkl.dump(outer_losses, handle)
-
+    pprint.pprint(outer_losses)
     return outer_losses
 
 
+def get_outer_metrics():
+    '''
+     Prints the Pearson and R-squared metrics obtained from the outer predictions of the best-scoring GAT models per
+     dataset and trait choices.
+    :return: void
+    '''
+    for data_set in [load_funct_data, load_struct_data]:
+        traits = sorted(HyperparametersGAT().params['pers_traits_selection'])
+        for trait in traits:
+            best_gat = get_best_models(HyperparametersGAT, model_name='GAT', data_set=data_set, trait=trait)
+            pearson = []
+            r_squared = []
+            for out_fold in range(HyperparametersGAT().params['k_outer']):
+                config, _ = best_gat[out_fold]
+                config.params['nested_CV_level'] = 'outer'
+                config.params['eval_fold_out'] = out_fold
+                results = config.get_results()
+                pearson.append(results['pearson'][trait][0])
+                r_squared.append(results['r2_score'][trait])
+            pearson_value = (np.mean(np.array(pearson)), np.std(np.array(pearson)))
+            r_squared_value = (np.mean(np.array(r_squared)), np.std(np.array(r_squared)))
+
+            print('On the dataset %s when predicting %s, the avg. pearson value was %s and the r-squared value %s' % (
+                data_set.__name__.split('_')[1], trait, pearson_value, r_squared_value))
+
+
 if __name__ == "__main__":
-    outer_ncv_results = outer_evaluation()
-    pprint.pprint(outer_ncv_results)
-    for m, model_results in outer_ncv_results.items():
-        for d, dataset_results in model_results.items():
-            for t in sorted(HyperparametersGAT().params['pers_traits_selection']):
-                trait_results = np.array([dataset_results[out_fold][t] for out_fold in dataset_results.keys()])
-                mean = np.mean(trait_results)
-                stdev = np.std(trait_results)
-                print(m, d, t, mean, stdev)
+    get_outer_metrics()

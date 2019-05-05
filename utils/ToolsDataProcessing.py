@@ -22,10 +22,14 @@ def get_NEO5_scores(trait_choice: list) -> dict:
         for trait in trait_choice:
             tiv_scores.append(df[trait])
         # build the dict
-        subjects = map(str, list(df['Subject']))
+        subjects = list(map(str, list(df['Subject'])))
         tiv_score_dict = dict(zip(subjects, np.array(tiv_scores).transpose()))
+        for i in range(len(tiv_scores)):
+            for j in range(len(tiv_scores[i])):
+                assert tiv_score_dict[subjects[j]][i] == tiv_scores[i][j]
     else:
         raise IOError('Missing personality scores Excel file %s' % pers_scores_file)
+
     return tiv_score_dict
 
 
@@ -65,7 +69,7 @@ def adj_to_bias(adj: np.ndarray, nhood: int = 1) -> np.ndarray:
     return -1e9 * (1.0 - neighbourhood)
 
 
-def lower_bound_filter(struct_adj: np.ndarray, log_10_limit: float) -> np.ndarray:
+def lower_bound_filter(struct_adj: np.ndarray, log_10_limit: float = 2.4148) -> np.ndarray:
     '''
     Reduce to 0.0 all the entries of a structural adjacency matrix that don't reach a specific threshold
     :param log_10_limit: logarithm base 10 of the threshold value

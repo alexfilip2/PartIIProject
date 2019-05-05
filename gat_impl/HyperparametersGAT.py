@@ -1,4 +1,4 @@
-from utils.LoadStructuralData import load_struct_data, dir_structural_data, lower_bound_filter
+from utils.LoadStructuralData import load_struct_data, dir_structural_data
 from utils.LoadFunctionalData import load_funct_data, dir_functional_data
 from sklearn.model_selection import ParameterGrid
 from gat_impl.ExecuteGAT import *
@@ -8,7 +8,6 @@ import itertools
 import math
 import random
 
-NO_LAYERS = 3
 gat_result_dir = os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))), 'Results', 'GAT_results')
 if not os.path.exists(gat_result_dir):
     os.makedirs(gat_result_dir)
@@ -18,6 +17,10 @@ if not os.path.exists(gat_result_dir):
 class HyperparametersGAT(object):
 
     def __init__(self, updated_params=None):
+        '''
+         Initialize the object embodying the configuration of a GAT model.
+        :param updated_params: specific hyper-parameters used by current GAT configuration
+        '''
         self.params = {
             # architecture hyper-parameters
             'name': 'GAT',
@@ -36,8 +39,6 @@ class HyperparametersGAT(object):
             'batch_size': 32,
             'functional_dim': 50,
             'scan_session': 1,
-            'edgeWeights_filter': lower_bound_filter,
-            'low_ew_limit': 2.4148,
             'num_epochs': 150,
             'pq_threshold': np.inf,
             'train_prog_threshold': 0.1,
@@ -69,6 +70,10 @@ class HyperparametersGAT(object):
         self.params['target_score_type'] = len(self.params['pers_traits_selection'])
 
     def __str__(self):
+        '''
+         Produces a unique string identifier of the current GAT model.
+        :return: str of the name of the model, including the nested CV parameters
+        '''
         str_dataset = 'GAT_%s' % self.params['load_specific_data'].__name__.split('_')[1]
         str_dim_sess = 'DIM_%dSESS_%d' % (self.params['functional_dim'], self.params['scan_session'])
         str_attn_heads = 'AH_%s' % ",".join(map(str, self.params['attention_heads']))
@@ -131,6 +136,10 @@ class HyperparametersGAT(object):
         return re.compile(re.escape('_CV') + '.*').sub('', re.sub(r"PT_[A-Z]{1,5}_", "", str(self)))
 
     def get_summarized_traits(self):
+        '''
+         Summarize the names of the traits targeted at once.
+        :return: str of the concatenation of the trait names without the common prefixes
+        '''
         return ''.join(self.params['pers_traits_selection']).replace('NEO.NEOFAC_', '')
 
     def update(self, update_hyper):
@@ -164,6 +173,10 @@ class HyperparametersGAT(object):
         return os.path.join(gat_result_dir, 'predictions_' + str(self))
 
     def get_results(self):
+        '''
+        Retrieve the results of the model.
+        :return: dict with evaluation results: losses, metrics, predictions
+        '''
         results = None
         if os.path.exists(self.results_file()):
             with open(self.results_file(), 'rb') as result_fp:
@@ -181,11 +194,12 @@ class HyperparametersGAT(object):
             return dir_functional_data
 
     @staticmethod
-    def get_sampled_models(max_samples=18000, **kwargs):
+    def get_sampled_models(max_samples=18000, no_layers=3, **kwargs):
         '''
          Samples a pre-defined number of GAT configurations for the inner CV of the nested CV phase
         :param max_samples: maximum number of sampled models
         :param kwargs: compatibility with the sampling function of baseline models
+        :param no_layers: number of layers of the sampled configurations
         :return: dict of hyper-parameters choices to be converted to a Grid Search
         '''
         samples_file = os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))), 'Results',
@@ -203,10 +217,10 @@ class HyperparametersGAT(object):
             'load_specific_data': [load_struct_data, load_funct_data],
             'include_ew': [True, False],
             'batch_size': [32]}
-        models_so_far = np.prod(np.array([len(choices[x]) for x in choices.keys()])) * 25
+        models_so_far = np.prod(np.array([len(choices[x]) for x in choices.keys()])) * 5 * 5
         sampling_left = math.floor(max_samples / models_so_far)
-        sample_ah = list(itertools.product(range(3, 7), repeat=NO_LAYERS))
-        sample_hu = list(itertools.product(range(12, 48), repeat=NO_LAYERS))
+        sample_ah = list(itertools.product(range(3, 7), repeat=no_layers))
+        sample_hu = list(itertools.product(range(12, 48), repeat=no_layers))
 
         def check_feat_expansion(ah_hu_choice):
             '''
@@ -215,7 +229,7 @@ class HyperparametersGAT(object):
             :param ah_hu_choice: tuple of two lists of the choices of attention heads and hidden units
             :return: bool, the validity of the choice
             '''
-            for i in range(1, NO_LAYERS - 1):
+            for i in range(1, no_layers - 1):
                 if ah_hu_choice[0][i] * ah_hu_choice[1][i] > ah_hu_choice[0][i - 1] * ah_hu_choice[1][i - 1]:
                     return False
             # the last GAT layer averages node features (no multiplication with no of attention heads)
@@ -244,9 +258,10 @@ class HyperparametersGAT(object):
         inner_losses_file = os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))), 'Results',
                                          'gat_inner_eval_losses.pck')
         if os.path.exists(inner_losses_file):
-            with open(inner_losses_file, 'rb') as handle:
-                inner_results, lookup_table = pkl.load(handle)
+            with open(inner_losses_file, 'rb') as fp:
+                inner_results, lookup_table = pkl.load(fp)
         else:
+            # retrieve only the results of the sampled models
             grid = ParameterGrid(HyperparametersGAT.get_sampled_models())
             ncv_params = {'k_outer': HyperparametersGAT().params['k_outer'],
                           'k_inner': HyperparametersGAT().params['k_inner'],
@@ -257,9 +272,8 @@ class HyperparametersGAT(object):
                 gat_model_config = HyperparametersGAT(params)
                 gat_model_config.update(ncv_params)
                 for eval_out in range(ncv_params['k_outer']):
-                    if eval_out not in inner_results.keys():
-                        inner_results[eval_out] = {}
                     gat_model_config.params['eval_fold_out'] = eval_out
+                    inner_results[eval_out] = {}
                     for eval_in in range(ncv_params['k_inner']):
                         gat_model_config.params['eval_fold_in'] = eval_in
                         results = gat_model_config.get_results()
@@ -267,18 +281,16 @@ class HyperparametersGAT(object):
                             print('Incomplete nested CV results, missing model %s' % gat_model_config)
                             return
                         model_name = gat_model_config.get_name()
-                        # load the results for a suitable model into main memory
                         lookup_table[model_name] = gat_model_config
                         if model_name not in inner_results[eval_out].keys():
                             inner_results[eval_out][model_name] = {}
-                        # save the test losses for the particular inner split (already computed for all traits)
                         inner_results[eval_out][model_name][eval_in] = results['test_loss']
 
         # save the unfiltered inner losses
         with open(inner_losses_file, 'wb') as handle:
             pkl.dump((inner_results, lookup_table), handle)
 
-        # extract only the evaluation results of the models with specific hyper-parameters
+        # extract only the evaluation results of the models with specific hyper-parameter values
         for out_split in inner_results.keys():
             model_names = list(inner_results[out_split].keys())
             for model in model_names:
