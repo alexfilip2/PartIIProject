@@ -97,7 +97,7 @@ class TensorflowGraphGAT(object):
         # master GAT layer
         master_layer = GATLayer(F_=kwargs['master_feats'],
                                 attn_heads=kwargs['master_heads'],
-                                attn_heads_reduction='average',
+                                attn_heads_reduction='concat',
                                 flag_batch_norm=False,
                                 flag_edge_weights=False,
                                 dropout_rate=kwargs['attn_drop'],
@@ -163,7 +163,9 @@ class TensorflowGraphGAT(object):
         layer_args = {'dropout_rate': attn_drop,
                       'flag_batch_norm': use_batch_norm,
                       'decay_rate': decay_rate,
-                      'flag_edge_weights': include_ew}
+                      'flag_edge_weights': include_ew,
+                      'attn_heads_reduction': 'concat',
+                      'activation': non_linearity}
         master_heads = master_feats = 0
         if readout_aggregator is TensorflowGraphGAT.master_node_aggregator:
             master_heads = mutable_ah.pop()
@@ -171,17 +173,13 @@ class TensorflowGraphGAT(object):
 
         # input GAT layer
         layer_args.update({'F_': mutable_hu[0],
-                           'attn_heads': mutable_ah[0],
-                           'attn_heads_reduction': 'concat',
-                           'activation': non_linearity})
+                           'attn_heads': mutable_ah[0]})
         input_layer = GATLayer(**layer_args)([batch_node_features, batch_adj_mats, batch_bias_mats])
         # hidden GAT layers
         prev_out = input_layer
         for i in range(1, len(mutable_ah) - 1):
             layer_args.update({'F_': mutable_hu[i],
-                               'attn_heads': mutable_ah[i],
-                               'attn_heads_reduction': 'concat',
-                               'activation': non_linearity})
+                               'attn_heads': mutable_ah[i]})
             i_th_layer = GATLayer(**layer_args)(
                 inputs=[prev_out, batch_adj_mats, batch_bias_mats])
             prev_out = i_th_layer
@@ -190,14 +188,6 @@ class TensorflowGraphGAT(object):
         # output GAT layer
         layer_args.update({'F_': mutable_hu[-1],
                            'attn_heads': mutable_ah[-1]})
-        # choose the activation of the last layer and attention heads aggregation for specific readout
-        if readout_aggregator is TensorflowGraphGAT.master_node_aggregator:
-            layer_args.update({'attn_heads_reduction': 'concat',
-                               'activation': non_linearity})
-        else:
-            layer_args.update({'flag_batch_norm': False,
-                               'attn_heads_reduction': 'average',
-                               'activation': lambda x: x})
         last_layer = GATLayer(**layer_args)(
             inputs=[prev_out, batch_adj_mats, batch_bias_mats])
 

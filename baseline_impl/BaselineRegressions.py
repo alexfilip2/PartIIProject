@@ -7,6 +7,7 @@ import numpy as np
 import itertools
 import random
 
+np.set_printoptions(threshold=sys.maxsize)
 cached_data = {}
 
 
@@ -50,11 +51,7 @@ def load_cv_baseline_data(baseline_config: HyperparametersBaselines):
 
     # retrieve the data
     dict_baseline_data, subjects = cached_data[dataset][trait]
-
-    # ensure we evaluate the baselines on same splits as GAT (which predicts all traits at once)
-    baseline_params = baseline_config.params.copy()
-    baseline_params.pop('pers_traits_selection')
-    gat_config = HyperparametersGAT(baseline_params)
+    gat_config = HyperparametersGAT(baseline_config.params)
     # prepare the outer split subjects
     train_sub, val_sub, test_sub = generate_splits(unbalanced_sub=subjects,
                                                    data_dict=dict_baseline_data,
@@ -76,10 +73,11 @@ def load_cv_baseline_data(baseline_config: HyperparametersBaselines):
 def evaluate_baseline(baseline_config: HyperparametersBaselines):
     if os.path.exists(baseline_config.results_file()):
         with open(baseline_config.results_file(), 'rb') as fp:
-            return pkl.load(fp)
+            loss_result = pkl.load(fp)
+            return loss_result
     tr_data, ts_data = load_cv_baseline_data(baseline_config)
     # create the ML model
-    estimator = baseline_config.params['model'](**baseline_config.get_suitable_args())
+    estimator = baseline_config.params['model'](**(baseline_config.get_suitable_args()))
     # train it on the specific folds
     estimator.fit(X=tr_data['ftr_in'], y=tr_data['score_in'])
     # get its predictions on the designated  inner evaluation fold
@@ -100,7 +98,8 @@ def evaluate_baseline(baseline_config: HyperparametersBaselines):
 def nested_cross_validation_baselines(baseline_name):
     # the baseline model to be evaluated
     ncv_params = {'k_outer': HyperparametersBaselines().params['k_outer'],
-                  'k_inner': HyperparametersBaselines().params['k_outer'], 'nested_CV_level': 'inner'}
+                  'k_inner': HyperparametersBaselines().params['k_outer'],
+                  'nested_CV_level': 'inner'}
     # retrieve the hyper-parameter search space
     grid = ParameterGrid(HyperparametersBaselines.get_sampled_models(baseline_name))
     for eval_out in range(ncv_params['k_outer']):
@@ -115,6 +114,6 @@ def nested_cross_validation_baselines(baseline_name):
 
 
 if __name__ == "__main__":
-    nested_cross_validation_baselines('SVR')
     nested_cross_validation_baselines('LR')
     nested_cross_validation_baselines('RVM')
+    nested_cross_validation_baselines('SVR')

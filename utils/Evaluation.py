@@ -8,11 +8,13 @@ import pprint
 
 def get_best_models(model_type, model_name, data_set, trait) -> dict:
     '''
-    Retrieve the best GAT/baseline models on the inner CV for each choice of outer evaluation set. Can also filter
-    the models by specific hyper-parameters values they used as specified by filter_by_params.
+        Retrieve the best GAT/baseline models on the inner CV evaluated on a specific dataset and targeting a personality
+     trait for each choice of outer evaluation
     :param model_type: HyperparametersGAT or HyperparametersBaselines class to choose the model
-    :param filter_by_params: dict of hyper-parameter name and its value
-    :return: dict of the best models on each inner CV per personality trait and their resulted evaluation loss
+    :param model_name: str, required to differentiate between baselines
+    :param data_set: specific loading function for the structural or functional data
+    :param trait: personality trait targeted
+    :return:
     '''
     # get the entire evaluation data for the inner CV of the filtered models
     inner_results, lookup_table = model_type.inner_losses(filter_by_params={'load_specific_data': data_set,
@@ -74,7 +76,6 @@ def outer_evaluation():
                     # set the configuration object for the outer evaluation of the best inner model
                     config.params['nested_CV_level'] = 'outer'
                     config.params['eval_fold_out'] = eval_fold
-                    config.params['eval_fold_in'] = 0
                     # change the config for the particular trait only in case of baseline as GAT targets all at once
                     if model_name != 'GAT':
                         config.params['pers_traits_selection'] = [trait]
@@ -86,9 +87,17 @@ def outer_evaluation():
     # save the outer evaluation losses
     with open(outer_results_file, 'wb') as handle:
         pkl.dump(outer_losses, handle)
+
     return outer_losses
 
 
 if __name__ == "__main__":
     outer_ncv_results = outer_evaluation()
     pprint.pprint(outer_ncv_results)
+    for m, model_results in outer_ncv_results.items():
+        for d, dataset_results in model_results.items():
+            for t in sorted(HyperparametersGAT().params['pers_traits_selection']):
+                trait_results = np.array([dataset_results[out_fold][t] for out_fold in dataset_results.keys()])
+                mean = np.mean(trait_results)
+                stdev = np.std(trait_results)
+                print(m, d, t, mean, stdev)

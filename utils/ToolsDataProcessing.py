@@ -1,4 +1,4 @@
-from sklearn.preprocessing import MinMaxScaler, normalize
+from sklearn.preprocessing import MinMaxScaler
 import numpy as np
 import pandas as pd
 import os
@@ -131,4 +131,4 @@ def preprocess_features(entire_data: dict):
     concat_features = np.concatenate([entire_data[subject]['ftr_in'] for subject in subjects])
     standardised_feats = MinMaxScaler().fit_transform(X=concat_features).reshape((data_sz, N, F))
     for example_index, subject in enumerate(subjects):
-        entire_data[subject]['ftr_in'] = normalize(standardised_feats[example_index], axis=1)
+        entire_data[subject]['ftr_in'] = standardised_feats[example_index]

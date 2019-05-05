@@ -34,7 +34,6 @@ def reload_splits(gat_config: HyperparametersGAT, nesting_level: str):
 
 def generate_splits(gat_config: HyperparametersGAT, data_dict: dict, unbalanced_sub: list, nesting_level: str):
     stratified_sub, k_split, eval_fold, saved_split_file = reload_splits(gat_config, nesting_level)
-
     if stratified_sub is None:
         # sort the subject ID's by their attached personality scores
         sorted_subjects = sorted(unbalanced_sub, key=lambda subj_name: sum(data_dict[subj_name]['score_in']))
@@ -48,7 +47,7 @@ def generate_splits(gat_config: HyperparametersGAT, data_dict: dict, unbalanced_
                 stratified_sub[fold].append(window[random_index_window])
                 del window[random_index_window]
         # dump the rest of examples uniformly at random to the folds constructed so far
-        for unassigned_elem in range(window_nr, len(sorted_subjects)):
+        for unassigned_elem in range((len(sorted_subjects) // k_split) * k_split, len(sorted_subjects)):
             dump_fold_id = randint(0, k_split - 1)
             stratified_sub[dump_fold_id].append(sorted_subjects[unassigned_elem])
         # save the randomized split on disk
@@ -90,7 +89,7 @@ def format_for_keras(data_dict: dict, list_sub: list) -> tuple:
     return (formatted['ftr_in'], formatted['adj_in'], formatted['bias_in'], formatted['score_in'])
 
 
-def load_cv_data(gat_config: HyperparametersGAT):
+def load_cv_gat_data(gat_config: HyperparametersGAT):
     # load the entire data set into main memory
     data = gat_config.params['load_specific_data'](gat_config.params)
     subjects = list(data.keys())
@@ -114,7 +113,7 @@ def evaluate_gat(config: HyperparametersGAT):
         with open(config.results_file(), 'rb') as fp:
             loss_result = pkl.load(fp)
             return loss_result
-    tr_data, vl_data, ts_data = load_cv_data(gat_config=config)
+    tr_data, vl_data, ts_data = load_cv_gat_data(gat_config=config)
     model = GATModel(config=config)
     model.fit(training_data=tr_data, validation_data=vl_data)
     return model.evaluate(test_data=ts_data)
@@ -142,4 +141,9 @@ def nested_cross_validation_gat():
 
 
 if __name__ == "__main__":
-    nested_cross_validation_gat()
+    evaluate_gat(HyperparametersGAT({'hidden_units': [20, 25, 10],
+                                     'attention_heads': [3, 3, 2],
+                                     'include_ew': False,
+                                     'pers_traits_selection': ['NEO.NEOFAC_A'],
+                                     'readout_aggregator': TensorflowGraphGAT.concat_feature_aggregator,
+                                     }))

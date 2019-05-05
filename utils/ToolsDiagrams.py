@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from gat_impl.HyperparametersGAT import *
 from baseline_impl.HyperparametersBaselines import *
-from utils.Evaluation import outer_evaluation_gat, outer_evaluation_baselines
+from utils.Evaluation import outer_evaluation, get_best_models
 import math
 import re
 import networkx as nx
@@ -30,20 +30,6 @@ def plot_learning_history(model_gat_config: HyperparametersGAT) -> None:
     plt.legend(loc='upper right')
     plt.savefig(os.path.join(gat_model_stats, 'loss_plot_' + str(model_gat_config) + '.pdf'))
     plt.show()
-
-
-def plot_residuals(model_gat_config: HyperparametersGAT) -> None:
-    sns.set(style="whitegrid")
-    print("Restoring prediction results from file %s." % model_gat_config.results_file())
-    with open(model_gat_config.results_file(), 'rb') as results_binary:
-        results = pkl.load(results_binary)
-    for trait in model_gat_config.params['pers_traits_selection']:
-        true_score, predicted_score = map(lambda x: np.array(x), zip(*results[trait]))
-        plt.figure()
-        ax = sns.residplot(true_score, predicted_score, lowess=True, color="g")
-        ax.set(xlabel='observations', ylabel='residuals')
-
-        plt.show()
 
 
 def plot_pq_ratio(model_gat_config: HyperparametersGAT) -> None:
@@ -205,33 +191,61 @@ def plot_error_ncv(hyper_param, model_name):
     plt.legend(loc='upper center', frameon=True, bbox_to_anchor=(0.0, 0.0, 0.5, 1.0))
     plt.ylabel('Evaluation Loss', fontsize=12)
     plt.xlabel('Hyperparemeter Value', fontsize=12)
-    plt.savefig(os.path.join(gat_model_stats, 'error_bars_%s.pdf' % hyper_param))
+    plt.savefig(os.path.join(gat_model_stats, 'error_bars_%s_%s.pdf' % (hyper_param, model_name)))
     plt.show()
 
 
 def plot_comparison():
-    out_gat = outer_evaluation_gat()
-    out_baselines = outer_evaluation_baselines()
-    out_losses = {**out_gat, **out_baselines}
+    sns.set(style="whitegrid")
+    out_losses = outer_evaluation()
     sampled_hyper = HyperparametersGAT.get_sampled_models()
-    out_eval_folds = np.array(sorted(list(HyperparametersBaselines().params['k_outer'].keys())))
+    out_eval_folds = np.array(sorted(list(range(HyperparametersGAT().params['k_outer']))))
     data_sets = sampled_hyper['load_specific_data']
     # each till visual paramaeters
-    colors = ['r', 'g', 'y', 'b']
-    relative_width = [-0.2, -0.1, 0.1, 0.2]
-    model_type = ['GAT', 'RVM', 'LR', 'SVR']
+    colors = ['r', 'g', 'b']
+    relative_width = [-0.1, 0.0, 0.1]
+    model_type = ['GAT', 'RVM', 'SVR']
     for data_set in data_sets:
-        for trait in HyperparametersGAT().params['pers_traits_selection']:
-            for color, width, model in zip(colors, relative_width, model_type):
-                best_fold_loss = np.zeros(len(out_eval_folds))
+        labels = set([])
+        for color, width, model in zip(colors, relative_width, model_type):
+            best_fold_loss = np.zeros(len(out_eval_folds))
+            for trait in HyperparametersGAT().params['pers_traits_selection']:
                 for i, eval_fold in enumerate(out_eval_folds):
-                    best_fold_loss[i] = out_losses[model][data_set][eval_fold][trait]
-                plt.bar(out_eval_folds + width, best_fold_loss, width=0.1, color=color, align='center')
+                    best_fold_loss[i] += out_losses[model][data_set][eval_fold][trait]
+            best_fold_loss /= 5
+            # don't include an label for an error bar more than once
+            label = None
+            if model not in labels:
+                labels.add(model)
+                label = model
+            plt.bar(out_eval_folds + width, best_fold_loss, width=0.1, label=label, color=color, align='center')
+        plt.legend(loc='upper right', frameon=True)
+        plt.xticks(out_eval_folds, list(map(lambda x: 'fold #%d' % x, out_eval_folds)))
+        plt.ylim(0, 55)
+        plt.ylabel('MSE Loss', fontsize=12)
+        plt.xlabel('Outer fold', fontsize=12)
+        plt.savefig(os.path.join(gat_model_stats, 'comparison_%s.pdf' % data_set.__name__.split('_')[1]))
+        plt.show()
 
-            plt.xticks(out_eval_folds), list(map(lambda x: 'fold #%d' % x, out_eval_folds))
-            plt.ylim(0, 60)
-            plt.show()
+
+def plot_residuals(model_type, out_fold, data_set) -> None:
+    sns.set(style="whitegrid")
+    colours = ['b', 'r', 'c', 'm', 'y']
+    for trait, color in zip(model_type().params['pers_traits_selection'], colours):
+        best_gat = get_best_models(HyperparametersGAT, model_name='GAT', data_set=data_set, trait=trait)
+        config, _ = best_gat[out_fold]
+        # set the configuration object for the outer evaluation of the best inner model
+        config.params['nested_CV_level'] = 'outer'
+        config.params['eval_fold_out'] = out_fold
+        results = config.get_results()['predictions']
+        true_score, predicted_score = map(lambda x: np.array(x), zip(*results[trait]))
+        ax = sns.residplot(true_score, predicted_score, lowess=True, color=color, scatter_kws={'s': 20})
+        ax.set(xlabel='observations', ylabel='residuals')
+        plt.savefig(os.path.join(gat_model_stats, 'residual_trait_%s_data_%s_fold_%d.pdf' % (
+            trait.replace('NEO.', ''), data_set.__name__.split('_')[1], out_fold)))
+        plt.show()
 
 
 if __name__ == "__main__":
-    plot_error_ncv(hyper_param='C', model_name='SVR')
+    plot_comparison()
+    plot_residuals(HyperparametersGAT, 4, load_struct_data)

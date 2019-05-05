@@ -1,14 +1,14 @@
-from utils.LoadStructuralData import load_struct_data, dir_structural_data
+from utils.LoadStructuralData import load_struct_data, dir_structural_data, lower_bound_filter
 from utils.LoadFunctionalData import load_funct_data, dir_functional_data
-from utils.ToolsDataProcessing import lower_bound_filter
 from sklearn.model_selection import ParameterGrid
+from gat_impl.ExecuteGAT import *
 from keras.activations import relu
 import pickle as pkl
-from gat_impl.ExecuteGAT import *
 import itertools
 import math
 import random
 
+NO_LAYERS = 3
 gat_result_dir = os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))), 'Results', 'GAT_results')
 if not os.path.exists(gat_result_dir):
     os.makedirs(gat_result_dir)
@@ -19,70 +19,73 @@ class HyperparametersGAT(object):
 
     def __init__(self, updated_params=None):
         self.params = {
+            # architecture hyper-parameters
             'name': 'GAT',
             'hidden_units': [20, 40, 20],
             'attention_heads': [5, 5, 4],
-            'include_ew': True,
+            'include_ew': False,
             'readout_aggregator': TensorflowGraphGAT.master_node_aggregator,
+            'use_batch_norm': True,
+            'non_linearity': relu,
+            # training hyper.
             'load_specific_data': load_struct_data,
-            'batch_size': 32,
+            'pers_traits_selection': ['NEO.NEOFAC_A', 'NEO.NEOFAC_C', 'NEO.NEOFAC_E', 'NEO.NEOFAC_N', 'NEO.NEOFAC_O'],
             'learning_rate': 0.0005,
             'decay_rate': 0.0005,
             'attn_drop': 0.6,
+            'batch_size': 32,
             'functional_dim': 50,
             'scan_session': 1,
-            'nested_CV_level': 'outer',
-            'eval_fold_in': 1,
-            'eval_fold_out': 4,
-            # fixed hyperparameters
-            'pers_traits_selection': ['NEO.NEOFAC_A', 'NEO.NEOFAC_C', 'NEO.NEOFAC_E', 'NEO.NEOFAC_N', 'NEO.NEOFAC_O'],
-            'use_batch_norm': True,
-            'non_linearity': relu,
-            'k_outer': 5,
-            'k_inner': 5,
             'edgeWeights_filter': lower_bound_filter,
+            'low_ew_limit': 2.4148,
+            'num_epochs': 150,
             'pq_threshold': np.inf,
             'train_prog_threshold': 0.1,
             'k_strip_epochs': 5,
-            'low_ew_limit': 2.4148,
-            'num_epochs': 150}
+            # nested CV hyper.
+            'nested_CV_level': 'outer',
+            'k_outer': 5,
+            'k_inner': 5,
+            'eval_fold_out': 4,
+            'eval_fold_in': 1}
 
         # update the default hyper-parameters
         self.update(update_hyper=updated_params)
+        if type(self.params['pers_traits_selection']) is not list:
+            raise ValueError('The trait selection should be list, not %s' % type(self.params['pers_traits_selection']))
         if self.params['nested_CV_level'] not in {'inner', 'outer'}:
-            raise ValueError('Possbile CV levels: inner, outer')
+            raise ValueError('Possible CV levels: inner, outer')
+        if self.params['name'] != 'GAT':
+            raise ValueError('Name of the Graph Attention Network is GAT, not %s' % self.params['name'])
+        if len(self.params['attention_heads']) != len(self.params['hidden_units']):
+            raise ValueError('Attention heads and hidden units are not specified for the same nr. of layers')
         # values for the PQ threshold:
-        pq_alpha = {
-            GATModel.master_node_aggregator: {True: {load_funct_data: 0.01, load_struct_data: 0.01},
-                                              False: {load_funct_data: 1.0, load_struct_data: 0.4}},
-            GATModel.concat_feature_aggregator: {True: {load_funct_data: 0.4, load_struct_data: 0.4},
-                                                 False: {load_funct_data: 1.0, load_struct_data: 0.75}},
-            GATModel.average_feature_aggregator: {True: {load_funct_data: 0.5, load_struct_data: 0.5},
-                                                  False: {load_funct_data: 1.0, load_struct_data: 1.0}}}
-        self.params['pq_threshold'] = pq_alpha[self.params['readout_aggregator']][self.params['include_ew']][
-            self.params['load_specific_data']]
-
+        pq_thresholds = {GATModel.master_node_aggregator: {True: 0.01, False: 0.5},
+                         GATModel.concat_feature_aggregator: {True: 0.5, False: 1.0},
+                         GATModel.average_feature_aggregator: {True: 0.5, False: 1.0}}
+        self.params['pq_threshold'] = pq_thresholds[self.params['readout_aggregator']][self.params['include_ew']]
         # keep a fixed order on the personality traits so we can decode when predicting them all at once
         self.params['pers_traits_selection'] = sorted(self.params['pers_traits_selection'])
         self.params['target_score_type'] = len(self.params['pers_traits_selection'])
 
     def __str__(self):
-        str_dataset = 'GAT_' + self.params['load_specific_data'].__name__.split('_')[1]
-        str_dim_sess = 'DIM_' + str(self.params['functional_dim']) + '_' + 'SESS_' + str(self.params['scan_session'])
-        str_attn_heads = 'AH_' + ",".join(map(str, self.params['attention_heads']))
-        str_hid_units = 'HU_' + ",".join(map(str, self.params['hidden_units']))
-        str_traits = 'PT_' + "".join([pers.split('NEO.NEOFAC_')[1] for pers in self.params['pers_traits_selection']])
-        str_aggregator = 'AGR_' + self.params['readout_aggregator'].__name__.split('_')[0]
-        str_include_ew = 'IW_' + str(self.params['include_ew'])
-        str_batch_sz = 'BS_' + str(self.params['batch_size'])
-        str_cross_val = 'CV_' + str(self.params['eval_fold_in']) + str(self.params['eval_fold_out']) + self.params[
-            'nested_CV_level']
-        str_dropout = 'DROP_' + str(self.params['attn_drop'])
-        str_learn_rate = 'LR_' + str(self.params['learning_rate'])
-        str_decay_rate = 'DR_' + str(self.params['decay_rate'])
+        str_dataset = 'GAT_%s' % self.params['load_specific_data'].__name__.split('_')[1]
+        str_dim_sess = 'DIM_%dSESS_%d' % (self.params['functional_dim'], self.params['scan_session'])
+        str_attn_heads = 'AH_%s' % ",".join(map(str, self.params['attention_heads']))
+        str_hid_units = 'HU_%s' % ",".join(map(str, self.params['hidden_units']))
+        str_traits = 'PT_%s' % self.get_summarized_traits()
+        str_aggregator = 'AGR_%s' % self.params['readout_aggregator'].__name__.split('_')[0]
+        str_include_ew = 'IW_%r' % self.params['include_ew']
+        str_batch_sz = 'BS_%d' % self.params['batch_size']
+        str_dropout = 'DROP_%s' % str(self.params['attn_drop'])
+        str_learn_rate = 'LR_%s' % str(self.params['learning_rate'])
+        str_decay_rate = 'DR_%s' % str(self.params['decay_rate'])
+        str_cross_val = 'CV_%d%d%s' % (self.params['eval_fold_in'], self.params['eval_fold_out'], self.params[
+            'nested_CV_level'])
+
         str_params = [str_dataset, str_dim_sess, str_attn_heads, str_hid_units, str_traits, str_aggregator,
                       str_include_ew, str_batch_sz, str_dropout, str_learn_rate, str_decay_rate, str_cross_val]
-        if self.params['load_specific_data'].__name__.split('_')[1] == 'struct':
+        if self.params['load_specific_data'] is load_struct_data:
             str_params.remove(str_dim_sess)
         return '_'.join(str_params)
 
@@ -160,6 +163,13 @@ class HyperparametersGAT(object):
         '''
         return os.path.join(gat_result_dir, 'predictions_' + str(self))
 
+    def get_results(self):
+        results = None
+        if os.path.exists(self.results_file()):
+            with open(self.results_file(), 'rb') as result_fp:
+                results = pkl.load(result_fp)
+        return results
+
     def processed_data_dir(self):
         '''
          Retrieves the path to the directory where the dataset used by this GAT model is stored
@@ -195,7 +205,6 @@ class HyperparametersGAT(object):
             'batch_size': [32]}
         models_so_far = np.prod(np.array([len(choices[x]) for x in choices.keys()])) * 25
         sampling_left = math.floor(max_samples / models_so_far)
-        NO_LAYERS = 3
         sample_ah = list(itertools.product(range(3, 7), repeat=NO_LAYERS))
         sample_hu = list(itertools.product(range(12, 48), repeat=NO_LAYERS))
 
@@ -248,28 +257,26 @@ class HyperparametersGAT(object):
                 gat_model_config = HyperparametersGAT(params)
                 gat_model_config.update(ncv_params)
                 for eval_out in range(ncv_params['k_outer']):
+                    if eval_out not in inner_results.keys():
+                        inner_results[eval_out] = {}
                     gat_model_config.params['eval_fold_out'] = eval_out
                     for eval_in in range(ncv_params['k_inner']):
                         gat_model_config.params['eval_fold_in'] = eval_in
-                        if os.path.exists(gat_model_config.results_file()):
-                            with open(gat_model_config.results_file(), 'rb') as result_fp:
-                                results = pkl.load(result_fp)
-                        else:
+                        results = gat_model_config.get_results()
+                        if not results:
                             print('Incomplete nested CV results, missing model %s' % gat_model_config)
                             return
                         model_name = gat_model_config.get_name()
                         # load the results for a suitable model into main memory
                         lookup_table[model_name] = gat_model_config
-                        if eval_out not in inner_results.keys():
-                            inner_results[eval_out] = {}
                         if model_name not in inner_results[eval_out].keys():
                             inner_results[eval_out][model_name] = {}
                         # save the test losses for the particular inner split (already computed for all traits)
                         inner_results[eval_out][model_name][eval_in] = results['test_loss']
 
-            # save the unfiltered inner losses
-            with open(inner_losses_file, 'wb') as handle:
-                pkl.dump((inner_results, lookup_table), handle)
+        # save the unfiltered inner losses
+        with open(inner_losses_file, 'wb') as handle:
+            pkl.dump((inner_results, lookup_table), handle)
 
         # extract only the evaluation results of the models with specific hyper-parameters
         for out_split in inner_results.keys():
@@ -277,5 +284,4 @@ class HyperparametersGAT(object):
             for model in model_names:
                 if not filter_by_params.items() <= lookup_table[model].params.items():
                     inner_results[out_split].pop(model)
-
         return inner_results, lookup_table

@@ -2,7 +2,7 @@ from __future__ import absolute_import
 import tensorflow as tf
 from keras import initializers, regularizers
 from keras import backend as K
-from keras.layers import Layer, LeakyReLU, Multiply, Dropout, BatchNormalization
+from keras.layers import Layer, ReLU, LeakyReLU, Multiply, Dropout, BatchNormalization
 
 
 class GATLayer(Layer):
@@ -25,7 +25,7 @@ class GATLayer(Layer):
                  **kwargs):
         super(GATLayer, self).__init__(**kwargs)
         if attn_heads_reduction not in {'concat', 'average'}:
-            raise ValueError('Possbile reduction methods: concat, average')
+            raise ValueError('Possible reduction methods: concat, average')
 
         self.F_ = F_  # Dimensionality of new node features: (F' in the paper
         self.attn_heads = attn_heads  # Number of attention heads (K in the paper)
@@ -112,13 +112,13 @@ class GATLayer(Layer):
             dense = attn_for_self + tf.transpose(attn_for_neighs, perm=[0, 2, 1])  # (? x N x N) via broadcasting
 
             # Add non-linearty
-            dense = LeakyReLU(alpha=0.2)(dense)
+            dense = ReLU()(dense)
 
             # Mask values before activation (Vaswani et al., 2017)
             dense += attn_mask
 
             # Apply softmax to get attention coefficients
-            dense = K.softmax(dense)  # (? x N x N)
+            dense = K.softmax(dense, axis=-1)  # (? x N x N)
             # Include edge weights
             if self.use_ew:
                 dense = Multiply()([dense, adjacency_mat])
@@ -128,7 +128,7 @@ class GATLayer(Layer):
             dropout_feat = Dropout(rate=self.dropout_rate)(inputs=features)
 
             # Linear combination with neighbors' features
-            node_features = K.batch_dot(dropout_attn, dropout_feat)  # (? x N x F')
+            node_features = K.batch_dot(dropout_attn, dropout_feat, axes=[2, 1])  # (? x N x F')
             if self.use_bias:
                 node_features = K.bias_add(node_features, self.biases[head])
 
