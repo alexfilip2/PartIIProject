@@ -1,13 +1,15 @@
 from utils.LoadStructuralData import load_struct_data, dir_structural_data
 from utils.LoadFunctionalData import load_funct_data, dir_functional_data
-from sklearn.model_selection import ParameterGrid
-from gat_impl.ExecuteGAT import *
+from gat_impl.ExecuteGAT import GATModel
 from keras.activations import relu
+import numpy as np
+import os
 import pickle as pkl
 import itertools
 import math
 import random
 
+cached_data = {}
 gat_result_dir = os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))), 'Results', 'GAT_results')
 if not os.path.exists(gat_result_dir):
     os.makedirs(gat_result_dir)
@@ -25,9 +27,9 @@ class HyperparametersGAT(object):
             # architecture hyper-parameters
             'name': 'GAT',
             'hidden_units': [20, 40, 20],
-            'attention_heads': [5, 5, 4],
-            'include_ew': False,
-            'readout_aggregator': TensorflowGraphGAT.master_node_aggregator,
+            'attention_heads': [3, 3, 2],
+            'include_ew': True,
+            'readout_aggregator': GATModel.concat_feature_aggregator,
             'use_batch_norm': True,
             'non_linearity': relu,
             # training hyper.
@@ -39,7 +41,7 @@ class HyperparametersGAT(object):
             'batch_size': 32,
             'functional_dim': 50,
             'scan_session': 1,
-            'num_epochs': 150,
+            'num_epochs': 250,
             'pq_threshold': np.inf,
             'train_prog_threshold': 0.1,
             'k_strip_epochs': 5,
@@ -61,7 +63,7 @@ class HyperparametersGAT(object):
         if len(self.params['attention_heads']) != len(self.params['hidden_units']):
             raise ValueError('Attention heads and hidden units are not specified for the same nr. of layers')
         # values for the PQ threshold:
-        pq_thresholds = {GATModel.master_node_aggregator: {True: 0.01, False: 0.5},
+        pq_thresholds = {GATModel.master_node_aggregator: {True: 0.05, False: 0.5},
                          GATModel.concat_feature_aggregator: {True: 0.5, False: 1.0},
                          GATModel.average_feature_aggregator: {True: 0.5, False: 1.0}}
         self.params['pq_threshold'] = pq_thresholds[self.params['readout_aggregator']][self.params['include_ew']]
@@ -129,7 +131,7 @@ class HyperparametersGAT(object):
 
     def get_name(self):
         '''
-         Get the name of the GAT model discarding the hyper-parameters of the Nested Cross Validation
+         Get the name of the GAT model discarding the hyper-parameters of the Nested Cross Validation.
         :return: str of the base name of the model
         '''
         import re
@@ -150,6 +152,28 @@ class HyperparametersGAT(object):
         '''
         if update_hyper is not None:
             self.params.update(update_hyper)
+
+    def load_data(self):
+        '''
+         Load the entire dataset specified by the load_specific_dataset parameter of the configuration. Keep it
+         in main memory in a global variable in case future models are trained/evaluated on it during the same run.
+        :return:
+        '''
+        global cached_data
+        loader_data = self.params['load_specific_data']
+        trait_choice = self.get_summarized_traits()
+        if loader_data in cached_data.keys():
+            if trait_choice in cached_data[loader_data].keys():
+                return cached_data[loader_data][trait_choice]
+            else:
+                uncached_data = loader_data(self.params)
+                cached_data[loader_data][trait_choice] = uncached_data
+                return uncached_data
+        else:
+            cached_data[loader_data] = {}
+            uncached_data = loader_data(self.params)
+            cached_data[loader_data][trait_choice] = uncached_data
+            return uncached_data
 
     def checkpoint_file(self):
         '''
@@ -183,16 +207,6 @@ class HyperparametersGAT(object):
                 results = pkl.load(result_fp)
         return results
 
-    def processed_data_dir(self):
-        '''
-         Retrieves the path to the directory where the dataset used by this GAT model is stored
-        :return: str path
-        '''
-        if self.params['load_specific_data'] is load_struct_data:
-            return dir_structural_data
-        else:
-            return dir_functional_data
-
     @staticmethod
     def get_sampled_models(max_samples=18000, no_layers=3, **kwargs):
         '''
@@ -206,13 +220,17 @@ class HyperparametersGAT(object):
                                     'gat_sampled_models.pck')
         if os.path.exists(samples_file):
             with open(samples_file, 'rb') as handle:
-                return pkl.load(handle)
+                choices = pkl.load(handle)
+                choices['learning_rate'] = [0.001, 0.0005]
+                choices['attn_drop'] = [0.6, 0.4]
+                return choices
 
         choices = {
             'learning_rate': [0.005, 0.001, 0.0005, 0.0001],
             'decay_rate': [0.0005],
             'attn_drop': [0.0, 0.2, 0.4, 0.6, 0.8],
-            'readout_aggregator': [GATModel.average_feature_aggregator, GATModel.master_node_aggregator,
+            'readout_aggregator': [GATModel.average_feature_aggregator,
+                                   GATModel.master_node_aggregator,
                                    GATModel.concat_feature_aggregator],
             'load_specific_data': [load_struct_data, load_funct_data],
             'include_ew': [True, False],
@@ -241,59 +259,6 @@ class HyperparametersGAT(object):
                                  list(itertools.product(sample_ah, sample_hu))))
         choices['arch_width'] = list(map(lambda x: [list(x[0]), list(x[1])], random.sample(valid_ah_hu, sampling_left)))
         with open(samples_file, 'wb') as handle:
-            pickle.dump(choices, handle)
+            pkl.dump(choices, handle)
 
         return choices
-
-    @staticmethod
-    def inner_losses(filter_by_params: dict):
-        '''
-         Extract the inner CV test losses obtained on the inner evaluation folds for all the models sampled using
-         the values of the hyper-parameters as specified by the filter dict.
-        :param filter_by_params: dict of hyper-parameter name and filtering value
-        :return: dict of individual model test losses
-        '''
-        lookup_table = {}
-        inner_results = {}
-        inner_losses_file = os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))), 'Results',
-                                         'gat_inner_eval_losses.pck')
-        if os.path.exists(inner_losses_file):
-            with open(inner_losses_file, 'rb') as fp:
-                inner_results, lookup_table = pkl.load(fp)
-        else:
-            # retrieve only the results of the sampled models
-            grid = ParameterGrid(HyperparametersGAT.get_sampled_models())
-            ncv_params = {'k_outer': HyperparametersGAT().params['k_outer'],
-                          'k_inner': HyperparametersGAT().params['k_inner'],
-                          'nested_CV_level': 'inner'}
-            for params in grid:
-                params['attention_heads'] = params['arch_width'][0]
-                params['hidden_units'] = params['arch_width'][1]
-                gat_model_config = HyperparametersGAT(params)
-                gat_model_config.update(ncv_params)
-                for eval_out in range(ncv_params['k_outer']):
-                    gat_model_config.params['eval_fold_out'] = eval_out
-                    inner_results[eval_out] = {}
-                    for eval_in in range(ncv_params['k_inner']):
-                        gat_model_config.params['eval_fold_in'] = eval_in
-                        results = gat_model_config.get_results()
-                        if not results:
-                            print('Incomplete nested CV results, missing model %s' % gat_model_config)
-                            return
-                        model_name = gat_model_config.get_name()
-                        lookup_table[model_name] = gat_model_config
-                        if model_name not in inner_results[eval_out].keys():
-                            inner_results[eval_out][model_name] = {}
-                        inner_results[eval_out][model_name][eval_in] = results['test_loss']
-
-        # save the unfiltered inner losses
-        with open(inner_losses_file, 'wb') as handle:
-            pkl.dump((inner_results, lookup_table), handle)
-
-        # extract only the evaluation results of the models with specific hyper-parameter values
-        for out_split in inner_results.keys():
-            model_names = list(inner_results[out_split].keys())
-            for model in model_names:
-                if not filter_by_params.items() <= lookup_table[model].params.items():
-                    inner_results[out_split].pop(model)
-        return inner_results, lookup_table

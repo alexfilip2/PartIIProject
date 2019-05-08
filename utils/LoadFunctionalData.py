@@ -106,42 +106,31 @@ def get_functional_features(matrices_dim: int = 50, session_id: int = 1) -> dict
 
 def load_funct_data(data_params: dict) -> dict:
     '''
-     Retrieve the entire functional data: dict keyed by str HCP subject ID storing a dict with each specific input for
-    the subject; adjacency matrix, attention mask, feature matrix, targeted scores.
+     Retrieve the entire functional data: dict keyed by input type: adjacency matrix, attention mask, feature matrix and
+      targeted scores. The example features are concatenated and ordered by their assigned HCP subject ID.
     :param data_params: dict specifying the choice of personality traits targeted, scan session and
-    matrix dimensionality
-    :return: dict containing the whole data-set
+    matrix dimensionality for functional matrices
+    :return: dict containing the whole functional data-set
     '''
-    saved_data_file = ''.join(data_params['pers_traits_selection']).replace('NEO.NEOFAC_', '')
-    saved_data_file = '%s_dim%d_sess%d.pkl' % (
-        saved_data_file, data_params['functional_dim'], data_params['scan_session'])
-
-    saved_data_file = os.path.join(dir_functional_data, saved_data_file)
-    if os.path.exists(saved_data_file):
+    # Load the dataset from disk if already formatted
+    backup_file = ''.join(data_params['pers_traits_selection']).replace('NEO.NEOFAC_', '')
+    backup_file = '%s_dim%d_sess%d.pkl' % (backup_file, data_params['functional_dim'], data_params['scan_session'])
+    backup_file = os.path.join(dir_functional_data, backup_file)
+    if os.path.exists(backup_file):
         print('Loading the serialized data set of the functional graphs...')
-        with open(saved_data_file, 'rb') as fp:
-            data = pkl.load(fp)
+        with open(backup_file, 'rb') as fp:
+            formatted = pkl.load(fp)
         print('Data set for the functional graphs was loaded.')
-        return data
+        return formatted
 
+    # Otherwise compute the adjacency and feature matrices per HCP subject
     dict_adj = get_functional_adjacency()
     dict_node_feat = get_functional_features()
-    dict_tiv_score = get_NEO5_scores(data_params['pers_traits_selection'])
-    dict_data = {}
-    all_subjects = sorted(list(dict_adj.keys()))
-    for subj_id in all_subjects:
-        if subj_id in dict_node_feat.keys() and subj_id in dict_tiv_score.keys():
-            dict_data[subj_id] = {}
-            dict_data[subj_id]['bias_in'] = adj_to_bias(dict_adj[subj_id], nhood=1)
-            norm_adj = norm_rows_adj(dict_adj[subj_id])
-            dict_data[subj_id]['adj_in'] = norm_adj
-            dict_data[subj_id]['ftr_in'] = dict_node_feat[subj_id]
-            dict_data[subj_id]['score_in'] = dict_tiv_score[subj_id]
+    # Format the data as a contiguous sequence of concatenated examples for each input type, also load the NEO scores
+    formatted = load_data(data_params, dict_adj, dict_node_feat)
 
-    # standardise and normalize the raw node features
-    preprocess_features(dict_data)
-
-    with open(saved_data_file, 'wb') as fp:
-        pkl.dump(dict_data, fp, protocol=pkl.HIGHEST_PROTOCOL)
+    # Save the dataset on disk
+    with open(backup_file, 'wb') as fp:
+        pkl.dump(formatted, fp, protocol=pkl.HIGHEST_PROTOCOL)
     print('Data set for the functional graphs was computed and persisted on disk.')
-    return dict_data
+    return formatted

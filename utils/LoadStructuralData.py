@@ -74,7 +74,7 @@ def get_structural_adjacency() -> dict:
                         graph_row.append(float(edge_weight))
                     graph.append(graph_row)
             hcp_subject_id = subj_id.split('_')[0]
-            processed_adjs[hcp_subject_id] = make_symmetric(np.array(graph))
+            processed_adjs[hcp_subject_id] = lower_bound_filter(make_symmetric(np.array(graph)))
 
     # persist the adjacency matrices dict on disk for further use
     with open(saved_processed_adjs, 'wb') as fp:
@@ -136,34 +136,25 @@ def load_struct_data(data_params: dict) -> dict:
      for the edge weights
     :return: dict containing the whole data-set
     '''
-    str_traits = ''.join(data_params['pers_traits_selection']).replace('NEO.NEOFAC_', '')
-    saved_data_file = os.path.join(dir_structural_data, 'trait_choice_%s.pkl' % str_traits)
-    if os.path.exists(saved_data_file):
+    # Load the dataset from disk if already formatted
+    backup_file = ''.join(data_params['pers_traits_selection']).replace('NEO.NEOFAC_', '')
+    backup_file = os.path.join(dir_structural_data, 'trait_choice_%s.pkl' % backup_file)
+    if os.path.exists(backup_file):
         print('Loading the serialized data set of structural graphs...')
-        with open(saved_data_file, 'rb') as fp:
-            data = pkl.load(fp)
+        with open(backup_file, 'rb') as fp:
+            formatted = pkl.load(fp)
         print('Data set for the structural graphs was loaded.')
-        return data
+        return formatted
 
+    # Otherwise compute the adjacency and feature matrices per HCP subject
     dict_adj = get_structural_adjacency()
     dict_node_feat = get_structural_features()
-    dict_tiv_score = get_NEO5_scores(data_params['pers_traits_selection'])
-    dict_data = {}
-    all_subjects = sorted(list(dict_adj.keys()))
-    for subj_id in all_subjects:
-        if subj_id in dict_node_feat.keys() and subj_id in dict_tiv_score.keys():
-            dict_data[subj_id] = {}
-            dict_data[subj_id]['bias_in'] = adj_to_bias(dict_adj[subj_id], nhood=1)
-            # normalize the rows of the adjacency matrix, apply threshold filter for the edge weights
-            norm_adj = norm_rows_adj(lower_bound_filter(dict_adj[subj_id]))
-            dict_data[subj_id]['adj_in'] = norm_adj
-            dict_data[subj_id]['ftr_in'] = dict_node_feat[subj_id]
-            dict_data[subj_id]['score_in'] = dict_tiv_score[subj_id]
-    # standardise and normalize the raw node features
-    preprocess_features(dict_data)
+    # Format the data as a contiguous sequence of concatenated examples for each input type, also load the NEO scores
+    formatted = load_data(data_params, dict_adj, dict_node_feat)
 
-    with open(saved_data_file, 'wb') as fp:
-        pkl.dump(dict_data, fp, protocol=pkl.HIGHEST_PROTOCOL)
+    # Save the dataset on disk
+    with open(backup_file, 'wb') as fp:
+        pkl.dump(formatted, fp, protocol=pkl.HIGHEST_PROTOCOL)
     print('Data set for the structural graphs was computed and persisted on disk.')
 
-    return dict_data
+    return formatted

@@ -3,7 +3,7 @@ import pickle
 import os
 from gat_impl.TensorflowGraphGAT import *
 from keras.optimizers import Adam
-from keras.callbacks import Callback
+from keras.callbacks import Callback, EarlyStopping
 from keras.backend import clear_session
 from sklearn.metrics import mean_squared_error, r2_score
 from scipy.stats import pearsonr
@@ -123,7 +123,7 @@ class GATModel(TensorflowGraphGAT):
         self.model.compile(optimizer=optimizer, loss='mean_squared_error')
         self.is_built = True
 
-    def fit(self, training_data, validation_data):
+    def fit(self, training_data):
         '''
          Trains the build GAT model.
         :param training_data: the training data of node features, adjacency matrices and masks and score labels
@@ -131,8 +131,10 @@ class GATModel(TensorflowGraphGAT):
         :return:
         '''
         # load the data as building the model requires the graph order and node features dimensions beforehand
-        tr_feats, tr_adjs, tr_biases, tr_scores = training_data
-        vl_feats, vl_adjs, vl_biases, vl_scores = validation_data
+        tr_feats = training_data['ftr_in']
+        tr_adjs = training_data['adj_in']
+        tr_biases = training_data['bias_in']
+        tr_scores = training_data['score_in']
 
         # the graph order of example graphs
         self.N = tr_adjs.shape[-1]
@@ -147,23 +149,21 @@ class GATModel(TensorflowGraphGAT):
             self.model.load_weights(self.config.checkpoint_file())
             self.is_trained = True
             return
-
         # report the size in example number of the datasets used in training
-        tr_size, vl_size = len(tr_feats), len(vl_feats)
-        print('The training size is %d, while the validation one: %d for the GAT model %s' % (
-            tr_size, vl_size, self.config))
+        print('The training size is %d for the GAT model %s' % (len(tr_feats), self.config))
 
         # define the custom early stopping callback
         custom_early_stop = self.CustomEarlyStopping(**self.params)
+        es = EarlyStopping(monitor='val_loss', patience=10)
         # fit the Keras model with the provided data
         history = self.model.fit(x=[tr_feats, tr_adjs, tr_biases],
                                  y=tr_scores,
                                  batch_size=self.params['batch_size'],
                                  epochs=self.params['num_epochs'],
                                  verbose=0,
-                                 callbacks=[custom_early_stop],
-                                 validation_split=0.0,
-                                 validation_data=([vl_feats, vl_adjs, vl_biases], vl_scores),
+                                 callbacks=[custom_early_stop, es],
+                                 validation_split=0.2,
+                                 validation_data=None,
                                  shuffle=True,
                                  class_weight=None,
                                  sample_weight=None,
@@ -216,7 +216,11 @@ class GATModel(TensorflowGraphGAT):
         if not self.is_trained:
             print('The GAT model %s was not trained yet' % self.config)
             return
-        ts_feats, ts_adjs, ts_biases, ts_scores = test_data
+
+        ts_feats = test_data['ftr_in']
+        ts_adjs = test_data['adj_in']
+        ts_biases = test_data['bias_in']
+        ts_scores = test_data['score_in']
         ts_size = len(ts_feats)
         print('The size of the evaluation set is %d' % ts_size)
         # predict the scores for the evaluation graphs

@@ -2,12 +2,13 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from gat_impl.HyperparametersGAT import *
 from baseline_impl.HyperparametersBaselines import *
-from utils.Evaluation import outer_evaluation, get_best_models
+from Evaluation import outer_evaluation, get_best_models
+from utils.LoadStructuralData import get_structural_adjacency
+from utils.LoadFunctionalData import get_functional_adjacency
+from utils.ToolsDataProcessing import *
 import math
-import re
-import networkx as nx
+import pandas as pd
 
-CONF_LIMIT = 2.4148
 # Output of the learning process losses directory
 gat_model_stats = os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))), 'Diagrams')
 if not os.path.exists(gat_model_stats):
@@ -89,7 +90,7 @@ def plot_node_degree_distribution(get_adjs_loader=get_functional_adjacency, filt
     adjs = np.array(list(get_adjs_loader().values()))
     if filter_flag:
         for i in range(len(adjs)):
-            adjs[i] = lower_bound_filter(adjs[i], CONF_LIMIT)
+            adjs[i] = lower_bound_filter(adjs[i])
 
     binary_adjs = [get_binary_adj(g) for g in adjs]
     degrees = np.array([[np.sum(curr_node_edges) for curr_node_edges in g] for g in binary_adjs]).flatten()

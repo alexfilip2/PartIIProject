@@ -1,7 +1,7 @@
 import tensorflow as tf
 from keras import initializers, regularizers
 from keras import backend as K
-from keras.layers import Layer, LeakyReLU, Multiply, Dropout, BatchNormalization
+from keras.layers import Layer, LeakyReLU, Multiply, Dropout, BatchNormalization, Softmax
 
 
 class GATLayer(Layer):
@@ -113,7 +113,7 @@ class GATLayer(Layer):
             # Apply the mask to the attention coefficients
             dense += attn_mask
             # Apply Softmax to nullify the attention coefficients of not connected nodes
-            dense = K.softmax(dense, axis=-1)  # (? x N x N)
+            dense = Softmax(axis=-1)(dense)  # (? x N x N)
 
             # Include edge weights by element-wise multiplication
             if self.use_ew:

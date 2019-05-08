@@ -17,12 +17,14 @@ class TensorflowGraphGAT(object):
         '''
 
         def reduce_sum(layer):
-            return tf.reduce_sum(layer, axis=1)
+            return K.sum(layer, axis=1)
 
         in_mlp = Lambda(function=reduce_sum)(model_gat_output)
+
         out_avg = Dense(units=kwargs['target_score_type'],
                         kernel_regularizer=regularizers.l2(kwargs['decay_rate']),
                         use_bias=True)(in_mlp)
+
         return out_avg
 
     @staticmethod

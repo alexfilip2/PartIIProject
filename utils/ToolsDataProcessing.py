@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import os
 import sys
+import random
 
 
 def get_NEO5_scores(trait_choice: list) -> dict:
@@ -121,18 +122,56 @@ def make_symmetric(upper_triang_adj: np.ndarray) -> np.ndarray:
     return upper_triang_adj
 
 
-def preprocess_features(entire_data: dict):
+def preprocess_features(formated_data, data_sz, N, F):
     '''
-    Standardise the node features and then normalize them
-    :param entire_data: dict of the entire data of adjacency matrices, masks etc indexed by HCP subject ID's
-    :return: void as the dict object is mutable and updated directly
+      Standardise the node features by min-max scaling
+    :param formated_data: dict of the formated dataset
+    :param data_sz: number of input examples
+    :param N: order of graphs
+    :param F: size of node features
+    :return: the formated dataset with preprocessed node features
     '''
-    # keep a fixed order between the example graphs
-    subjects = sorted(list(entire_data.keys()))
-    data_sz = len(subjects)
-    N, F = entire_data[subjects[0]]['ftr_in'].shape
     # unpack the feature matrices into individual node features to standardise a node feature, not example graph
-    concat_features = np.concatenate([entire_data[subject]['ftr_in'] for subject in subjects])
+    concat_features = np.concatenate(formated_data['ftr_in'])
     standardised_feats = MinMaxScaler().fit_transform(X=concat_features).reshape((data_sz, N, F))
-    for example_index, subject in enumerate(subjects):
-        entire_data[subject]['ftr_in'] = standardised_feats[example_index]
+    formated_data['ftr_in'] = standardised_feats
+
+
+def load_data(data_params, dict_adj, dict_node_feat):
+    '''
+     Format the data qas a concatenation of input examples for all input types used by the models
+    :param data_params: contains the NEO scores targeted
+    :param dict_adj: dict keyed by HCP subject id containing the adjacency matrix (structural/functional)
+    :param dict_node_feat: dict keyed by HCP subject id containing the feature matrix (structural/functional)
+    :return: dict keyed by input type of the entire dataset
+    '''
+    # Load the NEO scores targeted
+    dict_tiv_score = get_NEO5_scores(data_params['pers_traits_selection'])
+
+    def intersection(avail_adj, avail_feats, avail_scores):
+        return list(set(avail_adj) & set(avail_feats) & set(avail_scores))
+
+    # get the same shuffling of the data each time
+    random.seed(4)
+    avail_subjects = sorted(intersection(dict_adj.keys(), dict_node_feat.keys(), dict_tiv_score.keys()))
+    random.shuffle(avail_subjects)
+    dataset_sz = len(avail_subjects)
+    N = dict_adj[avail_subjects[0]].shape[-1]
+    F = dict_node_feat[avail_subjects[0]].shape[-1]
+    S = dict_tiv_score[avail_subjects[0]].shape[-1]
+    formatted = {'ftr_in': np.empty(shape=(dataset_sz, N, F), dtype=np.float32),
+                 'bias_in': np.empty(shape=(dataset_sz, N, N), dtype=np.float32),
+                 'adj_in': np.empty(shape=(dataset_sz, N, N), dtype=np.float32),
+                 'score_in': np.empty(shape=(dataset_sz, S), dtype=np.float32)}
+
+    for example_index, subj_id in enumerate(avail_subjects):
+        formatted['bias_in'][example_index] = adj_to_bias(dict_adj[subj_id], nhood=1)
+        # normalize the rows of the adjacency matrix, apply threshold filter for the edge weights
+        norm_adj = norm_rows_adj(dict_adj[subj_id])
+        formatted['adj_in'][example_index] = norm_adj
+        formatted['ftr_in'][example_index] = dict_node_feat[subj_id]
+        formatted['score_in'][example_index] = dict_tiv_score[subj_id]
+
+    # standardise and normalize the raw node features
+    preprocess_features(formatted, data_sz=dataset_sz, N=N, F=F)
+    return formatted
