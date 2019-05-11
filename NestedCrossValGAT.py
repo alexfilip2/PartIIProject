@@ -107,3 +107,6 @@ def inner_losses_gat(filter_by_params: dict = {}):
 
 if __name__ == "__main__":
     inner_nested_cv_gat()
+    pprint.pprint(inner_losses_gat({'learning_rate': 0.0005,
+                                    'attn_drop': 0.4,
+                                    'readout_aggregator': GATModel.master_node_aggregator}))

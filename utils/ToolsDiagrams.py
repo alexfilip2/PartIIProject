@@ -231,8 +231,8 @@ def plot_comparison():
             out_losses = outer_evaluation(model)
             best_fold_loss = np.zeros(len(out_eval_folds))
             for trait in HyperparametersGAT().params['pers_traits_selection']:
-                best_fold_loss += out_losses[model][data_set][trait]
-            best_fold_loss /= 5
+                best_fold_loss += out_losses[model][data_set][trait]['loss']
+            best_fold_loss /= HyperparametersGAT().params['k_outer']
             # don't include an label for an error bar more than once
             label = None
             if model not in labels:
@@ -248,10 +248,10 @@ def plot_comparison():
         plt.show()
 
 
-def plot_residuals(model_type, out_fold, data_set) -> None:
+def plot_residuals_gat(out_fold, data_set) -> None:
     sns.set(style="whitegrid")
     colours = ['b', 'r', 'c', 'm', 'y']
-    for trait, color in zip(model_type().params['pers_traits_selection'], colours):
+    for trait, color in zip(HyperparametersGAT().params['pers_traits_selection'], colours):
         best_gat = get_best_models(model_name='GAT', data_set=data_set, trait=trait)
         config, _ = best_gat[out_fold]
         # set the configuration object for the outer evaluation of the best inner model
@@ -268,4 +268,7 @@ def plot_residuals(model_type, out_fold, data_set) -> None:
 
 
 if __name__ == "__main__":
+    plot_residuals_gat(out_fold=4, data_set=load_struct_data)
     plot_comparison()
+    plot_error_ncv(hyper_param='learning_rate', model_name='GAT')
+    plot_pers_scores_distribution()

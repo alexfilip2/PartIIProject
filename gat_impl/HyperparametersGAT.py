@@ -8,6 +8,7 @@ import pickle as pkl
 import itertools
 import math
 import random
+import pprint
 
 cached_data = {}
 gat_result_dir = os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))), 'Results', 'GAT_results')
@@ -26,7 +27,7 @@ class HyperparametersGAT(object):
         self.params = {
             # architecture hyper-parameters
             'name': 'GAT',
-            'hidden_units': [20, 40, 20],
+            'hidden_units': [30, 30, 10],
             'attention_heads': [3, 3, 2],
             'include_ew': False,
             'readout_aggregator': GATModel.master_node_aggregator,
@@ -35,7 +36,7 @@ class HyperparametersGAT(object):
             # training hyper.
             'load_specific_data': load_struct_data,
             'pers_traits_selection': ['NEO.NEOFAC_A', 'NEO.NEOFAC_C', 'NEO.NEOFAC_E', 'NEO.NEOFAC_N', 'NEO.NEOFAC_O'],
-            'learning_rate': 0.001,
+            'learning_rate': 0.0001,
             'decay_rate': 0.0005,
             'attn_drop': 0.6,
             'batch_size': 32,
@@ -208,7 +209,7 @@ class HyperparametersGAT(object):
         return results
 
     @staticmethod
-    def get_sampled_models(max_samples=18000, no_layers=3, **kwargs):
+    def get_sampled_models(max_samples=19200, no_layers=3, **kwargs):
         '''
          Samples a pre-defined number of GAT configurations for the inner CV of the nested CV phase
         :param max_samples: maximum number of sampled models
@@ -262,4 +263,4 @@ class HyperparametersGAT(object):
 
 
 if __name__ == "__main__":
-    HyperparametersGAT.get_sampled_models()
+    pprint.pprint(HyperparametersGAT.get_sampled_models())

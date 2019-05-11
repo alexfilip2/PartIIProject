@@ -25,7 +25,7 @@ class HyperparametersBaselines(object):
             # model hyper-parameters
             'name': 'RVM',
             'kernel': 'rbf',
-            'epsilon': 0.1,
+            'epsilon': 0.5,
             'gamma': 0.001,
             'C': 1.0,
             'alpha': 1.0,
