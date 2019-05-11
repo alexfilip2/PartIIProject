@@ -39,7 +39,7 @@ def evaluate_gat(config: HyperparametersGAT) -> dict:
     '''
     Train and evaluate the GAT model specified by the GAT configuration object
     :param config: configuration object for the GAT model
-    :return:
+    :return: void
     '''
     results = config.get_results()
     if results:
@@ -50,26 +50,25 @@ def evaluate_gat(config: HyperparametersGAT) -> dict:
     return model.evaluate(test_data=ts_data)
 
 
-# perform the Nested Cross Validation
 def inner_nested_cv_gat():
+    '''
+     Performs the training/evaluation of GAT on the INNER CV LEVEL for each choice of outer split
+    :return: dict of test losses and a lookup table to search the configuration of a model from its string name
+    '''
     lookup_table = {}
     inner_results = {}
     grid = ParameterGrid(HyperparametersGAT.get_sampled_models())
-    ncv_params = {'k_outer': HyperparametersGAT().params['k_outer'],
-                  'k_inner': HyperparametersGAT().params['k_inner'],
-                  'nested_CV_level': 'inner'}
-    for params in grid:
-        # update the architecture hyperparameters
-        params['attention_heads'] = params['arch_width'][0]
-        params['hidden_units'] = params['arch_width'][1]
-        gat_model_config = HyperparametersGAT(params)
-        for eval_out in range(ncv_params['k_outer']):
-            inner_results[eval_out] = {}
-            ncv_params['eval_fold_out'] = eval_out
-            for eval_in in range(ncv_params['k_inner']):
-                ncv_params['eval_fold_in'] = eval_in
-                # update the nested CV hyperparameters
-                gat_model_config.update(ncv_params)
+    for eval_out in range(HyperparametersGAT().params['k_outer']):
+        inner_results[eval_out] = {}
+        for hyper_params in grid:
+            # update the architecture hyperparameters
+            hyper_params['attention_heads'], hyper_params['hidden_units'] = hyper_params['arch_width']
+            for eval_in in range(HyperparametersGAT().params['k_inner']):
+                gat_model_config = HyperparametersGAT(hyper_params)
+                gat_model_config.params['nested_CV_level'] = 'inner'
+                gat_model_config.params['eval_fold_in'] = eval_in
+                gat_model_config.params['eval_fold_out'] = eval_out
+                # get base name of model without the NCV prefix
                 model_name = gat_model_config.get_name()
                 if model_name not in inner_results[eval_out].keys():
                     inner_results[eval_out][model_name] = {}
@@ -81,6 +80,11 @@ def inner_nested_cv_gat():
 
 
 def inner_losses_gat(filter_by_params: dict = {}):
+    '''
+     Retrieve the inner losses only of the GAT models using the values of the hyperparameters specified by the filter.
+    :param filter_by_params: dict of hyperparameter name and value
+    :return:
+    '''
     inner_losses_file = os.path.join(os.path.dirname(__file__), 'Results', 'gat_inner_eval_losses.pck')
     if os.path.exists(inner_losses_file):
         with open(inner_losses_file, 'rb') as fp:
@@ -89,25 +93,17 @@ def inner_losses_gat(filter_by_params: dict = {}):
         inner_results, lookup_table = inner_nested_cv_gat()
         with open(inner_losses_file, 'wb') as handle:
             pkl.dump((inner_results, lookup_table), handle)
+
     # extract only the evaluation results of the models with specific hyper-parameters
     for out_split in inner_results.keys():
         model_names = list(inner_results[out_split].keys())
         for model in model_names:
+
             if not filter_by_params.items() <= lookup_table[model].params.items():
                 inner_results[out_split].pop(model)
 
     return inner_results, lookup_table
 
 
-def extract_partial_results():
-    inner_models_dir = os.path.join(os.path.dirname(__file__), 'Results', 'GAT_results')
-    for file in os.listdir(inner_models_dir):
-        if file.startswith('predictions'):
-            with open(os.path.join(inner_models_dir, file), 'rb') as fp:
-                results = pkl.load(fp)
-                print(HyperparametersGAT(results['params']))
-                pprint.pprint(results['test_loss'])
-
-
 if __name__ == "__main__":
-    extract_partial_results()
+    inner_nested_cv_gat()

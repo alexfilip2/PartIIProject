@@ -30,8 +30,8 @@ class HyperparametersBaselines(object):
             'C': 1.0,
             'alpha': 1.0,
             'n_iter': 500,
-            'fit_intercept': True,
-            'normalize': True,
+            'fit_intercept': False,
+            'normalize': False,
             # training hyper.
             'load_specific_data': load_struct_data,
             'pers_traits_selection': ['NEO.NEOFAC_A'],
@@ -154,7 +154,7 @@ class HyperparametersBaselines(object):
                             'fit_intercept': [False],
                             'normalize': [False],
                             'solver ': ['auto'],
-                            'alpha': [1.0, 0.5, 0.1]}
+                            'alpha': [10, 1.0, 0.5, 0.1]}
         elif baseline_name == 'SVR':
             search_space = {'name': [baseline_name],
                             'kernel': ['rbf', 'linear', 'poly', 'sigmoid'],
@@ -164,7 +164,7 @@ class HyperparametersBaselines(object):
         elif baseline_name == 'RVM':
             search_space = {'name': [baseline_name],
                             'kernel': ['rbf', 'linear'],
-                            'n_iter': [10, 50, 100],
+                            'n_iter': [10, 50, 100, 200],
                             'alpha': [1e-06, 1e-05]}
         else:
             print('Wrong choice of model name')

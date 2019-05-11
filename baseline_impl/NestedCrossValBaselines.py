@@ -2,17 +2,23 @@ from baseline_impl.HyperparametersBaselines import *
 from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import ParameterGrid, KFold
 import numpy as np
-import pprint
 import sys
 
 np.set_printoptions(threshold=sys.maxsize)
 
 
 def generate_splits_baseline(baseline_config: HyperparametersBaselines, data: dict, outer_flag=True):
+    '''
+     Splits the entire dataset provided for the Nested CV as specified by the baseline configuration object
+    :param baseline_config: configuration object
+    :param data: the entire formatted dataset
+    :param outer_flag: the recursive function behaves differently when splitting for outer level NCV
+    :return: training and evaluation datasets
+    '''
     outer_tr_data, outer_ts_data = {}, {}
     if outer_flag:
         data_sz = len(data['ftr_in'])
-        # flatten the input features
+        # flatten the input feature matrices
         data['ftr_in'] = np.reshape(data['ftr_in'], newshape=[data_sz, -1])
         data['score_in'] = np.squeeze(data['score_in'])
         k_split = baseline_config.params['k_outer']
@@ -35,6 +41,11 @@ def generate_splits_baseline(baseline_config: HyperparametersBaselines, data: di
 
 
 def evaluate_baseline(baseline_config: HyperparametersBaselines):
+    '''
+    Train and evaluate the baseline model specified by the baseline configuration object
+    :param baseline_config: configuration object for the baseline model
+    :return: void
+    '''
     # check for already trained-model results
     results = baseline_config.get_results()
     if results:
@@ -56,7 +67,7 @@ def evaluate_baseline(baseline_config: HyperparametersBaselines):
     # save the predictions, loss and hyper-parameter config object
     with open(baseline_config.results_file(), 'wb') as results_binary:
         trait, = baseline_config.params['pers_traits_selection']
-        results = {'predictions': {trait: predictions},
+        results = {'predictions': {trait: zip(ts_data['score_in'], predictions)},
                    'test_loss': {trait: test_loss},
                    'config': baseline_config}
         pkl.dump(results, results_binary)
@@ -65,27 +76,32 @@ def evaluate_baseline(baseline_config: HyperparametersBaselines):
 
 
 def inner_nested_cv_baselines(baseline_name):
+    '''
+     Performs the inner CV for a specific baseline model using all its sampled configuration
+    :param baseline_name: base name of the the baseline
+    :return: dict of losses per inner CV, model configuration and trait as well as a lookup table to translate the
+    baseline name into a configuration object.
+    '''
     inner_results = {}
     lookup_table = {}
-    # the baseline model to be evaluated
-    ncv_params = {'k_outer': HyperparametersBaselines().params['k_outer'],
-                  'k_inner': HyperparametersBaselines().params['k_outer'],
-                  'nested_CV_level': 'inner'}
     # retrieve the hyper-parameter search space
     grid = ParameterGrid(HyperparametersBaselines.get_sampled_models(baseline_name))
-    for eval_out in range(ncv_params['k_outer']):
+    for eval_out in range(HyperparametersBaselines().params['k_outer']):
         inner_results[eval_out] = {}
-        ncv_params['eval_fold_out'] = eval_out
         for hyper_params in grid:
-            for eval_in in range(ncv_params['k_inner']):
-                ncv_params['eval_fold_in'] = eval_in
+            for eval_in in range(HyperparametersBaselines().params['k_inner']):
                 # create the configuration object for the baseline
                 config = HyperparametersBaselines(hyper_params)
-                config.update(ncv_params)
+                # update it for the particular inner CV
+                config.params['nested_CV_level'] = 'inner'
+                config.params['eval_fold_in'] = eval_in
+                config.params['eval_fold_out'] = eval_out
+                # accumulate its results
                 model_name = config.get_name()
                 if model_name not in inner_results[eval_out].keys():
                     inner_results[eval_out][model_name] = {}
-                inner_results[eval_out][model_name][eval_in] = {}
+                if eval_in not in inner_results[eval_out][model_name].keys():
+                    inner_results[eval_out][model_name][eval_in] = {}
                 trait, = config.params['pers_traits_selection']
                 inner_results[eval_out][model_name][eval_in][trait] = evaluate_baseline(config)['test_loss'][trait]
                 lookup_table[model_name] = config
@@ -94,6 +110,13 @@ def inner_nested_cv_baselines(baseline_name):
 
 
 def inner_losses_baseline(baseline_name, filter_by_params: dict = {}):
+    '''
+     Apply the inner CV for all the baseline regressions if not trained/evaluated already and get the
+     results of some of them using the same hyperparameters as specified by the filter dict.
+    :param baseline_name: base baseline name
+    :param filter_by_params: dict of hyperparameter name and its value
+    :return: dict of inner losses for the filtered models
+    '''
     inner_losses_file = os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))), 'Results',
                                      'baseline_inner_eval_losses.pck')
     if os.path.exists(inner_losses_file):
@@ -109,10 +132,9 @@ def inner_losses_baseline(baseline_name, filter_by_params: dict = {}):
         with open(inner_losses_file, 'wb') as handle:
             pkl.dump((inner_results, lookup_table), handle)
 
-    baseline_inner = inner_results[baseline_name]
-    baseline_lookup = inner_results[baseline_name]
-
     # extract only the evaluation results of the models with specific hyper-parameters
+    baseline_inner = inner_results[baseline_name]
+    baseline_lookup = lookup_table[baseline_name]
     for out_split in baseline_inner.keys():
         model_names = list(baseline_inner[out_split].keys())
         for model in model_names:
@@ -123,6 +145,7 @@ def inner_losses_baseline(baseline_name, filter_by_params: dict = {}):
 
 
 if __name__ == "__main__":
-    pprint.pprint(inner_nested_cv_baselines(baseline_name='LR'))
-    pprint.pprint(inner_nested_cv_baselines(baseline_name='SVR'))
-    pprint.pprint(inner_nested_cv_baselines(baseline_name='RVM'))
+    inner_nested_cv_baselines(baseline_name='RVM')
+    inner_nested_cv_baselines(baseline_name='SVR')
+    inner_nested_cv_baselines(baseline_name='LR')
+    inner_losses_baseline('SVR')

@@ -8,28 +8,40 @@ import random
 
 def get_NEO5_scores(trait_choice: list) -> dict:
     '''
-    Retrieves the personality scores data from disk.
+    Retrieves the personality scores or factors data from disk.
     :param trait_choice: list of names of personality traits
     :return: dict storing ndarray of #traits float values, keyed by str HCP subject ID
     '''
     # Excel file storing personality scores for each HCP subject
-    pers_scores_file = os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))), 'Data', 'TIVscores',
-                                    '1016_HCP_TIVscores.xlsx')
+    personality_data_dir = os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))), 'Data', 'TIVscores')
+    target_prediction = trait_choice[0]
+    if target_prediction.startswith('NEO'):
+        traits_file = os.path.join(personality_data_dir, 'NEO_SCORES.xlsx')
+        if os.path.exists(traits_file):
+            df = pd.ExcelFile(traits_file).parse('Raw_data')
+        else:
+            raise IOError('Missing personality scores Excel file %s' % traits_file)
 
-    if os.path.exists(pers_scores_file):
-        df = pd.ExcelFile(pers_scores_file).parse('Raw_data')
-        tiv_scores = []
-        # retrieve each column data for individual traits
-        for trait in trait_choice:
-            tiv_scores.append(df[trait])
-        # build the dict
-        subjects = list(map(str, list(df['Subject'])))
-        tiv_score_dict = dict(zip(subjects, np.array(tiv_scores).transpose()))
-        for i in range(len(tiv_scores)):
-            for j in range(len(tiv_scores[i])):
-                assert tiv_score_dict[subjects[j]][i] == tiv_scores[i][j]
+    elif target_prediction.startswith('FAC'):
+        facts_file = os.path.join(personality_data_dir, 'FACT_SCORES.csv')
+        if os.path.exists(facts_file):
+            df = pd.read_csv(facts_file)
+        else:
+            raise IOError('Missing factors scores CSV file %s' % facts_file)
     else:
-        raise IOError('Missing personality scores Excel file %s' % pers_scores_file)
+        raise TypeError('Possible prediction targets are {NEO,FAC}, not %s' % target_prediction)
+
+    scores = []
+    # retrieve each column data for individual traits
+    for trait in trait_choice:
+        scores.append(df[trait])
+        # build the dict
+    subjects = list(map(str, list(df['Subject'])))
+    tiv_scores = np.transpose(np.array(scores))
+    tiv_score_dict = dict(zip(subjects, tiv_scores))
+    for i in range(len(tiv_scores)):
+        for j in range(len(tiv_scores[i])):
+            assert tiv_score_dict[subjects[i]][j] == tiv_scores[i][j]
 
     return tiv_score_dict
 

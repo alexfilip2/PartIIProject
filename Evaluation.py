@@ -3,6 +3,8 @@ from baseline_impl.HyperparametersBaselines import *
 from baseline_impl.NestedCrossValBaselines import evaluate_baseline, inner_losses_baseline
 from NestedCrossValGAT import evaluate_gat, inner_losses_gat
 import numpy as np
+from scipy.stats import pearsonr
+from sklearn.metrics import r2_score
 import pprint
 
 
@@ -43,48 +45,39 @@ def get_best_models(model_name, data_set, trait) -> dict:
     return best_models
 
 
-def outer_evaluation():
+def outer_evaluation(model_name, refresh=False):
     '''
     Run the best GAT model obtained from the inner CV for each outer CV multiple times in order to estimate its
     prediction performance in terms of the mean and standard deviation of the evaluation loss resulted
     :return: dict of a list of evaluation losses obtained for the best models on a specific dataset and trait choice
     '''
-    outer_results_file = os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))), 'Results',
-                                      'outer_evaluation.pck')
-    if os.path.exists(outer_results_file):
+    outer_results_file = os.path.join(os.path.dirname((__file__)), 'Results', 'outer_evaluation_%s.pck' % model_name)
+    if os.path.exists(outer_results_file) and not refresh:
         with open(outer_results_file, 'rb') as fp:
             return pkl.load(fp)
 
-    outer_losses = {}
-    # declare the models ID's
-    models = ['RVM', 'LR', 'SVR', 'GAT']
-    for model_name in models:
-        outer_losses[model_name] = {}
-        # get only the hyper-parameter configurations that were inner evaluated
-        if model_name == 'GAT':
-            sampled_hyper = HyperparametersGAT.get_sampled_models()
-        else:
-            sampled_hyper = HyperparametersBaselines.get_sampled_models(baseline_name=model_name)
-
-        for data_set in sampled_hyper['load_specific_data']:
-            outer_losses[model_name][data_set] = {}
-            out_eval_folds = list(range(HyperparametersGAT().params['k_outer']))
-            traits = sorted(HyperparametersGAT().params['pers_traits_selection'])
+    outer_losses = {model_name: {}}
+    # get only the hyper-parameter configurations that were inner evaluated
+    for data_set in [load_struct_data, load_funct_data]:
+        outer_losses[model_name][data_set] = {}
+        out_eval_folds = list(range(HyperparametersGAT().params['k_outer']))
+        traits = sorted(HyperparametersGAT().params['pers_traits_selection'])
+        for trait in traits:
+            outer_losses[model_name][data_set][trait] = np.zeros(len(out_eval_folds))
             for eval_fold in out_eval_folds:
-                outer_losses[model_name][data_set][eval_fold] = {}
-                for trait in traits:
-                    best_specific_model = get_best_models(model_name=model_name, data_set=data_set, trait=trait)
-                    config, _ = best_specific_model[eval_fold]
-                    # set the configuration object for the outer evaluation of the best inner model
-                    config.params['nested_CV_level'] = 'outer'
-                    config.params['eval_fold_out'] = eval_fold
-                    # change the config for the particular trait only in case of baseline as GAT targets all at once
-                    if model_name != 'GAT':
-                        config.params['pers_traits_selection'] = [trait]
-                        evaluate_model = evaluate_baseline
-                    else:
-                        evaluate_model = evaluate_gat
-                    outer_losses[model_name][data_set][eval_fold][trait] = evaluate_model(config)['test_loss'][trait]
+                best_specific_model = get_best_models(model_name=model_name, data_set=data_set, trait=trait)
+                config, _ = best_specific_model[eval_fold]
+                # set the configuration object for the outer evaluation of the best inner model
+                config.params['nested_CV_level'] = 'outer'
+                config.params['eval_fold_in'] = 0
+                config.params['eval_fold_out'] = eval_fold
+                # change the config for the particular trait only in case of baseline as GAT targets all at once
+                if model_name != 'GAT':
+                    config.params['pers_traits_selection'] = [trait]
+                    evaluate_model = evaluate_baseline
+                else:
+                    evaluate_model = evaluate_gat
+                outer_losses[model_name][data_set][trait][eval_fold] = evaluate_model(config)['test_loss'][trait]
 
     # save the outer evaluation losses
     with open(outer_results_file, 'wb') as handle:
@@ -93,32 +86,106 @@ def outer_evaluation():
     return outer_losses
 
 
-def get_outer_metrics():
+def compute_metric(config, metric_name):
+    results = config.get_results()
+    # if the model was not trained on outer CV, start the evaluation now
+    if results is None:
+        outer_evaluation(config.params['name'], refresh=True)
+        results = config.get_results()
+
+    if metric_name == 'pearson_score':
+        calculate_metric = pearsonr
+    elif metric_name == 'r2_score':
+        calculate_metric = r2_score
+    else:
+        raise ValueError('Possible metric:{pearson_score,r2_score}, not %s' % metric_name)
+    metric_values = {}
+    for trait in config.params['pers_traits_selection']:
+        observations, predictions = zip(*results['predictions'][trait])
+        observations, predictions = np.array(list(observations)), np.array(list(predictions))
+        metric_values[trait] = calculate_metric(observations, predictions)
+    return metric_values
+
+
+def get_outer_metrics(model_name):
     '''
      Prints the Pearson and R-squared metrics obtained from the outer predictions of the best-scoring GAT models per
      dataset and trait choices.
     :return: void
     '''
-    for data_set in [load_funct_data, load_struct_data]:
-        traits = sorted(HyperparametersGAT().params['pers_traits_selection'])
+    for data_set in [load_struct_data, load_funct_data]:
         out_eval_folds = list(range(HyperparametersGAT().params['k_outer']))
+        traits = sorted(HyperparametersGAT().params['pers_traits_selection'])
         for trait in traits:
-            best_gat = get_best_models(model_name='GAT', data_set=data_set, trait=trait)
             pearson = []
+            pearson_p_value = []
             r_squared = []
-            for out_fold in out_eval_folds:
-                config, _ = best_gat[out_fold]
+            for eval_fold in out_eval_folds:
+                best_specific_model = get_best_models(model_name=model_name, data_set=data_set, trait=trait)
+                config, _ = best_specific_model[eval_fold]
+                # set the configuration object for the outer evaluation of the best inner model
                 config.params['nested_CV_level'] = 'outer'
-                config.params['eval_fold_out'] = out_fold
-                results = config.get_results()
-                pearson.append(results['pearson'][trait][0])
-                r_squared.append(results['r2_score'][trait])
-            pearson_value = (np.mean(np.array(pearson)), np.std(np.array(pearson)))
-            r_squared_value = (np.mean(np.array(r_squared)), np.std(np.array(r_squared)))
+                config.params['eval_fold_in'] = 0
+                config.params['eval_fold_out'] = eval_fold
+                if model_name != 'GAT':
+                    config.params['pers_traits_selection'] = [trait]
 
-            print('On the dataset %s when predicting %s, the avg. pearson value was %s and the r-squared value %s' % (
-                data_set, trait, pearson_value, r_squared_value))
+                pearson.append(compute_metric(config, 'pearson_score')[trait][0])
+                pearson_p_value.append(compute_metric(config, 'pearson_score')[trait][1])
+                r_squared.append(compute_metric(config, 'r2_score')[trait])
+                # average the metrics values over the outer folds
+            pearson_value = np.mean(np.array(pearson)), np.std(np.array(pearson))
+            r_squared_value = np.mean(np.array(r_squared)), np.std(np.array(r_squared))
+            pearson_p_value = np.mean(np.array(pearson_p_value))
+            print(
+                'Dataset: %s, predicting: %s, the avg. PEARSON with STD: %s and P-VALUE %s and R-SQUARED with STD: %s' % (
+                    data_set.__name__, trait, pearson_value, pearson_p_value, r_squared_value))
+
+
+def validate_gat_inference():
+    trait = 'FAC3'
+    gat_config = HyperparametersGAT({'load_specific_data': load_struct_data,
+                                     'hidden_units': [30, 30, 10],
+                                     'attention_heads': [3, 3, 3],
+                                     'include_ew': False,
+                                     'pers_traits_selection': [trait],
+                                     'learning_rate': 0.001,
+                                     'readout_aggregator': GATModel.concat_feature_aggregator})
+    rvm_config = HyperparametersBaselines({'name': 'RVM',
+                                           'kernel': 'linear',
+                                           'n_iter': 100,
+                                           'pers_traits_selection': [trait],
+                                           'alpha': 1e-06})
+    ridge_config = HyperparametersBaselines({'name': 'LR',
+                                             'fit_intercept': False,
+                                             'normalize': False,
+                                             'solver ': 'auto',
+                                             'pers_traits_selection': [trait],
+                                             'alpha': 10})
+    svr_config = HyperparametersBaselines({'name': 'SVR',
+                                           'kernel': 'rbf',
+                                           'epsilon': 0.5,
+                                           'pers_traits_selection': [trait],
+                                           'gamma': 0.5,
+                                           'C': 1})
+
+    models = [gat_config, rvm_config, ridge_config, svr_config]
+    for model_config in models:
+        print(model_config)
+        model_config.params['nested_CV_level'] = 'outer'
+        pearson, r_squared = [], []
+        for out_fold in range(gat_config.params['k_outer']):
+            model_config.params['eval_fold_out'] = out_fold
+            if model_config.params['name'] == 'GAT':
+                evaluate_gat(model_config)
+            else:
+                evaluate_baseline(model_config)
+            pearson.append(compute_metric(model_config, 'pearson_score')[trait][0])
+            r_squared.append(compute_metric(model_config, 'r2_score')[trait])
+        print('For model %s, the bootstrapped Pearson: %f and R-squared: %f' % (model_config.params['name'],
+                                                                                np.mean(np.array(pearson)),
+                                                                                np.mean(np.array(r_squared))))
 
 
 if __name__ == "__main__":
-    pprint.pprint(outer_evaluation())
+    validate_gat_inference()

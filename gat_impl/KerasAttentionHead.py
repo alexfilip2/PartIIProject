@@ -1,7 +1,7 @@
 import tensorflow as tf
 from keras import initializers, regularizers
 from keras import backend as K
-from keras.layers import Layer, LeakyReLU, Multiply, Dropout, BatchNormalization, Softmax
+from keras.layers import Layer, LeakyReLU, Add, Dropout, BatchNormalization, Softmax
 
 
 class GATLayer(Layer):
@@ -56,10 +56,9 @@ class GATLayer(Layer):
             self.output_dim = self.F_  # output shape: (? x N x F')
 
     def build(self, input_shape):
-        assert len(input_shape) >= 2
+        assert len(input_shape) == 3
         # Retrieve initial node feature dimension
         F = input_shape[0][-1]
-
         # Initialize the weights (kernels) and biases for each attention head
         for index_attn_head in range(self.attn_heads):
             # Layer kernel
@@ -112,12 +111,11 @@ class GATLayer(Layer):
 
             # Apply the mask to the attention coefficients
             dense += attn_mask
-            # Apply Softmax to nullify the attention coefficients of not connected nodes
-            dense = Softmax(axis=-1)(dense)  # (? x N x N)
-
             # Include edge weights by element-wise multiplication
             if self.use_ew:
-                dense = Multiply()([dense, adjacency_mat])
+                dense = Add()([dense, adjacency_mat])
+            # Apply Softmax to nullify the attention coefficients of not connected nodes
+            dense = Softmax(axis=-1)(dense)  # (? x N x N)
 
             # Apply dropout to features and attention coefficients
             dropout_attn = Dropout(rate=self.dropout_rate)(inputs=dense)

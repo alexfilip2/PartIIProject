@@ -1,5 +1,6 @@
 from gat_impl.KerasAttentionHead import *
 import numpy as np
+from keras.activations import linear
 from keras.layers import Input, Lambda, Dense
 from keras.models import Model
 from utils.ToolsDataProcessing import adj_to_bias
@@ -85,11 +86,11 @@ class TensorflowGraphGAT(object):
         master_layer = GATLayer(F_=kwargs['master_feats'],
                                 attn_heads=kwargs['master_heads'],
                                 attn_heads_reduction='concat',
-                                flag_batch_norm=True,
+                                flag_batch_norm=False,
                                 flag_edge_weights=False,
                                 dropout_rate=kwargs['attn_drop'],
                                 decay_rate=kwargs['decay_rate'],
-                                activation=kwargs['non_linearity'])([model_gat_output, batch_ext_adjs, batch_ext_bias])
+                                activation=linear)([model_gat_output, batch_ext_adjs, batch_ext_bias])
 
         # extract only the high-level features produced for the master node (in each batch graph)
         def extract_master_feats(inputs):

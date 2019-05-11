@@ -1,5 +1,5 @@
-from utils.LoadStructuralData import load_struct_data, dir_structural_data
-from utils.LoadFunctionalData import load_funct_data, dir_functional_data
+from utils.LoadStructuralData import load_struct_data
+from utils.LoadFunctionalData import load_funct_data
 from gat_impl.ExecuteGAT import GATModel
 from keras.activations import relu
 import numpy as np
@@ -28,14 +28,14 @@ class HyperparametersGAT(object):
             'name': 'GAT',
             'hidden_units': [20, 40, 20],
             'attention_heads': [3, 3, 2],
-            'include_ew': True,
-            'readout_aggregator': GATModel.concat_feature_aggregator,
+            'include_ew': False,
+            'readout_aggregator': GATModel.master_node_aggregator,
             'use_batch_norm': True,
             'non_linearity': relu,
             # training hyper.
             'load_specific_data': load_struct_data,
             'pers_traits_selection': ['NEO.NEOFAC_A', 'NEO.NEOFAC_C', 'NEO.NEOFAC_E', 'NEO.NEOFAC_N', 'NEO.NEOFAC_O'],
-            'learning_rate': 0.0005,
+            'learning_rate': 0.001,
             'decay_rate': 0.0005,
             'attn_drop': 0.6,
             'batch_size': 32,
@@ -77,7 +77,7 @@ class HyperparametersGAT(object):
         :return: str of the name of the model, including the nested CV parameters
         '''
         str_dataset = 'GAT_%s' % self.params['load_specific_data'].__name__.split('_')[1]
-        str_dim_sess = 'DIM_%dSESS_%d' % (self.params['functional_dim'], self.params['scan_session'])
+        str_dim_sess = 'DIM_%d_SESS_%d' % (self.params['functional_dim'], self.params['scan_session'])
         str_attn_heads = 'AH_%s' % ",".join(map(str, self.params['attention_heads']))
         str_hid_units = 'HU_%s' % ",".join(map(str, self.params['hidden_units']))
         str_traits = 'PT_%s' % self.get_summarized_traits()
@@ -221,14 +221,11 @@ class HyperparametersGAT(object):
         if os.path.exists(samples_file):
             with open(samples_file, 'rb') as handle:
                 choices = pkl.load(handle)
-                choices['learning_rate'] = [0.001, 0.0005]
-                choices['attn_drop'] = [0.6, 0.4]
                 return choices
-
         choices = {
             'learning_rate': [0.005, 0.001, 0.0005, 0.0001],
             'decay_rate': [0.0005],
-            'attn_drop': [0.0, 0.2, 0.4, 0.6, 0.8],
+            'attn_drop': [0.2, 0.4, 0.6, 0.8],
             'readout_aggregator': [GATModel.average_feature_aggregator,
                                    GATModel.master_node_aggregator,
                                    GATModel.concat_feature_aggregator],
@@ -262,3 +259,7 @@ class HyperparametersGAT(object):
             pkl.dump(choices, handle)
 
         return choices
+
+
+if __name__ == "__main__":
+    HyperparametersGAT.get_sampled_models()

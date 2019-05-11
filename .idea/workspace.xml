@@ -2,20 +2,28 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="e6c655ac-ac83-4960-96cd-bd108dfa904a" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/baseline_impl/NestedCrossValBaselines.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Diagrams/comparison_funct.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/Diagrams/comparison_funct.pdf" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Diagrams/comparison_struct.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/Diagrams/comparison_struct.pdf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Diagrams/error_bars_C_SVR.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/Diagrams/error_bars_C_SVR.pdf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Diagrams/error_bars_epsilon_SVR.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/Diagrams/error_bars_epsilon_SVR.pdf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Diagrams/error_bars_gamma_SVR.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/Diagrams/error_bars_gamma_SVR.pdf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Diagrams/error_bars_kernel_RVM.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/Diagrams/error_bars_kernel_RVM.pdf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Diagrams/error_bars_kernel_SVR.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/Diagrams/error_bars_kernel_SVR.pdf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Diagrams/error_bars_n_iter_RVM.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/Diagrams/error_bars_n_iter_RVM.pdf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Diagrams/residual_trait_NEOFAC_A_data_struct_fold_4.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/Diagrams/residual_trait_NEOFAC_A_data_struct_fold_4.pdf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Diagrams/residual_trait_NEOFAC_C_data_struct_fold_4.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/Diagrams/residual_trait_NEOFAC_C_data_struct_fold_4.pdf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Diagrams/residual_trait_NEOFAC_E_data_struct_fold_4.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/Diagrams/residual_trait_NEOFAC_E_data_struct_fold_4.pdf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Diagrams/residual_trait_NEOFAC_N_data_struct_fold_4.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/Diagrams/residual_trait_NEOFAC_N_data_struct_fold_4.pdf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Diagrams/residual_trait_NEOFAC_O_data_struct_fold_4.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/Diagrams/residual_trait_NEOFAC_O_data_struct_fold_4.pdf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Evaluation.py" beforeDir="false" afterPath="$PROJECT_DIR$/Evaluation.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/NestedCrossValGAT.py" beforeDir="false" afterPath="$PROJECT_DIR$/NestedCrossValGAT.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/baseline_impl/BaselineRegressions.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/baseline_impl/HyperparametersBaselines.py" beforeDir="false" afterPath="$PROJECT_DIR$/baseline_impl/HyperparametersBaselines.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/baseline_impl/NestedCrossValBaselines.py" beforeDir="false" afterPath="$PROJECT_DIR$/baseline_impl/NestedCrossValBaselines.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/gat_impl/ExecuteGAT.py" beforeDir="false" afterPath="$PROJECT_DIR$/gat_impl/ExecuteGAT.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/gat_impl/HyperparametersGAT.py" beforeDir="false" afterPath="$PROJECT_DIR$/gat_impl/HyperparametersGAT.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/gat_impl/KerasAttentionHead.py" beforeDir="false" afterPath="$PROJECT_DIR$/gat_impl/KerasAttentionHead.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/gat_impl/TensorflowGraphGAT.py" beforeDir="false" afterPath="$PROJECT_DIR$/gat_impl/TensorflowGraphGAT.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/Evaluation.py" beforeDir="false" afterPath="$PROJECT_DIR$/Evaluation.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/LoadFunctionalData.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/LoadFunctionalData.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/LoadStructuralData.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/LoadStructuralData.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/utils/ToolsDataProcessing.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/ToolsDataProcessing.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/utils/ToolsDiagrams.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/ToolsDiagrams.py" afterDir="false" />
     </list>
@@ -38,12 +46,14 @@
     <SUITE FILE_PATH="coverage/PartIIProject$LoadStructuralData.coverage" NAME="LoadStructuralData Coverage Results" MODIFIED="1557173955844" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/utils" />
     <SUITE FILE_PATH="coverage/PartIIProject$KerasGAT.coverage" NAME="KerasGAT Coverage Results" MODIFIED="1551699644070" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/PartIIProject$NestedCrossValGAT__1_.coverage" NAME="NestedCrossValGAT (1) Coverage Results" MODIFIED="1554992253154" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/PartIIProject$HyperparametersGAT.coverage" NAME="HyperparametersGAT Coverage Results" MODIFIED="1557528280911" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/gat_impl" />
     <SUITE FILE_PATH="coverage/PartIIProject$ToolsDataProcessing.coverage" NAME="ToolsDataProcessing Coverage Results" MODIFIED="1557081371763" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/utils" />
-    <SUITE FILE_PATH="coverage/PartIIProject$ToolsDiagrams.coverage" NAME="ToolsDiagrams Coverage Results" MODIFIED="1557186960607" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/utils" />
-    <SUITE FILE_PATH="coverage/PartIIProject$Evaluation.coverage" NAME="Evaluation Coverage Results" MODIFIED="1557184147269" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/utils" />
-    <SUITE FILE_PATH="coverage/PartIIProject$NestedCrossValGAT.coverage" NAME="NestedCrossValGAT Coverage Results" MODIFIED="1557278107285" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/PartIIProject$ToolsDiagrams.coverage" NAME="ToolsDiagrams Coverage Results" MODIFIED="1557534064130" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/utils" />
+    <SUITE FILE_PATH="coverage/PartIIProject$NestedCrossValGAT.coverage" NAME="NestedCrossValGAT Coverage Results" MODIFIED="1557523904017" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/PartIIProject$Evaluation.coverage" NAME="Evaluation Coverage Results" MODIFIED="1557540394236" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/utils" />
     <SUITE FILE_PATH="coverage/PartIIProject$LearningProcess.coverage" NAME="LearningProcess Coverage Results" MODIFIED="1553777667618" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/PartIIProject$NestedCrossValBaselines.coverage" NAME="NestedCrossValBaselines Coverage Results" MODIFIED="1557236640398" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/baseline_impl" />
+    <SUITE FILE_PATH="coverage/PartIIProject$Evaluation__1_.coverage" NAME="Evaluation (1) Coverage Results" MODIFIED="1557517079230" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/PartIIProject$NestedCrossValBaselines.coverage" NAME="NestedCrossValBaselines Coverage Results" MODIFIED="1557524380883" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/baseline_impl" />
     <SUITE FILE_PATH="coverage/PartIIProject$KerasAttentionHead.coverage" NAME="KerasAttentionHead Coverage Results" MODIFIED="1548877210967" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/keras_implementation" />
     <SUITE FILE_PATH="coverage/PartIIProject$SupervisedGAT.coverage" NAME="SupervisedGAT Coverage Results" MODIFIED="1546598699331" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/PartIIProject$Node2Vec.coverage" NAME="Node2Vec Coverage Results" MODIFIED="1546968087130" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
@@ -67,8 +77,8 @@
     <session id="-518088592">
       <usages-collector id="statistics.lifecycle.project">
         <counts>
-          <entry key="project.closed" value="181" />
-          <entry key="project.open.time.0" value="19" />
+          <entry key="project.closed" value="185" />
+          <entry key="project.open.time.0" value="20" />
           <entry key="project.open.time.1" value="8" />
           <entry key="project.open.time.10" value="2" />
           <entry key="project.open.time.15" value="1" />
@@ -78,12 +88,12 @@
           <entry key="project.open.time.20" value="1" />
           <entry key="project.open.time.21" value="1" />
           <entry key="project.open.time.22" value="1" />
-          <entry key="project.open.time.23" value="3" />
+          <entry key="project.open.time.23" value="4" />
           <entry key="project.open.time.24" value="5" />
           <entry key="project.open.time.25" value="12" />
-          <entry key="project.open.time.26" value="6" />
-          <entry key="project.open.time.27" value="9" />
-          <entry key="project.open.time.28" value="3" />
+          <entry key="project.open.time.26" value="7" />
+          <entry key="project.open.time.27" value="10" />
+          <entry key="project.open.time.28" value="4" />
           <entry key="project.open.time.29" value="7" />
           <entry key="project.open.time.3" value="2" />
           <entry key="project.open.time.30" value="11" />
@@ -112,33 +122,33 @@
           <entry key="project.open.time.8" value="6" />
           <entry key="project.open.time.9" value="2" />
           <entry key="project.open.time.94" value="1" />
-          <entry key="project.opened" value="191" />
+          <entry key="project.opened" value="196" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
         <counts>
           <entry key="emb" value="1" />
           <entry key="model" value="1" />
-          <entry key="py" value="666" />
+          <entry key="py" value="744" />
           <entry key="txt" value="4" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.open">
         <counts>
           <entry key="PLAIN_TEXT" value="6" />
-          <entry key="Python" value="666" />
+          <entry key="Python" value="744" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
           <entry key="dummy" value="242" />
-          <entry key="py" value="167139" />
+          <entry key="py" value="174620" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
           <entry key="PLAIN_TEXT" value="242" />
-          <entry key="Python" value="167137" />
+          <entry key="Python" value="174618" />
           <entry key="SQL" value="2" />
         </counts>
       </usages-collector>
@@ -147,48 +157,38 @@
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/Evaluation.py">
+        <entry file="file://$PROJECT_DIR$/NestedCrossValGAT.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="218">
-              <caret line="103" column="76" selection-start-line="103" selection-start-column="76" selection-end-line="103" selection-end-column="76" />
+            <state relative-caret-position="303">
+              <caret line="95" lean-forward="true" selection-start-line="95" selection-end-line="95" />
               <folding>
                 <element signature="e#0#41#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/baseline_impl/NestedCrossValBaselines.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="2376">
+              <caret line="149" column="47" selection-start-line="149" selection-start-column="47" selection-end-line="149" selection-end-column="47" />
+              <folding>
+                <element signature="e#0#52#0" expanded="true" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/NestedCrossValGAT.py">
+        <entry file="file://$PROJECT_DIR$/Evaluation.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="555">
-              <caret line="113" lean-forward="true" selection-start-line="113" selection-end-line="113" />
+            <state relative-caret-position="43">
+              <caret line="147" column="64" selection-start-line="147" selection-start-column="64" selection-end-line="147" selection-end-column="64" />
               <folding>
                 <element signature="e#0#41#0" expanded="true" />
-                <marker date="1557277695123" expanded="true" signature="179:181" ph="..." />
-                <marker date="1557277695123" expanded="true" signature="3451:4724" ph="..." />
-                <marker date="1557277695123" expanded="true" signature="4318:4724" ph="..." />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/utils/ToolsDiagrams.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="119">
-              <caret line="7" column="39" selection-start-line="7" selection-start-column="39" selection-end-line="7" selection-end-column="39" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/gat_impl/HyperparametersGAT.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="167">
-              <caret line="216" column="82" selection-start-line="216" selection-start-column="17" selection-end-line="216" selection-end-column="82" />
-              <folding>
-                <element signature="e#0#74#0" expanded="true" />
+                <marker date="1557540477924" expanded="true" signature="4672:5503" ph="..." />
+                <marker date="1557540477924" expanded="true" signature="7471:7967" ph="..." />
               </folding>
             </state>
           </provider>
@@ -197,11 +197,22 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/gat_impl/ExecuteGAT.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-3072">
-              <caret line="8" column="32" selection-start-line="8" selection-start-column="32" selection-end-line="8" selection-end-column="32" />
+            <state relative-caret-position="207">
+              <caret line="192" column="97" selection-start-line="192" selection-start-column="97" selection-end-line="192" selection-end-column="97" />
               <folding>
                 <element signature="e#0#11#0" expanded="true" />
-                <marker date="1557239427695" expanded="true" signature="5646:5652" ph="..." />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/baseline_impl/HyperparametersBaselines.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="306">
+              <caret line="172" column="43" selection-start-line="172" selection-start-column="22" selection-end-line="172" selection-end-column="43" />
+              <folding>
+                <element signature="e#0#53#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -218,17 +229,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>quit</find>
-      <find>None</find>
-      <find>get_best_models</find>
-      <find>CONF_LIMIT</find>
-      <find>dir_struct_mat_HCP</find>
-      <find>structural_feats_excel</find>
-      <find>pers_scores</find>
-      <find>dir_proc_struct_data</find>
-      <find>self.N</find>
-      <find>sns</find>
-      <find>model</find>
       <find>&lt;function load_funct_data at 0x0000011106DEDB70&gt; NEO.NEOFAC_E</find>
       <find>&lt;function load_struct_data at 0x0000011106DED950&gt; NEO.NEOFAC_N</find>
       <find>outer_evaluation_gat</find>
@@ -245,9 +245,20 @@
       <find>flat</find>
       <find>3.07900e+00</find>
       <find>keep_prob</find>
-      <find>print</find>
       <find>evaluate_baseline</find>
       <find>dir_functional_data</find>
+      <find>0.0005</find>
+      <find>0.6</find>
+      <find>NEO.NEOFAC_A</find>
+      <find>872764</find>
+      <find>555348</find>
+      <find>325129</find>
+      <find>132118</find>
+      <find>The training size is 768</find>
+      <find>self.data</find>
+      <find>self.N</find>
+      <find>out_losses</find>
+      <find>print</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -292,21 +303,21 @@
         <option value="$PROJECT_DIR$/gat_impl/MainGAT.py" />
         <option value="$PROJECT_DIR$/utils/Node2VecEmbedding.py" />
         <option value="$PROJECT_DIR$/gat_impl/TensorflowAttentionHead.py" />
-        <option value="$PROJECT_DIR$/gat_impl/TensorflowGraphGAT.py" />
         <option value="$PROJECT_DIR$/utils/Evaluation.py" />
         <option value="$PROJECT_DIR$/baseline_impl/BaselineRegressions.py" />
         <option value="$PROJECT_DIR$/utils/LoadStructuralData.py" />
         <option value="$PROJECT_DIR$/utils/LoadFunctionalData.py" />
-        <option value="$PROJECT_DIR$/utils/ToolsDataProcessing.py" />
-        <option value="$PROJECT_DIR$/gat_impl/ExecuteGAT.py" />
         <option value="$PROJECT_DIR$/gat_impl/NestedCrossValGAT.py" />
         <option value="$PROJECT_DIR$/gat_impl/KerasAttentionHead.py" />
-        <option value="$PROJECT_DIR$/gat_impl/HyperparametersGAT.py" />
-        <option value="$PROJECT_DIR$/baseline_impl/HyperparametersBaselines.py" />
-        <option value="$PROJECT_DIR$/baseline_impl/NestedCrossValBaselines.py" />
-        <option value="$PROJECT_DIR$/Evaluation.py" />
-        <option value="$PROJECT_DIR$/utils/ToolsDiagrams.py" />
+        <option value="$PROJECT_DIR$/gat_impl/TensorflowGraphGAT.py" />
+        <option value="$PROJECT_DIR$/utils/ToolsDataProcessing.py" />
+        <option value="$PROJECT_DIR$/gat_impl/ExecuteGAT.py" />
         <option value="$PROJECT_DIR$/NestedCrossValGAT.py" />
+        <option value="$PROJECT_DIR$/baseline_impl/NestedCrossValBaselines.py" />
+        <option value="$PROJECT_DIR$/gat_impl/HyperparametersGAT.py" />
+        <option value="$PROJECT_DIR$/utils/ToolsDiagrams.py" />
+        <option value="$PROJECT_DIR$/baseline_impl/HyperparametersBaselines.py" />
+        <option value="$PROJECT_DIR$/Evaluation.py" />
       </list>
     </option>
   </component>
@@ -417,7 +428,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python.NestedCrossValGAT">
+  <component name="RunManager" selected="Python.Evaluation">
     <configuration name="Evaluation" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="PartIIProject" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -440,7 +451,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="LoadStructuralData" type="PythonConfigurationType" factoryName="Python" temporary="true">
+    <configuration name="HyperparametersGAT" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="PartIIProject" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -448,12 +459,12 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/utils" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/gat_impl" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/utils/LoadStructuralData.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/gat_impl/HyperparametersGAT.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -531,17 +542,17 @@
     <list>
       <item itemvalue="Python.NestedCrossValGAT" />
       <item itemvalue="Python.Evaluation" />
-      <item itemvalue="Python.LoadStructuralData" />
       <item itemvalue="Python.ToolsDiagrams" />
       <item itemvalue="Python.NestedCrossValBaselines" />
+      <item itemvalue="Python.HyperparametersGAT" />
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.NestedCrossValGAT" />
-        <item itemvalue="Python.NestedCrossValBaselines" />
-        <item itemvalue="Python.ToolsDiagrams" />
         <item itemvalue="Python.Evaluation" />
-        <item itemvalue="Python.LoadStructuralData" />
+        <item itemvalue="Python.ToolsDiagrams" />
+        <item itemvalue="Python.HyperparametersGAT" />
+        <item itemvalue="Python.NestedCrossValBaselines" />
+        <item itemvalue="Python.NestedCrossValGAT" />
       </list>
     </recent_temporary>
   </component>
@@ -571,12 +582,12 @@
     <frame x="-7" y="-7" width="1550" height="838" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.25838926" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.21879195" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" weight="0.20283689" />
-      <window_info anchor="bottom" id="Run" order="2" weight="0.2851064" />
+      <window_info anchor="bottom" id="Run" order="2" weight="0.47517732" />
       <window_info anchor="bottom" id="Cvs" order="3" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="4" weight="0.4" />
       <window_info anchor="bottom" id="Debug" order="5" weight="0.39858156" />
@@ -585,13 +596,13 @@
       <window_info anchor="bottom" id="Version Control" order="8" show_stripe_button="false" />
       <window_info anchor="bottom" id="Database Changes" order="9" show_stripe_button="false" />
       <window_info anchor="bottom" id="Event Log" order="10" side_tool="true" />
-      <window_info anchor="bottom" id="Terminal" order="11" weight="0.3286119" />
-      <window_info anchor="bottom" id="Python Console" order="12" weight="0.3286119" />
-      <window_info anchor="bottom" id="Concurrent Activities Diagram" order="13" weight="0.3286119" />
+      <window_info anchor="bottom" id="Terminal" order="11" weight="0.32765958" />
+      <window_info anchor="bottom" id="Python Console" order="12" weight="0.32765958" />
+      <window_info anchor="bottom" id="Concurrent Activities Diagram" order="13" weight="0.32765958" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
-      <window_info anchor="right" id="SciView" order="3" weight="0.12013423" />
+      <window_info anchor="right" id="SciView" order="3" weight="0.33221477" />
       <window_info anchor="right" id="Database" order="4" weight="0.3295302" />
     </layout>
   </component>
@@ -600,6 +611,17 @@
   </component>
   <component name="VcsContentAnnotationSettings">
     <option name="myLimit" value="2678400000" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <default-breakpoints>
+        <breakpoint type="python-exception">
+          <properties notifyOnTerminate="true" exception="BaseException">
+            <option name="notifyOnTerminate" value="true" />
+          </properties>
+        </breakpoint>
+      </default-breakpoints>
+    </breakpoint-manager>
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/SupervisedGAT.py" />
@@ -709,17 +731,47 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/utils/Node2VecEmbedding.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-74">
-          <caret line="2" selection-start-line="2" selection-end-line="2" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$USER_HOME$/Anaconda3/Lib/site-packages/scipy/stats/stats.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="84">
           <caret line="3013" selection-start-line="3013" selection-end-line="3013" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/utils/Node2VecEmbedding.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="17">
+          <caret line="2" selection-start-line="2" selection-end-line="2" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/utils/LoadStructuralData.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2193">
+          <caret line="131" column="7" selection-start-line="131" selection-start-column="7" selection-end-line="131" selection-end-column="7" />
+          <folding>
+            <element signature="e#0#20#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/utils/LoadFunctionalData.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="552">
+          <caret line="115" column="90" selection-start-line="115" selection-start-column="18" selection-end-line="115" selection-end-column="90" />
+          <folding>
+            <element signature="e#0#39#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/gat_impl/TensorflowGraphGAT.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="384">
+          <caret line="165" column="76" selection-start-line="165" selection-start-column="76" selection-end-line="165" selection-end-column="76" />
+          <folding>
+            <element signature="e#0#41#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -730,125 +782,91 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/gat_impl/TensorflowGraphGAT.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="17">
-          <caret line="7" column="24" selection-start-line="7" selection-start-column="6" selection-end-line="7" selection-end-column="24" />
-          <folding>
-            <element signature="e#0#41#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/gat_impl/KerasAttentionHead.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-510">
-          <caret line="8" column="20" lean-forward="true" selection-start-line="8" selection-start-column="20" selection-end-line="8" selection-end-column="20" />
+        <state relative-caret-position="17">
+          <caret line="58" column="36" selection-start-line="58" selection-start-column="36" selection-end-line="58" selection-end-column="36" />
           <folding>
             <element signature="e#0#23#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/utils/LoadFunctionalData.py">
+    <entry file="file://$PROJECT_DIR$/utils/ToolsDiagrams.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="447">
-          <caret line="115" column="90" selection-start-line="115" selection-start-column="18" selection-end-line="115" selection-end-column="90" />
+        <state relative-caret-position="1300">
+          <caret line="266" column="18" selection-start-line="266" selection-start-column="18" selection-end-line="266" selection-end-column="18" />
           <folding>
-            <element signature="e#0#39#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/utils/LoadStructuralData.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1535">
-          <caret line="151" column="117" lean-forward="true" selection-start-line="151" selection-start-column="93" selection-end-line="151" selection-end-column="117" />
-          <folding>
-            <element signature="e#0#20#0" expanded="true" />
+            <element signature="e#0#31#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/utils/ToolsDataProcessing.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="991">
-          <caret line="156" column="34" selection-start-line="156" selection-start-column="34" selection-end-line="156" selection-end-column="34" />
+        <state relative-caret-position="119">
+          <caret line="19" column="39" selection-start-line="19" selection-start-column="39" selection-end-line="19" selection-end-column="39" />
           <folding>
             <element signature="e#0#46#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/baseline_impl/HyperparametersBaselines.py">
+    <entry file="file://$PROJECT_DIR$/NestedCrossValGAT.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-3">
-          <caret line="149" column="82" selection-start-line="149" selection-start-column="82" selection-end-line="149" selection-end-column="82" />
+        <state relative-caret-position="303">
+          <caret line="95" lean-forward="true" selection-start-line="95" selection-end-line="95" />
           <folding>
-            <element signature="e#0#53#0" expanded="true" />
-            <marker date="1557276631621" expanded="true" signature="3612:3827" ph="..." />
-            <marker date="1557276631621" expanded="true" signature="5879:5885" ph="..." />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/baseline_impl/NestedCrossValBaselines.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1428">
-          <caret line="84" column="46" lean-forward="true" selection-start-line="84" selection-start-column="46" selection-end-line="84" selection-end-column="46" />
-          <folding>
-            <element signature="e#0#52#0" expanded="true" />
+            <element signature="e#0#41#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/gat_impl/HyperparametersGAT.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="167">
-          <caret line="216" column="82" selection-start-line="216" selection-start-column="17" selection-end-line="216" selection-end-column="82" />
-          <folding>
-            <element signature="e#0#74#0" expanded="true" />
-          </folding>
+        <state relative-caret-position="323">
+          <caret line="48" column="39" lean-forward="true" selection-start-line="48" selection-start-column="10" selection-end-line="48" selection-end-column="39" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/utils/ToolsDiagrams.py">
+    <entry file="file://$PROJECT_DIR$/baseline_impl/HyperparametersBaselines.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="119">
-          <caret line="7" column="39" selection-start-line="7" selection-start-column="39" selection-end-line="7" selection-end-column="39" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Evaluation.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="218">
-          <caret line="103" column="76" selection-start-line="103" selection-start-column="76" selection-end-line="103" selection-end-column="76" />
+        <state relative-caret-position="306">
+          <caret line="172" column="43" selection-start-line="172" selection-start-column="22" selection-end-line="172" selection-end-column="43" />
           <folding>
-            <element signature="e#0#41#0" expanded="true" />
+            <element signature="e#0#53#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/gat_impl/ExecuteGAT.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-3072">
-          <caret line="8" column="32" selection-start-line="8" selection-start-column="32" selection-end-line="8" selection-end-column="32" />
+        <state relative-caret-position="207">
+          <caret line="192" column="97" selection-start-line="192" selection-start-column="97" selection-end-line="192" selection-end-column="97" />
           <folding>
             <element signature="e#0#11#0" expanded="true" />
-            <marker date="1557239427695" expanded="true" signature="5646:5652" ph="..." />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/NestedCrossValGAT.py">
+    <entry file="file://$PROJECT_DIR$/baseline_impl/NestedCrossValBaselines.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="555">
-          <caret line="113" lean-forward="true" selection-start-line="113" selection-end-line="113" />
+        <state relative-caret-position="2376">
+          <caret line="149" column="47" selection-start-line="149" selection-start-column="47" selection-end-line="149" selection-end-column="47" />
+          <folding>
+            <element signature="e#0#52#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Evaluation.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="43">
+          <caret line="147" column="64" selection-start-line="147" selection-start-column="64" selection-end-line="147" selection-end-column="64" />
           <folding>
             <element signature="e#0#41#0" expanded="true" />
-            <marker date="1557277695123" expanded="true" signature="179:181" ph="..." />
-            <marker date="1557277695123" expanded="true" signature="3451:4724" ph="..." />
-            <marker date="1557277695123" expanded="true" signature="4318:4724" ph="..." />
+            <marker date="1557540477924" expanded="true" signature="4672:5503" ph="..." />
+            <marker date="1557540477924" expanded="true" signature="7471:7967" ph="..." />
           </folding>
         </state>
       </provider>

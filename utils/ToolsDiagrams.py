@@ -1,21 +1,30 @@
 import matplotlib.pyplot as plt
 import seaborn as sns
-from gat_impl.HyperparametersGAT import *
-from baseline_impl.HyperparametersBaselines import *
+from gat_impl.HyperparametersGAT import HyperparametersGAT
+from baseline_impl.HyperparametersBaselines import HyperparametersBaselines
 from Evaluation import outer_evaluation, get_best_models
-from utils.LoadStructuralData import get_structural_adjacency
-from utils.LoadFunctionalData import get_functional_adjacency
+from utils.LoadStructuralData import get_structural_adjacency, load_struct_data
+from utils.LoadFunctionalData import get_functional_adjacency, load_funct_data
+from NestedCrossValGAT import inner_losses_gat
+from baseline_impl.NestedCrossValBaselines import inner_losses_baseline
 from utils.ToolsDataProcessing import *
 import math
 import pandas as pd
+import pickle as pkl
 
-# Output of the learning process losses directory
+sns.set(style="whitegrid")
+# Diagrams directory
 gat_model_stats = os.path.join(os.path.dirname(os.path.join(os.path.dirname(__file__))), 'Diagrams')
 if not os.path.exists(gat_model_stats):
     os.makedirs(gat_model_stats)
 
 
 def plot_learning_history(model_gat_config: HyperparametersGAT) -> None:
+    '''
+     Plots the learning history of a GAT model
+    :param model_gat_config: the hyperparameter configuration fo the specific model
+    :return: void
+    '''
     print("Restoring training logs from file %s." % model_gat_config.logs_file())
     with open(model_gat_config.logs_file(), 'rb') as logs_binary:
         logs = pkl.load(logs_binary)
@@ -23,9 +32,8 @@ def plot_learning_history(model_gat_config: HyperparametersGAT) -> None:
     nb_epochs = len(tr_loss)
     # Create data
     df = pd.DataFrame({'epoch': list(range(1, nb_epochs + 1)), 'train': np.array(tr_loss), 'val': np.array(vl_loss)})
-    plt.plot('epoch', 'train', data=df, color='blue', label='training loss', linewidth=1.0)
-    plt.plot('epoch', 'val', data=df, color='green', label='validation loss', linewidth=1.0)
-    # plt.title(str(model_GAT_config))
+    plt.plot('epoch', 'train', data=df, color='blue', label='training loss', linewidth=2.0)
+    plt.plot('epoch', 'val', data=df, color='green', label='validation loss', linewidth=2.0)
     plt.xlabel('#epochs')
     plt.ylabel('MSE loss')
     plt.legend(loc='upper right')
@@ -34,20 +42,21 @@ def plot_learning_history(model_gat_config: HyperparametersGAT) -> None:
 
 
 def plot_pq_ratio(model_gat_config: HyperparametersGAT) -> None:
-    params = model_gat_config.params
-    mode_specs = (params['load_specific_data'].__name__.split('_')[1], params['include_ew'],
-                  params['readout_aggregator'].__name__.split('_')[0], params['batch_size'])
-    save_fig_path = os.path.join(gat_model_stats, 'pq_ratio_plot_' + '_'.join(mode_specs) + '.pdf')
-    if os.path.exists(save_fig_path):
-        return
+    '''
+     Plots the PQ ration of the custom early stopping from the training of a GAT model
+    :param model_gat_config: the hyperparameter configuration fo the specific model
+    :return: void
+    '''
     print("Restoring training logs from file %s." % model_gat_config.logs_file())
     logs = {}
-    for out_split in range(model_gat_config.params['k_outer']):
-        model_gat_config.params['eval_fold_out'] = out_split
+    for out_fold in range(model_gat_config.params['k_outer']):
+        model_gat_config.params['eval_fold_out'] = out_fold
+        model_gat_config.params['nested_CV_level'] = 'outer'
         if os.path.exists(model_gat_config.logs_file()):
             with open(model_gat_config.logs_file(), 'rb') as in_file:
-                logs[out_split] = np.array(pkl.load(in_file)['early_stop']['pq_ratio'])
+                logs[out_fold] = np.array(pkl.load(in_file)['early_stop']['pq_ratio'])
         else:
+            print('Missing results on the outer fold %d' % out_fold)
             continue
     logs['epoch'] = list(range(1, min(map(len, list(logs.values()))) + 1))
     # Create data
@@ -56,32 +65,43 @@ def plot_pq_ratio(model_gat_config: HyperparametersGAT) -> None:
     for out_split, colour in zip(range(model_gat_config.params['k_outer']), colours):
         plt.plot('epoch', 'split #' + str(out_split), data=df, color=colour, label='split #' + str(out_split),
                  linewidth=1.0)
-    plt.title('PQ ratio: dataset %s, readout %s, include edges %s, batch size %s' % mode_specs)
+    plt.title('PQ ratio history')
     plt.xlabel('#epochs')
-    plt.ylabel('pq_ratio')
+    plt.ylabel('PQ-ratio value')
     plt.legend(loc='upper left')
-    plt.savefig(save_fig_path)
     plt.show()
 
 
-def plot_edge_weight_distribution(log_scale=10, get_adjs_loader=get_structural_adjacency):
-    data_type = get_adjs_loader.__name__.split('_')[1]
-    # log-scale values of the weights, excluding the 0 edges (self-edges still have weigth 0)
-    dict_adjs = get_structural_adjacency()
-    adjs = np.concatenate([dict_adjs[subj].flatten() for subj in dict_adjs.keys()])
-    edge_weights = np.array([math.log(x, log_scale) for x in adjs.flatten() if x != 0])
+def plot_edge_weight_distribution(log_scale=10, data_name='structural'):
+    '''
+     Plots the distribution of the edge weight across a specific dataset
+    :param log_scale: the log scale of the histogram
+    :param data_name: the name of the dataset for the particular adjacency matrices
+    :return: void
+    '''
+    if data_name == 'structural':
+        adjacency_loader = get_structural_adjacency
+    elif data_name == 'functional':
+        adjacency_loader = get_functional_adjacency
+    else:
+        return
+
+    # log-scale values of the weights, excluding the 0 edges
+    dict_adj = adjacency_loader()
+    all_edge_weights = np.concatenate([dict_adj[subj].flatten() for subj in dict_adj.keys()]).flatten()
+    edge_weights = np.array([math.log(x, log_scale) for x in all_edge_weights if x != 0])
     lower_conf = np.percentile(edge_weights, 10)
     n, bins, patches = plt.hist(x=edge_weights, bins='auto', color='#0504aa', alpha=0.7, rwidth=None)
     for index, patch in enumerate(patches):
-        patch.set_facecolor('#0504aa' if lower_conf <= bins[index] else 'black')
+        patch.set_facecolor('blue' if lower_conf <= bins[index] else 'black')
     plt.grid(axis='y', alpha=0.75)
-    plt.xlabel('Log %d edge weight value' % log_scale)
+    plt.xlabel('Log%d edge weight value' % log_scale)
     plt.ylabel('Frequency')
-    plt.title('Distribution of edge weights in %s graphs' % data_type)
-    maxfreq = n.max()
+    plt.title('Distribution of edge weights in %s graphs' % data_name)
+    max_freq = n.max()
     # Set a clean upper y-axis limit.
-    plt.ylim(top=np.ceil(maxfreq / 10) * 10 if maxfreq % 10 else maxfreq + 10)
-    plt.savefig(os.path.join(gat_model_stats, 'edge_weight_distrib_%s.pdf' % data_type))
+    plt.ylim(top=np.ceil(max_freq / 10) * 10 if max_freq % 10 else max_freq + 10)
+    plt.savefig(os.path.join(gat_model_stats, 'edge_weight_distrib_%s.pdf' % data_name))
     plt.show()
 
 
@@ -128,7 +148,6 @@ def plot_pers_scores_distribution():
 
 
 def plot_error_ncv(hyper_param, model_name):
-    sns.set(style="whitegrid")
     if model_name == 'GAT':
         model_type = HyperparametersGAT
     else:
@@ -138,8 +157,11 @@ def plot_error_ncv(hyper_param, model_name):
     # retrieve the inner losses per specific value of the hyper-parameters to be plotted
     # losses is now a dict with levels: hyper_value -> out_split -> model -> inner_split -> trait_test_loss
     for hyper_value in hyper_values:
-        losses[hyper_value], _ = model_type.inner_losses(
-            filter_by_params={hyper_param: hyper_value, 'name': model_name})
+        if model_name == 'GAT':
+            losses[hyper_value], _ = inner_losses_gat(filter_by_params={hyper_param: hyper_value})
+        else:
+            losses[hyper_value], _ = inner_losses_baseline(baseline_name=model_name,
+                                                           filter_by_params={hyper_param: hyper_value})
 
     # use the eval loss on entire trait space: need to average the scores obtained for each individual trait
     for hyper_value, out_split_dict in losses.items():
@@ -150,7 +172,6 @@ def plot_error_ncv(hyper_param, model_name):
 
     # for hyper-parameters that are not floats/ints, create a mapping to consecutive int values
     map_hyper_values = dict(zip(hyper_values, range(len(hyper_values))))
-
     # iterate the data and accumulate mean's and sdev's for each out_split x hyparam_value combination
     colours = ['b', 'r', 'c', 'm', 'y']
     nb_choices = len(hyper_values)
@@ -177,7 +198,6 @@ def plot_error_ncv(hyper_param, model_name):
                 bar.set_alpha(1.0)
             for cap in caps:
                 cap.set_alpha(1.0)
-
     for j, colour in enumerate(colours):
         plt.plot([map_hyper_values[hyper_value] for hyper_value in hyper_values], np.transpose(avg_median)[j],
                  color=colour, alpha=0.75,
@@ -187,7 +207,7 @@ def plot_error_ncv(hyper_param, model_name):
     plt.plot([map_hyper_values[hyper_value] for hyper_value in hyper_values], avg_median, color='red', linewidth=3)
     ticks = hyper_values
     if callable(hyper_values[0]):
-        ticks = list(map(lambda x: x.__name__.split('_')[0], hyper_values))
+        ticks = list(map(lambda x: x.__name__.split('_')[1], hyper_values))
     plt.xticks(sorted(list(map_hyper_values.values())), ticks, fontsize=10)
     plt.legend(loc='upper center', frameon=True, bbox_to_anchor=(0.0, 0.0, 0.5, 1.0))
     plt.ylabel('Evaluation Loss', fontsize=12)
@@ -198,21 +218,20 @@ def plot_error_ncv(hyper_param, model_name):
 
 def plot_comparison():
     sns.set(style="whitegrid")
-    out_losses = outer_evaluation()
     sampled_hyper = HyperparametersGAT.get_sampled_models()
     out_eval_folds = np.array(sorted(list(range(HyperparametersGAT().params['k_outer']))))
     data_sets = sampled_hyper['load_specific_data']
     # each till visual paramaeters
-    colors = ['r', 'g', 'b']
-    relative_width = [-0.1, 0.0, 0.1]
-    model_type = ['GAT', 'RVM', 'SVR']
+    colors = ['r', 'g', 'b', 'm']
+    relative_width = [-0.2, -0.1, 0.0, 0.1]
+    model_type = ['LR', 'RVM', 'SVR', 'GAT']
     for data_set in data_sets:
         labels = set([])
         for color, width, model in zip(colors, relative_width, model_type):
+            out_losses = outer_evaluation(model)
             best_fold_loss = np.zeros(len(out_eval_folds))
             for trait in HyperparametersGAT().params['pers_traits_selection']:
-                for i, eval_fold in enumerate(out_eval_folds):
-                    best_fold_loss[i] += out_losses[model][data_set][eval_fold][trait]
+                best_fold_loss += out_losses[model][data_set][trait]
             best_fold_loss /= 5
             # don't include an label for an error bar more than once
             label = None
@@ -222,7 +241,7 @@ def plot_comparison():
             plt.bar(out_eval_folds + width, best_fold_loss, width=0.1, label=label, color=color, align='center')
         plt.legend(loc='upper right', frameon=True)
         plt.xticks(out_eval_folds, list(map(lambda x: 'fold #%d' % x, out_eval_folds)))
-        plt.ylim(0, 55)
+        plt.ylim(30, 52.5)
         plt.ylabel('MSE Loss', fontsize=12)
         plt.xlabel('Outer fold', fontsize=12)
         plt.savefig(os.path.join(gat_model_stats, 'comparison_%s.pdf' % data_set.__name__.split('_')[1]))
@@ -233,11 +252,12 @@ def plot_residuals(model_type, out_fold, data_set) -> None:
     sns.set(style="whitegrid")
     colours = ['b', 'r', 'c', 'm', 'y']
     for trait, color in zip(model_type().params['pers_traits_selection'], colours):
-        best_gat = get_best_models(HyperparametersGAT, model_name='GAT', data_set=data_set, trait=trait)
+        best_gat = get_best_models(model_name='GAT', data_set=data_set, trait=trait)
         config, _ = best_gat[out_fold]
         # set the configuration object for the outer evaluation of the best inner model
         config.params['nested_CV_level'] = 'outer'
         config.params['eval_fold_out'] = out_fold
+        config.params['eval_fold_in'] = 0
         results = config.get_results()['predictions']
         true_score, predicted_score = map(lambda x: np.array(x), zip(*results[trait]))
         ax = sns.residplot(true_score, predicted_score, lowess=True, color=color, scatter_kws={'s': 20})
@@ -249,4 +269,3 @@ def plot_residuals(model_type, out_fold, data_set) -> None:
 
 if __name__ == "__main__":
     plot_comparison()
-    plot_residuals(HyperparametersGAT, 4, load_struct_data)

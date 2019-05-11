@@ -5,8 +5,7 @@ from gat_impl.TensorflowGraphGAT import *
 from keras.optimizers import Adam
 from keras.callbacks import Callback, EarlyStopping
 from keras.backend import clear_session
-from sklearn.metrics import mean_squared_error, r2_score
-from scipy.stats import pearsonr
+from sklearn.metrics import mean_squared_error
 
 
 class GATModel(TensorflowGraphGAT):
@@ -25,10 +24,6 @@ class GATModel(TensorflowGraphGAT):
         self.params = self.config.params
         # Print the model details
         self.config.print_model_details()
-        # Data loading fields
-        self.data = None
-        self.N = 0
-        self.F = 0
         # Wrapped Keras GAT model and its status flags
         self.model = None
         self.is_built = False
@@ -103,14 +98,21 @@ class GATModel(TensorflowGraphGAT):
             '''
             return self._data
 
-    def build(self):
+    def build(self, features_shape: tuple):
         '''
          Build the GAT architecture and instantiates the optimizer for it.
         :return: void
         '''
+        # Allocate as much memory as needed and at most a pre-decided fraction of the GPU total memory
+        tensorflow_config = tf.ConfigProto()
+        tensorflow_config.gpu_options.allow_growth = True
+        tensorflow_config.gpu_options.per_process_gpu_memory_fraction = 0.5
+        # Create a session with the particular options.
+        K.set_session(tf.Session(config=tensorflow_config))
+
         # input tensors dimensionality
-        feed_data = {'dim_nodes': self.N,
-                     'dim_feats': self.F}
+        feed_data = {'dim_nodes': features_shape[0],
+                     'dim_feats': features_shape[1]}
         # parameters and inputs for building the Keras model
         inference_args = {**feed_data, **self.params}
 
@@ -131,18 +133,16 @@ class GATModel(TensorflowGraphGAT):
         :return:
         '''
         # load the data as building the model requires the graph order and node features dimensions beforehand
-        tr_feats = training_data['ftr_in']
-        tr_adjs = training_data['adj_in']
-        tr_biases = training_data['bias_in']
+        tr_feats, tr_adjs, tr_biases = training_data['ftr_in'], training_data['adj_in'], training_data['bias_in']
         tr_scores = training_data['score_in']
 
         # the graph order of example graphs
-        self.N = tr_adjs.shape[-1]
+        N = tr_adjs.shape[-1]
         # the initial node features dimension
-        self.F = tr_feats.shape[-1]
+        F = tr_feats.shape[-1]
         # build the architecture
         if not self.is_built:
-            self.build()
+            self.build(features_shape=(N, F))
 
         # if the model is already trained and its parameters saved on disk, load them into the skeleton
         if os.path.exists(self.config.checkpoint_file()):
@@ -171,7 +171,7 @@ class GATModel(TensorflowGraphGAT):
                                  steps_per_epoch=None,
                                  validation_steps=None)
         # save the model weights after training
-        self.model.save_weights(self.config.checkpoint_file())
+        # self.model.save_weights(self.config.checkpoint_file())
         # save the training history, early stopping logs along with the hyper-parameters configuration
         with open(self.config.logs_file(), 'wb') as logs_binary:
             pickle.dump({'history': history.history,
@@ -194,12 +194,8 @@ class GATModel(TensorflowGraphGAT):
         with open(self.config.results_file(), 'wb') as results_binary:
             results = {'predictions': {},
                        'test_loss': {},
-                       'r2_score': {},
-                       'pearson': {},
                        'params': self.config.params}
             for index, pers_trait in enumerate(self.config.params['pers_traits_selection']):
-                results['r2_score'][pers_trait] = r2_score(ts_scores[index], predictions[index])
-                results['pearson'][pers_trait] = pearsonr(ts_scores[index], predictions[index])
                 results['predictions'][pers_trait] = list(zip(ts_scores[index], predictions[index]))
                 results['test_loss'][pers_trait] = mean_squared_error(y_true=ts_scores[index],
                                                                       y_pred=predictions[index])
@@ -216,10 +212,7 @@ class GATModel(TensorflowGraphGAT):
         if not self.is_trained:
             print('The GAT model %s was not trained yet' % self.config)
             return
-
-        ts_feats = test_data['ftr_in']
-        ts_adjs = test_data['adj_in']
-        ts_biases = test_data['bias_in']
+        ts_feats, ts_adjs, ts_biases = test_data['ftr_in'], test_data['adj_in'], test_data['bias_in']
         ts_scores = test_data['score_in']
         ts_size = len(ts_feats)
         print('The size of the evaluation set is %d' % ts_size)
