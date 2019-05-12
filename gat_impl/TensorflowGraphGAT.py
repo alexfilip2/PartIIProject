@@ -1,9 +1,9 @@
 from gat_impl.KerasAttentionHead import *
-import numpy as np
-from keras.activations import linear
-from keras.layers import Input, Lambda, Dense
-from keras.models import Model
 from utils.ToolsDataProcessing import adj_to_bias
+from keras.models import Model
+from keras.layers import Input, Lambda, Dense
+from keras.activations import linear
+import numpy as np
 
 
 class TensorflowGraphGAT(object):
@@ -21,8 +21,9 @@ class TensorflowGraphGAT(object):
             return K.sum(layer, axis=1)
 
         in_mlp = Lambda(function=reduce_sum)(model_gat_output)
-
+        # fed the result into MLP layer with separate weights for each personality score
         out_avg = Dense(units=kwargs['target_score_type'],
+                        kernel_initializer=initializers.glorot_normal(),
                         kernel_regularizer=regularizers.l2(kwargs['decay_rate']),
                         use_bias=True)(in_mlp)
 
@@ -45,8 +46,8 @@ class TensorflowGraphGAT(object):
             return tf.reshape(layer, [-1, concat_axis])
 
         in_mlp = Lambda(function=concat)(model_gat_output)
-        # fed the result into MLP layer with separate weights for each personality score
         out_concat = Dense(units=kwargs['target_score_type'],
+                           kernel_initializer=initializers.glorot_normal(),
                            kernel_regularizer=regularizers.l2(kwargs['decay_rate']),
                            use_bias=True)(in_mlp)
         return out_concat
@@ -100,6 +101,7 @@ class TensorflowGraphGAT(object):
         in_mlp = Lambda(function=extract_master_feats)(master_layer)
         # attach the last layer as a MLP
         out_master = Dense(units=kwargs['target_score_type'],
+                           kernel_initializer=initializers.glorot_normal(),
                            kernel_regularizer=regularizers.l2(kwargs['decay_rate']),
                            use_bias=True)(in_mlp)
 
@@ -153,13 +155,12 @@ class TensorflowGraphGAT(object):
             layer_args.update({'F_': mutable_hu[i], 'attn_heads': mutable_ah[i]})
             i_th_layer = GATLayer(**layer_args)(inputs=[prev_out, batch_adj_mats, batch_bias_mats])
             prev_out = i_th_layer
-            # accumulate the regularization losses
 
         # Output GAT layer
         layer_args.update({'F_': mutable_hu[-1], 'attn_heads': mutable_ah[-1]})
         last_layer = GATLayer(**layer_args)(inputs=[prev_out, batch_adj_mats, batch_bias_mats])
 
-        # aggregate all the output node features using the specified strategy
+        # aggregate all the output node features using the specified readout
         gat_output = readout_aggregator(model_gat_output=last_layer,
                                         master_heads=master_heads,
                                         master_feats=master_feats,

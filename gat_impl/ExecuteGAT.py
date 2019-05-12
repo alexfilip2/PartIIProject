@@ -1,11 +1,11 @@
-import time
-import pickle
-import os
 from gat_impl.TensorflowGraphGAT import *
 from keras.optimizers import Adam
 from keras.callbacks import Callback, EarlyStopping
 from keras.backend import clear_session
 from sklearn.metrics import mean_squared_error
+import time
+import pickle
+import os
 
 
 class GATModel(TensorflowGraphGAT):
@@ -13,23 +13,22 @@ class GATModel(TensorflowGraphGAT):
     def __init__(self, config):
         '''
          Initialize the GAT model object
-        :param config: the hyper-parameter configuration for the model as a HyperparametersGAT object
+        :param config: hyperparameters configuration object for the model
         '''
-        # Load the GAT architecture configuration object of the current model
+        # load the GAT architecture configuration object of the current model
         if config is None:
             raise TypeError('No GAT configuration object specified')
         else:
             self.config = config
-        # Load the hyper-parameter configuration of the current model
+        # load the hyper-parameter configuration of the current model
         self.params = self.config.params
         # Print the model details
         self.config.print_model_details()
-        # Wrapped Keras GAT model and its status flags
+        # wrapped Keras GAT model and its status flags
         self.model = None
         self.is_built = False
         self.is_trained = False
 
-    # custom early-stopping class implementing the PQ stopping criterion
     class CustomEarlyStopping(Callback):
         def __init__(self, k_strip_epochs, pq_threshold, train_prog_threshold, **kwargs):
             '''
@@ -100,7 +99,7 @@ class GATModel(TensorflowGraphGAT):
 
     def build(self, features_shape: tuple):
         '''
-         Build the GAT architecture and instantiates the optimizer for it.
+         Build the GAT architecture and define the optimizer.
         :return: void
         '''
         # Allocate as much memory as needed and at most a pre-decided fraction of the GPU total memory
@@ -149,12 +148,12 @@ class GATModel(TensorflowGraphGAT):
             self.model.load_weights(self.config.checkpoint_file())
             self.is_trained = True
             return
-        # report the size in example number of the datasets used in training
+        # report the number training examples
         print('The training size is %d for the GAT model %s' % (len(tr_feats), self.config))
 
         # define the custom early stopping callback
         custom_early_stop = self.CustomEarlyStopping(**self.params)
-        es = EarlyStopping(monitor='val_loss', patience=10)
+        es = EarlyStopping(monitor='val_loss', patience=5)
         # fit the Keras model with the provided data
         history = self.model.fit(x=[tr_feats, tr_adjs, tr_biases],
                                  y=tr_scores,
@@ -171,7 +170,7 @@ class GATModel(TensorflowGraphGAT):
                                  steps_per_epoch=None,
                                  validation_steps=None)
         # save the model weights after training
-        # self.model.save_weights(self.config.checkpoint_file())
+        self.model.save_weights(self.config.checkpoint_file())
         # save the training history, early stopping logs along with the hyper-parameters configuration
         with open(self.config.logs_file(), 'wb') as logs_binary:
             pickle.dump({'history': history.history,
@@ -182,9 +181,9 @@ class GATModel(TensorflowGraphGAT):
     def save_results(self, predicted, observed):
         '''
          Save the results of the evaluation of the model: predictions and real scores, the loss on predicting each
-         individual trait, the pearson and r-squared coefficients between the observations and predictions
-        :param predicted: array of predictions for each testing graph
-        :param observed: array of true scores for each testing graph
+         individual trait along with the hyperparameters used
+        :param predicted: array of predictions
+        :param observed: array of true scores
         :return: dict of these result values
         '''
         # stack the results per trait
@@ -221,7 +220,7 @@ class GATModel(TensorflowGraphGAT):
                                          batch_size=ts_size,
                                          verbose=0,
                                          steps=None)
-        # clear the memory of this GAT model
+        # clear the memory of the Keras model
         self.delete()
         # calculate the MSE for individual traits even if they were predicted all at once
         return self.save_results(predicted=predictions, observed=ts_scores)
