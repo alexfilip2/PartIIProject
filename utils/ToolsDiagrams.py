@@ -11,6 +11,7 @@ from utils.ToolsDataProcessing import *
 import math
 import pandas as pd
 import pickle as pkl
+import pprint
 
 sns.set(style="whitegrid")
 # Diagrams directory
@@ -84,7 +85,7 @@ def plot_edge_weight_distribution(log_scale=10, data_name='structural'):
     elif data_name == 'functional':
         adjacency_loader = get_functional_adjacency
     else:
-        return
+        raise ValueError('Possible datasets: {structural,functional}, not %s' % data_name)
 
     # log-scale values of the weights, excluding the 0 edges
     dict_adj = adjacency_loader()
@@ -148,14 +149,10 @@ def plot_pers_scores_distribution():
 
 
 def plot_error_ncv(hyper_param, model_name):
-    if model_name == 'GAT':
-        model_type = HyperparametersGAT
-    else:
-        model_type = HyperparametersBaselines
+    model_type = HyperparametersGAT if model_name == 'GAT' else HyperparametersBaselines
     hyper_values = model_type.get_sampled_models(baseline_name=model_name)[hyper_param]
     losses = {}
     # retrieve the inner losses per specific value of the hyper-parameters to be plotted
-    # losses is now a dict with levels: hyper_value -> out_split -> model -> inner_split -> trait_test_loss
     for hyper_value in hyper_values:
         if model_name == 'GAT':
             losses[hyper_value], _ = inner_losses_gat(filter_by_params={hyper_param: hyper_value})
@@ -175,7 +172,7 @@ def plot_error_ncv(hyper_param, model_name):
     # iterate the data and accumulate mean's and sdev's for each out_split x hyparam_value combination
     colours = ['b', 'r', 'c', 'm', 'y']
     nb_choices = len(hyper_values)
-    nb_out_splits = len(list(losses[list(losses.keys())[0]].keys()))
+    nb_out_splits = HyperparametersGAT().params['k_outer']
     avg_median = np.zeros((nb_choices, nb_out_splits))
     labels = set([])
     for i, hyper_value in enumerate(hyper_values):
@@ -187,7 +184,7 @@ def plot_error_ncv(hyper_param, model_name):
             y = np.mean(avg_loss_models)
             yerr = np.std(avg_loss_models)
             avg_median[i][j] = y
-            # don't include an label for an error bar more than once
+            # don't include a label for an error bar more than once
             label = None
             if out_split not in labels:
                 labels.add(out_split)
@@ -198,10 +195,9 @@ def plot_error_ncv(hyper_param, model_name):
                 bar.set_alpha(1.0)
             for cap in caps:
                 cap.set_alpha(1.0)
-    for j, colour in enumerate(colours):
-        plt.plot([map_hyper_values[hyper_value] for hyper_value in hyper_values], np.transpose(avg_median)[j],
-                 color=colour, alpha=0.75,
-                 linewidth=1)
+    for i, colour in enumerate(colours):
+        plt.plot([map_hyper_values[hyper_value] for hyper_value in hyper_values], np.transpose(avg_median)[i],
+                 color=colour, alpha=0.75, linewidth=1)
     # Adding legend to the plot
     avg_median = np.mean(avg_median, axis=-1)
     plt.plot([map_hyper_values[hyper_value] for hyper_value in hyper_values], avg_median, color='red', linewidth=3)
@@ -211,7 +207,7 @@ def plot_error_ncv(hyper_param, model_name):
     plt.xticks(sorted(list(map_hyper_values.values())), ticks, fontsize=10)
     plt.legend(loc='upper center', frameon=True, bbox_to_anchor=(0.0, 0.0, 0.5, 1.0))
     plt.ylabel('Evaluation Loss', fontsize=12)
-    plt.xlabel('Hyperparemeter Value', fontsize=12)
+    plt.xlabel('Hyperparameter Value', fontsize=12)
     plt.savefig(os.path.join(gat_model_stats, 'error_bars_%s_%s.pdf' % (hyper_param, model_name)))
     plt.show()
 
@@ -221,7 +217,7 @@ def plot_comparison():
     sampled_hyper = HyperparametersGAT.get_sampled_models()
     out_eval_folds = np.array(sorted(list(range(HyperparametersGAT().params['k_outer']))))
     data_sets = sampled_hyper['load_specific_data']
-    # each till visual paramaeters
+    # each till visual parameters
     colors = ['r', 'g', 'b', 'm']
     relative_width = [-0.2, -0.1, 0.0, 0.1]
     model_type = ['LR', 'RVM', 'SVR', 'GAT']
@@ -268,7 +264,4 @@ def plot_residuals_gat(out_fold, data_set) -> None:
 
 
 if __name__ == "__main__":
-    plot_residuals_gat(out_fold=4, data_set=load_struct_data)
     plot_comparison()
-    plot_error_ncv(hyper_param='learning_rate', model_name='GAT')
-    plot_pers_scores_distribution()

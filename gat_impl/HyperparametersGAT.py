@@ -27,7 +27,7 @@ class HyperparametersGAT(object):
         self.params = {
             # architecture hyper-parameters
             'name': 'GAT',
-            'hidden_units': [30, 30, 10],
+            'hidden_units': [30, 20, 15],
             'attention_heads': [3, 3, 2],
             'include_ew': False,
             'readout_aggregator': GATModel.master_node_aggregator,

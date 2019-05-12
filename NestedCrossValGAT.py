@@ -44,6 +44,8 @@ def evaluate_gat(config: HyperparametersGAT) -> dict:
     results = config.get_results()
     if results:
         return results
+    else:
+        print('Evaluating the GAT model %s...' % config)
     tr_data, ts_data = generate_splits_gat(gat_config=config, data=config.load_data())
     model = GATModel(config=config)
     model.fit(training_data=tr_data)
@@ -61,7 +63,7 @@ def inner_nested_cv_gat():
     for eval_out in range(HyperparametersGAT().params['k_outer']):
         inner_results[eval_out] = {}
         for hyper_params in grid:
-            # update the architecture hyperparameters
+            # update the architecture hyper-parameters
             hyper_params['attention_heads'], hyper_params['hidden_units'] = hyper_params['arch_width']
             for eval_in in range(HyperparametersGAT().params['k_inner']):
                 gat_model_config = HyperparametersGAT(hyper_params)
@@ -106,6 +108,7 @@ def inner_losses_gat(filter_by_params: dict = {}):
 
 
 if __name__ == "__main__":
+    evaluate_gat(HyperparametersGAT())
     inner_nested_cv_gat()
     pprint.pprint(inner_losses_gat({'learning_rate': 0.0005,
                                     'attn_drop': 0.4,
